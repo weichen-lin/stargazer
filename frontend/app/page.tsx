@@ -17,10 +17,16 @@ export default function Home() {
             <div className='text-gray-700 text-4xl'>StarGazer</div>
           </div>
           <div className='flex justify-between items-center flex-col md:flex-row'>
-            <div className='text-gray-700 text-2xl md:text-5xl'>Start Managing Your Stars Today.</div>
+            <div className='flex flex-col gap-y-8'>
+              <div className='text-gray-700 text-2xl md:text-4xl'>Start Managing Your Stars Today.</div>
+              <div className='text-gray-700 text-md md:text-lg'>
+                AI is reshaping Star Management beyond Github Stars. Explore limitless potential in AI-driven star
+                management – just the start!
+              </div>
+            </div>
             <Image src='/home.png' width={400} height={400} className='' alt='home pic' />
           </div>
-          <div className='w-[320px] mx-auto flex gap-x-4 items-center'>
+          <div className='w-[320px] mx-auto flex gap-x-4 items-center md:my-36'>
             <Input
               key='username'
               type='text'

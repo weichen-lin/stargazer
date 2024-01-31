@@ -1,11 +1,13 @@
 import type { Metadata } from 'next'
-import { Roboto } from 'next/font/google'
+import { Gabarito } from 'next/font/google'
 
 import './globals.css'
 
-const roboto = Roboto({
+const gabarito = Gabarito({
   weight: '400',
   subsets: ['latin'],
+  display: 'swap',
+  adjustFontFallback: false,
 })
 
 export const metadata: Metadata = {
@@ -20,7 +22,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang='en'>
-      <body className={roboto.className}>{children}</body>
+      <body className={gabarito.className}>{children}</body>
     </html>
   )
 }

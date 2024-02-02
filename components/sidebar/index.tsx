@@ -4,7 +4,6 @@ import { motion } from 'framer-motion'
 import { Star, Chat, Wrench } from '@phosphor-icons/react'
 import clsx from 'clsx'
 import Link from 'next/link'
-import { Avatar } from '@nextui-org/react'
 import Image from 'next/image'
 
 const Bars = [

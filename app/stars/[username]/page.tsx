@@ -12,7 +12,7 @@ export default async function Home({ params }: { params: UserNamePage }) {
   const prisma = new PrismaClient()
 
   return (
-    <div className='w-full h-full p-12 overflow-hidden'>
+    <div className='w-full h-full p-12'>
       <Stars />
     </div>
   )

@@ -3,18 +3,23 @@
 import { ArrangeSetting } from '@/components/tab'
 import { useArrangement } from '@/hooks/stars'
 import { GridRepo } from '@/components/repo'
+import { motion } from 'framer-motion'
 
 export default function Stars() {
   const { arrangement, toggleArrangement } = useArrangement()
 
   return (
-    <div className='flex flex-col gap-y-24'>
+    <div className='flex flex-col gap-y-12 w-full'>
       <div className='flex items-center justify-between w-full'>
-        <h1 className='text-4xl font-semibold'>My Stars</h1>
+        <motion.h1 initial={{ x: 80 }} animate={{ x: 0 }} className='text-4xl font-semibold'>
+          My Stars
+        </motion.h1>
         <ArrangeSetting arrangement={arrangement} toggle={toggleArrangement} />
       </div>
-      <div>
-        <GridRepo {...githubStar} />
+      <div className='w-full flex flex-wrap gap-8 flex-1 pb-4 items-center justify-start'>
+        {Array.from({ length: 10 }).map((_, i) => (
+          <GridRepo key={i} {...githubStar} index={i} />
+        ))}
       </div>
     </div>
   )

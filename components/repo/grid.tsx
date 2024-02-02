@@ -1,36 +1,54 @@
 import Image from 'next/image'
 import LanguageMap from './color'
 import { Star, GithubLogo } from '@phosphor-icons/react'
+import { motion } from 'framer-motion'
+import clsx from 'clsx'
+import Tilt from 'react-parallax-tilt'
 
-export default function GridRepo(props: typeof githubStar) {
+const config = {
+  scale: 1.05,
+  tiltMaxAngleX: 8,
+  tiltMaxAngleY: 8,
+  perspective: 1400,
+  glareEnable: true,
+  glareMaxOpacity: 0.1,
+}
+
+export default function GridRepo(props: typeof githubStar & { index: number }) {
   const [owner, repo] = props.full_name.split('/')
-  const { stargazers_count, language, description } = props
+  const { stargazers_count, language, description, index } = props
   return (
-    <div className='shadow-md bg-white w-[420px] p-6 flex flex-col rounded-md'>
-      <div className='flex flex-col justify-between'>
-        <div className='flex gap-y-4 justify-between items-center w-full'>
-          <div className='flex flex-col'>
-            <span className='text-md'>{owner}/</span>
-            <span className='font-semibold text-2xl'>{repo}</span>
+    <Tilt {...config}>
+      <motion.div
+        initial={{ opacity: 0, y: -100 }}
+        animate={{ opacity: 1, y: 0, transition: { delay: index * 0.05 } }}
+        className={clsx('shadow-md bg-white w-[420px] p-6 flex flex-col rounded-md cursor-pointer')}
+      >
+        <div className='flex flex-col justify-between'>
+          <div className='flex gap-y-4 justify-between items-center w-full'>
+            <div className='flex flex-col'>
+              <span className='text-md'>{owner}/</span>
+              <span className='font-semibold text-2xl'>{repo}</span>
+            </div>
+            <div>
+              <Image
+                src={githubStar.owner.avatar_url}
+                alt={githubStar.full_name}
+                width={80}
+                height={80}
+                className='rounded-full'
+              />
+            </div>
           </div>
-          <div>
-            <Image
-              src={githubStar.owner.avatar_url}
-              alt={githubStar.full_name}
-              width={80}
-              height={80}
-              className='rounded-full'
-            />
+          <div className='text-slate-500/75 w-[calc(100%-80px)] h-28 overflow-y-auto'>{description}</div>
+          <div className='flex gap-x-8 justify-start w-full items-center'>
+            <Language language={language} />
+            <Stars count={stargazers_count} />
+            <GithubLogo size={18} />
           </div>
         </div>
-        <div className='text-slate-500/75 w-[calc(100%-80px)] h-28 overflow-y-auto'>{description}</div>
-        <div className='flex gap-x-8 justify-start w-full items-center'>
-          <Language language={language} />
-          <Stars count={stargazers_count} />
-          <GithubLogo size={18} />
-        </div>
-      </div>
-    </div>
+      </motion.div>
+    </Tilt>
   )
 }
 

@@ -18,7 +18,7 @@ export default async function HomeLayout(props: { username: string; children: Re
         <Sidebar path={path} username={username} />
         <div className=''></div>
       </div>
-      <div className='flex-1'>{children}</div>
+      <div className='flex-1 h-full overflow-y-auto'>{children}</div>
     </div>
   )
 }

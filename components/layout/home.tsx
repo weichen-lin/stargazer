@@ -5,8 +5,8 @@ export default async function HomeLayout(props: { username: string; children: Re
   const { username, path, children } = props
   return (
     <div className='bg-[#f2f0e8] h-screen w-screen flex'>
-      <div className='pl-4 flex flex-col gap-y-8'>
-        <div className='py-6 w-[240px] flex items-center justify-center border-b-[1px] border-slate-500/10'>
+      <div className='pl-4 flex flex-col gap-y-8 w-[240px]'>
+        <div className='py-6 w-full flex items-center justify-center border-b-[1px] border-slate-500/10'>
           <Image
             src='/icon.png'
             alt='Logo'
@@ -16,8 +16,9 @@ export default async function HomeLayout(props: { username: string; children: Re
           />
         </div>
         <Sidebar path={path} username={username} />
+        <div className=''></div>
       </div>
-      <div>{children}</div>
+      <div className='flex-1'>{children}</div>
     </div>
   )
 }

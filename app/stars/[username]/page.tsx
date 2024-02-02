@@ -1,6 +1,7 @@
 'use server'
 
 import { PrismaClient, User } from '@prisma/client'
+import Stars from '@/pages/stars'
 
 interface UserNamePage {
   username: string
@@ -9,13 +10,10 @@ interface UserNamePage {
 export default async function Home({ params }: { params: UserNamePage }) {
   const { username } = params
   const prisma = new PrismaClient()
-  const users = await prisma.user.findMany()
 
   return (
-    <div className=''>
-      {users.map((e: User) => {
-        return <div key={e.id}>{e.name}</div>
-      })}
+    <div className='w-full h-full p-12 overflow-hidden'>
+      <Stars />
     </div>
   )
 }

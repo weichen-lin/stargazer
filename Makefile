@@ -7,6 +7,4 @@ run-postgres:
 	-e POSTGRES_DB=mydb \
 	-e POSTGRES_USER=johndoe \
 	-e POSTGRES_PASSWORD=randompassword \
-	postgres:13-alpine &&\
-	npx prisma migrate dev --name init &&\
-	npx prisma generate
+	postgres:13-alpine

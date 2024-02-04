@@ -2,7 +2,7 @@
 
 import { ArrangeSetting } from '@/components/tab'
 import { useArrangement } from '@/hooks/stars'
-import { GridRepo } from '@/components/repo'
+import { GridRepo, ListRepo } from '@/components/repo'
 import { motion } from 'framer-motion'
 
 export default function Stars() {
@@ -16,11 +16,19 @@ export default function Stars() {
         </motion.h1>
         <ArrangeSetting arrangement={arrangement} toggle={toggleArrangement} />
       </div>
-      <div className='w-full flex flex-wrap gap-8 flex-1 pb-4 items-center justify-start'>
-        {Array.from({ length: 10 }).map((_, i) => (
-          <GridRepo key={i} {...githubStar} index={i} />
-        ))}
-      </div>
+      {arrangement === 'grid' ? (
+        <div className='w-full flex flex-wrap gap-8 flex-1 pb-4 items-center justify-start'>
+          {Array.from({ length: 5 }).map((_, i) => (
+            <GridRepo key={i} {...githubStar} index={i} />
+          ))}
+        </div>
+      ) : (
+        <div className='w-full flex flex-wrap gap-4 flex-1 pb-4 items-center justify-start'>
+          {Array.from({ length: 5 }).map((_, i) => (
+            <ListRepo key={i} {...githubStar} index={i} />
+          ))}
+        </div>
+      )}
     </div>
   )
 }

@@ -16,7 +16,7 @@ const config = {
 
 export default function GridRepo(props: typeof githubStar & { index: number }) {
   const [owner, repo] = props.full_name.split('/')
-  const { stargazers_count, language, description, index } = props
+  const { stargazers_count, language, description, index, html_url } = props
   return (
     <Tilt {...config}>
       <motion.div
@@ -44,7 +44,9 @@ export default function GridRepo(props: typeof githubStar & { index: number }) {
           <div className='flex gap-x-8 justify-start w-full items-center'>
             <Language language={language} />
             <Stars count={stargazers_count} />
-            <GithubLogo size={18} />
+            <a className='p-2 rounded-full hover:bg-slate-300/30' href={html_url} target='_blank'>
+              <GithubLogo size={18} />
+            </a>
           </div>
         </div>
       </motion.div>
@@ -85,7 +87,6 @@ const githubStar = {
   html_url: 'https://github.com/firecracker-microvm/firecracker',
   description: 'Secure and fast microVMs for serverless computing.',
   updated_at: '2024-02-02T04:50:52Z',
-  homepage: 'http://firecracker-microvm.io',
   stargazers_count: 23457,
   language: 'Rust',
 }

@@ -31,7 +31,7 @@ func GetUserStarredRepos() ([]byte, error) {
 		return nil, err
 	}
 
-	req.Header.Set("Authorization", "token "+"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")
+	req.Header.Set("Authorization", "token "+"")
 
 	client := &http.Client{}
 	resp, err := client.Do(req)

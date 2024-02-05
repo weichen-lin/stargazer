@@ -2,7 +2,6 @@ package neo4j_kafka
 
 import (
 	"context"
-	"errors"
 
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 	"github.com/weichen-lin/kafka-service/workflow"
@@ -19,6 +18,7 @@ func CreateUser(driver neo4j.DriverWithContext, user workflow.User) error {
 			user_id: $user_id,
 			name: $name,
 			token: $token,
+			is_sync: false,
 			createdAt: datetime(),
 			updatedAt: datetime()
 			});
@@ -36,15 +36,6 @@ func CreateUser(driver neo4j.DriverWithContext, user workflow.User) error {
 		return nil, result.Err()
 	})
 
-	if neoErr, ok := err.(*neo4j.Neo4jError); ok {
-		switch neoErr.Code {
-		case "Neo.ClientError.Schema.ConstraintValidationFailed":
-			return errors.New("User already exists")
-		default:
-			return err
-		}
-	} else {
-		return err
-	}
-
+	err = handleNeo4jError(err)
+	return err
 }

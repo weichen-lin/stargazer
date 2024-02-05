@@ -40,7 +40,7 @@ func main() {
 		}
 	}()
 
-	con, get_star_consumer, err := consumer.GetUserProfileConsumer()
+	con, get_star_consumer, _ := consumer.GetUserProfileConsumer()
 
 	defer func() {
 		if err := con.Close(); err != nil {

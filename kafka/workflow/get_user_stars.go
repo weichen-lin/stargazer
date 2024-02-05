@@ -24,9 +24,9 @@ type Repository struct {
 	DefaultBranch   string    `json:"default_branch"`
 }
 
-func GetUserStarredRepos() ([]byte, error) {
+func GetUserStarredRepos() ([]Repository, error) {
 
-	req, err := http.NewRequest("GET", "https://api.github.com/users/weichen-lin/starred", nil)
+	req, err := http.NewRequest("GET", "https://api.github.com/users/weichen-lin/starred?&page=2", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -39,6 +39,10 @@ func GetUserStarredRepos() ([]byte, error) {
 		return nil, err
 	}
 	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("error: %d", resp.StatusCode)
+	}
 
 	var repos []Repository
 
@@ -54,5 +58,5 @@ func GetUserStarredRepos() ([]byte, error) {
 
 	fmt.Println("Starred Repositories:", repos)
 
-	return body, nil
+	return repos, nil
 }

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"time"
 )
 
 type Owner struct {
@@ -13,15 +12,15 @@ type Owner struct {
 }
 
 type Repository struct {
-	ID              int       `json:"id"`
-	FullName        string    `json:"full_name"`
-	Owner           Owner     `json:"owner"`
-	HTMLURL         string    `json:"html_url"`
-	Description     string    `json:"description"`
-	UpdatedAt       time.Time `json:"updated_at"`
-	StargazersCount int       `json:"stargazers_count"`
-	Language        string    `json:"language"`
-	DefaultBranch   string    `json:"default_branch"`
+	ID              int    `json:"id"`
+	FullName        string `json:"full_name"`
+	Owner           Owner  `json:"owner"`
+	HTMLURL         string `json:"html_url"`
+	Description     string `json:"description"`
+	UpdatedAt       string `json:"updated_at"`
+	StargazersCount int    `json:"stargazers_count"`
+	Language        string `json:"language"`
+	DefaultBranch   string `json:"default_branch"`
 }
 
 func GetUserStarredRepos() ([]Repository, error) {

@@ -6,7 +6,6 @@ import (
 	"github.com/IBM/sarama"
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 	"github.com/weichen-lin/kafka-service/consumer"
-	"github.com/weichen-lin/kafka-service/neo4j_kafka"
 )
 
 func main() {
@@ -16,11 +15,6 @@ func main() {
 	)
 	if err != nil {
 		fmt.Println("Error creating driver:", err)
-		return
-	}
-
-	err = neo4j_kafka.InitializeConstraints(driver)
-	if err != nil {
 		return
 	}
 

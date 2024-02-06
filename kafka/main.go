@@ -35,6 +35,7 @@ func main() {
 	}()
 
 	con, get_star_consumer, _ := consumer.GetUserProfileConsumer()
+	_, get_repo_consumer, _ := consumer.GetGithubReposConsumer()
 
 	defer func() {
 		if err := con.Close(); err != nil {
@@ -43,6 +44,7 @@ func main() {
 	}()
 
 	go get_star_consumer(driver)
+	go get_repo_consumer(driver)
 
 	select {}
 }

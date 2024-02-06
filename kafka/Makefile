@@ -6,3 +6,5 @@ stop-kafka:
 
 format:
 	find $(PWD) -name "*.go" -exec gofmt -w {} \;
+
+# ./kafka-console-producer.sh --bootstrap-server your_kafka_broker:9092 --topic your_topic_name

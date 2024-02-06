@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 )
 
 type Owner struct {
@@ -23,14 +24,25 @@ type Repository struct {
 	DefaultBranch   string `json:"default_branch"`
 }
 
-func GetUserStarredRepos() ([]Repository, error) {
+type GetGithubReposInfo struct {
+	Username string `json:"username"`
+	Page     int    `json:"page"`
+}
 
-	req, err := http.NewRequest("GET", "https://api.github.com/users/weichen-lin/starred?&page=2", nil)
+func GetUserStarredRepos(info *GetGithubReposInfo) ([]Repository, error) {
+	token := os.Getenv("GITHUB_TOKEN")
+	if token == "" {
+		return nil, fmt.Errorf("GITHUB_TOKEN not set")
+	}
+
+	url := fmt.Sprintf("https://api.github.com/users/%s/starred?&page=%d", info.Username, info.Page)
+
+	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	req.Header.Set("Authorization", "token "+"")
+	req.Header.Set("Authorization", "token "+token)
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
@@ -54,8 +66,6 @@ func GetUserStarredRepos() ([]Repository, error) {
 	if err != nil {
 		fmt.Println("Error parsing JSON:", err)
 	}
-
-	fmt.Println("Starred Repositories:", repos)
 
 	return repos, nil
 }

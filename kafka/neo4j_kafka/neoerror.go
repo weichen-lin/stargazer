@@ -14,7 +14,7 @@ func handleNeo4jError(err error) error {
 	if neoErr, ok := err.(*neo4j.Neo4jError); ok {
 		switch neoErr.Code {
 		case "Neo.ClientError.Schema.ConstraintValidationFailed":
-			return errors.New("user already exists")
+			return errors.New("data already exists in the database")
 		case "Neo.ClientError.Schema.EquivalentSchemaRuleAlreadyExists":
 			return nil
 		default:

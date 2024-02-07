@@ -15,7 +15,7 @@ type User struct {
 }
 
 func GetUserInfo(name string) (*User, error) {
-	
+
 	token := os.Getenv("GITHUB_TOKEN")
 	if token == "" {
 		return nil, fmt.Errorf("GITHUB_TOKEN not set")

@@ -1,21 +1,24 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { Star, Chat, Wrench } from '@phosphor-icons/react'
 import clsx from 'clsx'
 import Link from 'next/link'
-import Image from 'next/image'
+import { StarIcon, ChatBubbleIcon, GearIcon } from '@radix-ui/react-icons'
+import MobileBar from './mobile'
+import DesktopBar from './desktop'
 
 const Bars = [
-  { name: 'My Stars', icon: <Star size={24} weight='light' />, path: 'stars' },
-  { name: 'Start Chat', icon: <Chat size={28} weight='light' />, path: 'chats' },
-  { name: 'Settings', icon: <Wrench size={28} weight='light' />, path: 'settings' },
+  { name: 'My Stars', icon: <StarIcon />, path: 'stars' },
+  { name: 'Start Chat', icon: <ChatBubbleIcon />, path: 'chats' },
+  { name: 'Settings', icon: <GearIcon />, path: 'settings' },
 ]
 
 interface SidebarProps {
   path: string
   username: string
 }
+
+export { MobileBar, DesktopBar }
 
 export default function Sidebar(props: SidebarProps) {
   const { path, username } = props

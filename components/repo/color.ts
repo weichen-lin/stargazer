@@ -197,6 +197,7 @@ const LanguageMap: { [key: string]: string } = {
   'AGS Script': '#B9D9FF',
   Dogescript: '#cca760',
   nesC: '#94B0C7',
+  Dockerfile: '#384d54',
 }
 
 export default LanguageMap

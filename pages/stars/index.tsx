@@ -1,48 +1,61 @@
 'use client'
 
-import { ArrangeSetting } from '@/components/tab'
 import { useArrangement } from '@/hooks/stars'
 import { GridRepo, ListRepo } from '@/components/repo'
-import { motion } from 'framer-motion'
+import clsx from 'clsx'
+import { MobileBar, DesktopBar } from '@/components/sidebar'
 
-export default function Stars() {
-  const { arrangement, toggleArrangement } = useArrangement()
-
-  return (
-    <div className='flex flex-col gap-y-12 w-full'>
-      <div className='flex items-center justify-between w-full'>
-        <motion.h1 initial={{ x: 80 }} animate={{ x: 0 }} className='text-4xl font-semibold'>
-          My Stars
-        </motion.h1>
-        <ArrangeSetting arrangement={arrangement} toggle={toggleArrangement} />
-      </div>
-      {arrangement === 'grid' ? (
-        <div className='w-full flex flex-wrap gap-8 flex-1 pb-4 items-center justify-start'>
-          {Array.from({ length: 5 }).map((_, i) => (
-            <GridRepo key={i} {...githubStar} index={i} />
-          ))}
-        </div>
-      ) : (
-        <div className='w-full flex flex-wrap gap-4 flex-1 pb-4 items-center justify-start'>
-          {Array.from({ length: 5 }).map((_, i) => (
-            <ListRepo key={i} {...githubStar} index={i} />
-          ))}
-        </div>
-      )}
-    </div>
-  )
+interface Star {
+  id: number
+  full_name: string
+  owner: {
+    avatar_url: string
+  }
+  html_url: string
+  description: string
+  homepage: string
+  stargazers_count: number
+  language: string
 }
 
-const githubStar = {
-  id: 107505869,
-  full_name: 'firecracker-microvm/firecracker',
-  owner: {
-    avatar_url: 'https://avatars.githubusercontent.com/u/44477506?v=4',
-  },
-  html_url: 'https://github.com/firecracker-microvm/firecracker',
-  description: 'Secure and fast microVMs for serverless computing.',
-  updated_at: '2024-02-02T04:50:52Z',
-  homepage: 'http://firecracker-microvm.io',
-  stargazers_count: 23457,
-  language: 'Rust',
+export default function Stars({
+  stars,
+  total,
+  current,
+  page,
+}: {
+  stars: Star[]
+  total: number
+  current: number
+  page: string
+}) {
+  const { arrangement, toggleArrangement } = useArrangement()
+  return (
+    <div className='flex flex-col gap-y-12 w-full mt-36 lg:mt-0 pb-8'>
+      <MobileBar
+        total={total}
+        current={current}
+        arrangement={arrangement}
+        toggleArrangement={toggleArrangement}
+        page={page}
+      />
+      <DesktopBar
+        total={total}
+        current={current}
+        arrangement={arrangement}
+        toggleArrangement={toggleArrangement}
+        page={page}
+      />
+      <div
+        className={clsx(
+          'w-full flex flex-col flex-wrap gap-4 flex-1 p-4 items-center md:items-start lg:p-8 lg:mt-16',
+          arrangement === 'grid' ? 'md:flex-row' : 'lg:justify-start',
+        )}
+      >
+        {stars?.map((e, i) =>
+          arrangement === 'grid' ? <GridRepo key={i} {...e} index={i} /> : <ListRepo key={i} {...e} index={i} />,
+        )}
+      </div>
+    </div>
+  )
 }

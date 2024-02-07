@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Gabarito } from 'next/font/google'
 import './globals.css'
+import ThemeProvider from '@/components/theme'
 
 const gabarito = Gabarito({
   weight: '400',
@@ -21,7 +22,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang='en'>
-      <body className={gabarito.className}>{children}</body>
+      <body className={gabarito.className}>
+        <ThemeProvider attribute='class' defaultTheme='system' enableSystem disableTransitionOnChange>
+          {children}
+        </ThemeProvider>
+      </body>
     </html>
   )
 }

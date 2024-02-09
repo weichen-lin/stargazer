@@ -3,12 +3,13 @@ package main
 import (
 	"fmt"
 
-	"github.com/IBM/sarama"
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 	"github.com/weichen-lin/kafka-service/consumer"
+	database "github.com/weichen-lin/kafka-service/db"
 )
 
 func main() {
+
 	driver, err := neo4j.NewDriverWithContext(
 		"",
 		neo4j.BasicAuth("neo4j", "", ""),
@@ -18,33 +19,19 @@ func main() {
 		return
 	}
 
-	config := sarama.NewConfig()
-	config.Producer.Return.Successes = true
-
-	brokers := []string{"localhost:9092"}
-
-	producer, err := sarama.NewSyncProducer(brokers, config)
+	pool, err := database.NewPostgresDB()
 	if err != nil {
-		fmt.Println("Error creating producer:", err)
+		fmt.Println("Error creating postgres connection:", err)
 		return
 	}
-	defer func() {
-		if err := producer.Close(); err != nil {
-			fmt.Println("Error closing producer:", err)
-		}
-	}()
 
-	con, get_star_consumer, _ := consumer.GetUserProfileConsumer()
-	_, get_repo_consumer, _ := consumer.GetGithubReposConsumer()
+	get_user_consumer, err := consumer.GetUserProfileConsumer()
+	get_repo_consumer, err := consumer.GetGithubReposConsumer()
+	get_info_consumer, err := consumer.GetGithubRepoInfoConsumer()
 
-	defer func() {
-		if err := con.Close(); err != nil {
-			fmt.Println("Error closing consumer:", err)
-		}
-	}()
-
-	go get_star_consumer(driver)
-	go get_repo_consumer(driver)
+	go get_user_consumer(driver)
+	go get_repo_consumer(driver, pool)
+	go get_info_consumer(pool)
 
 	select {}
 }

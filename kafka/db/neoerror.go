@@ -1,7 +1,7 @@
-package neo4j_kafka
+package database
 
 import (
-	"errors"
+	"fmt"
 
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 )
@@ -14,7 +14,8 @@ func handleNeo4jError(err error) error {
 	if neoErr, ok := err.(*neo4j.Neo4jError); ok {
 		switch neoErr.Code {
 		case "Neo.ClientError.Schema.ConstraintValidationFailed":
-			return errors.New("data already exists in the database")
+			fmt.Println("data is already exist")
+			return nil
 		case "Neo.ClientError.Schema.EquivalentSchemaRuleAlreadyExists":
 			return nil
 		default:

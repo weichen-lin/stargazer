@@ -1,4 +1,4 @@
-import fetcher from './conn'
+import Neo4jfetcher from './neo4j'
 
 export * from './cyphers'
-export default fetcher
+export { Neo4jfetcher }

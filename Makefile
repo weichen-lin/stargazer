@@ -7,7 +7,7 @@ run-postgres:
 	-e POSTGRES_DB=mydb \
 	-e POSTGRES_USER=johndoe \
 	-e POSTGRES_PASSWORD=randompassword \
-	postgres:13-alpine
+	pgvector/pgvector:pg14
 
 run-neo4j:
 	docker run --rm \

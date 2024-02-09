@@ -2,7 +2,7 @@
 
 import Stars from '@/pages/stars'
 import { redirect } from 'next/navigation'
-import fetcher, { getUserRepos } from '@/api'
+import { Neo4jfetcher, getUserRepos } from '@/api'
 import { int } from 'neo4j-driver'
 import { z } from 'zod'
 
@@ -27,7 +27,7 @@ export default async function Home({ params, searchParams }: { params: UserNameP
   const { username } = params
   const page = parsePage(searchParams as any)
 
-  const data = await fetcher(getUserRepos, { username: username, page: int(page), limit: int(20) })
+  const data = await Neo4jfetcher(getUserRepos, { username: username, page: int(page), limit: int(20) })
 
   if (!data) {
     redirect('/404')

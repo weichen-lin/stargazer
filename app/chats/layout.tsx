@@ -11,7 +11,7 @@ export default async function Layout(props: Readonly<LayoutProps>) {
   const { username } = props.params
 
   return (
-    <HomeLayout path='chats' username={username}>
+    <HomeLayout path='chats' username='weichen-lin'>
       {props.children}
     </HomeLayout>
   )

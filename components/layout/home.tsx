@@ -1,4 +1,4 @@
-import Sidebar from '@/components/sidebar'
+import Sidebar from '@/components/sidebar/star'
 import Image from 'next/image'
 import Link from 'next/link'
 

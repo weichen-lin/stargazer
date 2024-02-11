@@ -3,7 +3,7 @@
 import { useArrangement } from '@/hooks/stars'
 import { GridRepo, ListRepo } from '@/components/repo'
 import clsx from 'clsx'
-import { MobileBar, DesktopBar } from '@/components/sidebar'
+import { MobileBar, DesktopBar } from '@/components/sidebar/star'
 
 interface Star {
   id: number

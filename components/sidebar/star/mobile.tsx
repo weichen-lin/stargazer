@@ -1,7 +1,7 @@
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
 import { HamburgerMenuIcon } from '@radix-ui/react-icons'
-import Sidebar from '@/components/sidebar'
+import Sidebar from '@/components/sidebar/star'
 import { ModeToggle } from '@/components/theme'
 import { motion } from 'framer-motion'
 import { ArrangeSetting, FixPagination } from '@/components/tab'

@@ -24,7 +24,7 @@ export default function GridRepo(props: IStar & { index: number }) {
         initial={{ opacity: 0, y: -100 }}
         animate={{ opacity: 1, y: 0, transition: { delay: index * 0.05 } }}
         className={clsx(
-          'shadow-md bg-white dark:bg-slate-700/30 w-[375px] p-3 flex flex-col rounded-md cursor-pointer',
+          'shadow-md bg-white dark:bg-slate-700/30 w-[365px] p-3 flex flex-col rounded-md cursor-pointer',
           'border-[1px] dark:border-slate-100/30 border-slate-500/10',
         )}
       >

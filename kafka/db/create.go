@@ -68,7 +68,7 @@ func ReadMeTranslation(info string) (string, error) {
 	}
 
 	client := openai.NewClient(token)
-	
+
 	resp, err := client.CreateChatCompletion(
 		context.Background(),
 		openai.ChatCompletionRequest{
@@ -191,10 +191,15 @@ func CreateRepository(driver neo4j.DriverWithContext, repo *Repository, user_id 
 
 	go func() {
 		if err := tx.Create(&RepoEmbeddingInfo{
-			RepoID:      repo.ID,
-			FullName:    repo.FullName,
-			Description: repo.Description,
-			Readme:      "",
+			RepoID:          repo.ID,
+			FullName:        repo.FullName,
+			Description:     repo.Description,
+			Readme:          "",
+			AvatarURL:       repo.Owner.AvatarURL,
+			HTMLURL:         repo.HTMLURL,
+			StargazersCount: repo.StargazersCount,
+			Language:        repo.Language,
+			DefaultBranch:   repo.DefaultBranch,
 		}).Error; err != nil {
 			tx.Rollback()
 			log.Fatalf("failed to insert repo data: %v. %d", err, repo.ID)
@@ -275,7 +280,7 @@ func AddRepoDescriptionVector(pool *gorm.DB, repo *Repository, userId int64) err
 	if repo.Description == "" {
 		return nil
 	}
-	
+
 	tx := pool.Begin()
 	if tx.Error != nil {
 		return fmt.Errorf("error at begin transaction: %v", tx.Error)

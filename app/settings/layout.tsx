@@ -10,9 +10,5 @@ interface LayoutProps {
 export default async function Layout(props: Readonly<LayoutProps>) {
   const { username } = props.params
 
-  return (
-    <HomeLayout path='settings' username={username}>
-      {props.children}
-    </HomeLayout>
-  )
+  return <HomeLayout path='settings'>{props.children}</HomeLayout>
 }

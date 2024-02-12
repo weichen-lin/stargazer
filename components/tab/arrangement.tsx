@@ -1,6 +1,6 @@
 'use client'
 
-import { GridFour, ListDashes } from '@phosphor-icons/react'
+import { GridIcon, ListBulletIcon } from '@radix-ui/react-icons'
 import { motion } from 'framer-motion'
 import { Arrangements } from '@/hooks/stars'
 import clsx from 'clsx'
@@ -19,14 +19,14 @@ export default function ArrangeSetting(props: ArrangeMentsProps) {
         className={clsx('text-gray-700 flex gap-x-3 py-1 px-2 rounded-md', `${arrangement === 'grid' && 'bg-white'}`)}
         onClick={() => toggle('grid')}
       >
-        <GridFour className='w-6 h-6' />
+        <GridIcon />
       </motion.button>
       <motion.button
         whileTap={{ scale: arrangement === 'list' ? 1 : 0.9 }}
         className={clsx('text-gray-700 flex gap-x-3 py-1 px-2 rounded-md', `${arrangement === 'list' && 'bg-white'}`)}
         onClick={() => toggle('list')}
       >
-        <ListDashes className='w-6 h-6' />
+        <ListBulletIcon />
       </motion.button>
     </div>
   )

@@ -4,6 +4,7 @@ import { useArrangement } from '@/hooks/stars'
 import { GridRepo, ListRepo } from '@/components/repo'
 import clsx from 'clsx'
 import { MobileBar, DesktopBar } from '@/components/sidebar/star'
+import { useSearchParams } from 'next/navigation'
 
 interface Star {
   id: number
@@ -18,34 +19,13 @@ interface Star {
   language: string
 }
 
-export default function Stars({
-  stars,
-  total,
-  current,
-  page,
-}: {
-  stars: Star[]
-  total: number
-  current: number
-  page: string
-}) {
+export default function Stars({ stars, total }: { stars: Star[]; total: number }) {
   const { arrangement, toggleArrangement } = useArrangement()
+
   return (
     <div className='flex flex-col gap-y-12 w-full mt-36 lg:mt-0 pb-8'>
-      <MobileBar
-        total={total}
-        current={current}
-        arrangement={arrangement}
-        toggleArrangement={toggleArrangement}
-        page={page}
-      />
-      <DesktopBar
-        total={total}
-        current={current}
-        arrangement={arrangement}
-        toggleArrangement={toggleArrangement}
-        page={page}
-      />
+      <MobileBar total={total} arrangement={arrangement} toggleArrangement={toggleArrangement} />
+      <DesktopBar total={total} arrangement={arrangement} toggleArrangement={toggleArrangement} />
       <div
         className={clsx(
           'w-full flex flex-col flex-wrap gap-4 flex-1 p-4 items-center md:items-start lg:p-8 lg:mt-16',

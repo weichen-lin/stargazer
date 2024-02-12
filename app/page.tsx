@@ -3,10 +3,11 @@
 import Image from 'next/image'
 import clsx from 'clsx'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { ArrowLongRightIcon } from '@heroicons/react/16/solid'
-import { ModeToggle } from '@/components/theme'
+import { signIn } from 'next-auth/react'
+import { GitHubLogoIcon, HomeIcon } from '@radix-ui/react-icons'
+import { ModeToggle } from '@/components/provider'
 import { TypewriterEffectSmooth } from '@/components/ui/typewriter-effect'
+import { useSession } from 'next-auth/react'
 
 export default function Home() {
   const words = [
@@ -35,6 +36,16 @@ export default function Home() {
       className: 'text-xl text-blue-500 dark:text-blue-500 lg:text-3xl',
     },
   ]
+
+  const { data: session } = useSession()
+
+  const handleSignIn = async () => {
+    const result = await signIn('github', { callbackUrl: '/stars' })
+    if (result?.error) {
+      console.error('Sign in failed:', result.error)
+    }
+  }
+
   return (
     <main className='h-screen p-6 overflow-hidden'>
       <div className={clsx('w-full max-w-[1024px] mx-auto h-full', 'flex flex-col justify-between')}>
@@ -55,12 +66,18 @@ export default function Home() {
           </div>
           <Image src='/home.png' width={400} height={400} className='mx-auto' alt='home pic' />
         </div>
-        <div className='w-[320px] mx-auto flex gap-x-4 items-center md:my-36'>
-          <Input />
-          <Button>
-            <ArrowLongRightIcon className='w-6 h-6' />
+        {session ? (
+          <Button className='flex gap-x-4 max-w-[320px] mx-auto' onClick={handleSignIn}>
+            <HomeIcon />
+            Dashboard
           </Button>
-        </div>
+        ) : (
+          <Button className='flex gap-x-4 max-w-[320px] mx-auto' onClick={handleSignIn}>
+            <GitHubLogoIcon />
+            Sign in with Github
+          </Button>
+        )}
+
         <div className='text-center'>© WeiChen Lin 2024</div>
       </div>
     </main>

@@ -1,5 +1,5 @@
 import { useState, useRef, KeyboardEvent } from 'react'
-import search from '@/actions/semantic'
+import { SemanticSearch } from '@/actions'
 
 type MessageKeyType = 'question' | 'suggest' | 'error'
 
@@ -29,7 +29,7 @@ export default function useChat() {
   const [text, setText] = useState<string>('')
 
   const _Search = async (q: string) => {
-    const res = await search(q)
+    const res = await SemanticSearch(q)
     return res
   }
 

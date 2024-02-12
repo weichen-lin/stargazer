@@ -18,7 +18,7 @@ export default function MobileSidebar() {
             </Button>
           </SheetTrigger>
           <SheetContent side='left'>
-            <Sidebar path='chats' username='username' />
+            <Sidebar path='chats' />
           </SheetContent>
         </Sheet>
         <div className='flex-1 text-xl lg:text-3xl font-semibold w-[200px] pl-3'>Start Chat</div>

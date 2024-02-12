@@ -5,13 +5,12 @@ import { PrismaClient } from '@prisma/client'
 import pgvector from 'pgvector'
 
 const openai = new OpenAI({
-  apiKey: '', // This is the default and can be omitted
-  dangerouslyAllowBrowser: true,
+  apiKey: process.env.OPENAI_API_KEY,
 })
 
-const prisma = new PrismaClient()
+export const SemanticSearch = async (query: string) => {
+  const prisma = new PrismaClient()
 
-const search = async (query: string) => {
   const resp = await openai.embeddings.create({
     model: 'text-embedding-ada-002',
     input: [query],
@@ -28,5 +27,3 @@ const search = async (query: string) => {
 
   return items
 }
-
-export default search

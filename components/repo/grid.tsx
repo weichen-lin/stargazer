@@ -1,6 +1,6 @@
 import Image from 'next/image'
 import LanguageMap from './color'
-import { Star, GithubLogo } from '@phosphor-icons/react'
+import { GitHubLogoIcon, StarIcon } from '@radix-ui/react-icons'
 import { motion } from 'framer-motion'
 import clsx from 'clsx'
 import Tilt from 'react-parallax-tilt'
@@ -45,7 +45,7 @@ export default function GridRepo(props: IStar & { index: number }) {
             <Language language={language} />
             <Stars count={stargazers_count} />
             <a className='p-2 rounded-full hover:bg-slate-300/30' href={html_url} target='_blank'>
-              <GithubLogo size={18} />
+              <GitHubLogoIcon />
             </a>
           </div>
         </div>
@@ -71,7 +71,7 @@ const Language = ({ language }: { language: string }) => {
 const Stars = ({ count }: { count: number }) => {
   return (
     <div className='flex gap-x-2 items-center justify-center'>
-      <Star size={18} weight='thin' />
+      <StarIcon />
       <span className='text-slate-700 dark:text-white/70'>{count}</span>
     </div>
   )

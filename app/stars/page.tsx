@@ -1,10 +1,12 @@
 'use server'
 
-import Stars from '@/pages/stars'
 import { redirect } from 'next/navigation'
-import { Neo4jfetcher, getUserRepos } from '@/api'
+import { Neo4jfetcher, getUserRepos } from '@/actions'
 import { int } from 'neo4j-driver'
 import { z } from 'zod'
+import Stars from '@/components/page/starsPage'
+import { getServerSession } from 'next-auth'
+import { options } from '@/app/api/auth/[...nextauth]/option'
 
 const pageSchema = z.object({
   p: z.string(),
@@ -19,22 +21,18 @@ const parsePage = (a: { p: string }): number => {
   }
 }
 
-interface UserNamePage {
-  username: string
-}
-
-export default async function Home({ params, searchParams }: { params: UserNamePage; searchParams: { p: string } }) {
-  const { username } = params
+export default async function Home({ searchParams }: { searchParams: { p: string } }) {
+  const session = await getServerSession(options)
+  if (!session) {
+    redirect('/')
+  }
+  const name = (session as any)?.user?.name ?? ''
   const page = parsePage(searchParams as any)
 
-  const data = await Neo4jfetcher(getUserRepos, { username: username, page: int(page), limit: int(20) })
-
-  if (!data) {
-    redirect('/404')
-  }
+  const data = await Neo4jfetcher(getUserRepos, { username: name, page: int(page), limit: int(20) })
 
   const target = Array.isArray(data) ? data[0] : data
-  const total = target.total.low ?? 0
+  const total = target?.total?.low ?? 0
 
   const stars = target?.limitedRepositories
     ? target?.limitedRepositories.map((e: any) => {
@@ -55,7 +53,7 @@ export default async function Home({ params, searchParams }: { params: UserNameP
 
   return (
     <div className='w-full h-full flex flex-col lg:flex-row'>
-      <Stars stars={stars} total={total} current={page} page={`/stars/${username}?p=`} />
+      <Stars stars={stars} total={total} />
     </div>
   )
 }

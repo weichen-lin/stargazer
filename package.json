@@ -10,6 +10,7 @@
     "db-migrate": "prisma migrate dev --name init && prisma generate"
   },
   "dependencies": {
+    "@auth/core": "^0.26.3",
     "@heroicons/react": "^2.1.1",
     "@nextui-org/react": "^2.2.9",
     "@nextui-org/system": "^2.0.15",

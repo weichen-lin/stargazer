@@ -1,0 +1,26 @@
+[tool.poetry]
+name = "stargazer-transformer"
+version = "0.1.0"
+description = ""
+authors = ["WeiChen Lin <asdfg090487@gmail.com>"]
+readme = "README.md"
+packages = [{include = "stargazer_transformer"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+requests = "^2.31.0"
+beautifulsoup4 = "^4.12.3"
+playwright = "^1.41.2"
+nltk = "^3.8.1"
+transformers = "^4.37.2"
+cython = "^3.0.8"
+torch = "^2.2.0"
+gensim = "^4.3.2"
+
+
+[tool.poetry.group.dev.dependencies]
+black = "^24.2.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

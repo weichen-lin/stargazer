@@ -5,7 +5,7 @@ from gensim.models.doc2vec import Doc2Vec, TaggedDocument
 
 pipe = pipeline("summarization", model="Falconsai/text_summarization")
 
-def main():
+def Crawler():
     # 初始化Playwright
     with sync_playwright() as p:
         # 啟動瀏覽器
@@ -30,6 +30,3 @@ def main():
         print(doc_vectors)
 
         browser.close()
-
-if __name__ == "__main__":
-    main()

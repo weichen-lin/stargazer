@@ -16,3 +16,17 @@ run-neo4j:
 	--name stargazer-neo4j \
 	-e NEO4J_AUTH=neo4j/randompassword \
 	neo4j:latest
+
+migrate-up:
+	migrate \
+	-path migrate \
+	-database "postgresql://johndoe:randompassword@localhost:5432/mydb?sslmode=disable" \
+	-verbose \
+	up
+
+migrate-down:
+	migrate \
+	-path migrate \
+	-database "postgresql://johndoe:randompassword@localhost:5432/mydb?sslmode=disable" \
+	-verbose \
+	down

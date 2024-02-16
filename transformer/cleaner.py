@@ -27,19 +27,5 @@ def get_tokens(text):
     tokens = [word for word in tokens if word not in stopwords.words("english")]
     # 詞幹提取
     tokens = [ps.stem(word) for word in tokens]
+    
     return tokens
-
-
-
-# from gensim.models.doc2vec import Doc2Vec, TaggedDocument
-# from nltk.tokenize import word_tokenize
-
-# # 準備文檔數據
-# documents = [TaggedDocument(words=word_tokenize(doc), tags=[str(i)]) for i, doc in enumerate(corpus)]
-
-# # 訓練Doc2Vec模型
-# model = Doc2Vec(documents, vector_size=50, window=2, min_count=1, workers=4)
-
-# # 獲取文檔向量
-# doc_vectors = [model.docvecs[str(i)] for i in range(len(corpus))]
-# print(doc_vectors)

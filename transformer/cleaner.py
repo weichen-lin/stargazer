@@ -6,8 +6,9 @@ from nltk.tokenize import word_tokenize
 
 ps = PorterStemmer()
 
-download('punkt')
-download('stopwords')
+download("punkt")
+download("stopwords")
+
 
 def clean_text(text):
     # 移除所有符號類型
@@ -18,6 +19,7 @@ def clean_text(text):
     cleaned_text = cleaned_text.strip()
     return cleaned_text
 
+
 def get_tokens(text):
     # 將文本轉換成小寫
     text = text.lower()
@@ -27,5 +29,5 @@ def get_tokens(text):
     tokens = [word for word in tokens if word not in stopwords.words("english")]
     # 詞幹提取
     tokens = [ps.stem(word) for word in tokens]
-    
+
     return tokens

@@ -1,36 +1,41 @@
 from flask import Flask, request, jsonify
 from crawler import Crawler
-from model import RepoEmbeddingInfo, RepoEmbeddingInfoSchema, db
+from model import RepoEmbeddingInfoSchema, db
 from pydantic import ValidationError
 
 app = Flask(__name__)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://johndoe:randompassword@localhost/mydb'
+app.config["SQLALCHEMY_DATABASE_URI"] = (
+    "postgresql://johndoe:randompassword@localhost/mydb"
+)
 
 db.init_app(app)
 
+
 @app.route("/")
 def healthy_check():
-    return 'ok', 200
+    return "ok", 200
 
-@app.route("/vectorize", methods=['POST'])
+
+@app.route("/vectorize", methods=["POST"])
 def vectorize():
     if request.is_json:
         data = request.get_json()
-        
+
         try:
             model = RepoEmbeddingInfoSchema(**data)
-            Crawler(model.repo_id)
+            result = Crawler(model.repo_id)
 
-            return jsonify({'message': f'Crawling successful {model.repo_id}'}), 200
+            return jsonify({"message": result}), 200
+
         except ValidationError as e:
-            return jsonify({'error': str(e)}), 400
+            return jsonify({"error": str(e)}), 400
 
         except Exception as e:
-            return jsonify({'error': str(e)}), 404
+            return jsonify({"error": str(e)}), 404
 
     else:
-        return jsonify({'error': 'Request must be JSON'}), 400
+        return jsonify({"error": "Request must be JSON"}), 400
 
 
 if __name__ == "__main__":

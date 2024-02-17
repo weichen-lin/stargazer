@@ -1,4 +1,0 @@
-DROP TABLE IF EXISTS repo_embedding_info;
-
-DROP EXTENSION IF EXISTS "uuid-ossp";
-DROP EXTENSION IF EXISTS vector;

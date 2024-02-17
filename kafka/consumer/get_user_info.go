@@ -83,8 +83,8 @@ func GetUserProfileConsumer() (func(neo4j.DriverWithContext), error) {
 			case err := <-consumerPartitionConsumer.Errors():
 				fmt.Println("Error:", err.Err)
 			case message := <-consumerPartitionConsumer.Messages():
-				fmt.Printf("Received message: Topic - %s, Key - %s, Value - %s\n",
-					message.Topic, message.Key, message.Value)
+				// fmt.Printf("Received message: Topic - %s, Key - %s, Value - %s\n",
+				// 	message.Topic, message.Key, message.Value)
 
 				user, err := GetUserInfo(string(message.Value))
 				if err != nil {
@@ -118,7 +118,7 @@ func GetUserProfileConsumer() (func(neo4j.DriverWithContext), error) {
 					fmt.Println("Error sending message:", err)
 				}
 
-				fmt.Printf("Sent message to Topic - %s, : %s\n", "get_user_stars", jsonString)
+				// fmt.Printf("Sent message to Topic - %s, : %s\n", "get_user_stars", jsonString)
 			}
 		}
 	}, nil

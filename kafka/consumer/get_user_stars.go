@@ -65,11 +65,11 @@ func GetGithubReposConsumer() (func(neo4j.DriverWithContext, *gorm.DB), error) {
 		fmt.Println("Error creating consumer:", err)
 	}
 
-	// producer, err := sarama.NewSyncProducer(brokers, config)
-	// if err != nil {
-	// 	fmt.Println("Error creating producer:", err)
-	// 	return nil, err
-	// }
+	producer, err := sarama.NewSyncProducer(brokers, config)
+	if err != nil {
+		fmt.Println("Error creating producer:", err)
+		return nil, err
+	}
 
 	consumerPartitionConsumer, err := consumer.ConsumePartition("get_user_stars", 0, sarama.OffsetNewest)
 	if err != nil {
@@ -97,33 +97,28 @@ func GetGithubReposConsumer() (func(neo4j.DriverWithContext, *gorm.DB), error) {
 					fmt.Println("Error getting user stars:", err)
 				}
 
-				// if len(stars) == 30 {
-				// 	info.Page++
+				if len(stars) == 30 {
+					info.Page++
 
-				// 	jsonString, err := json.Marshal(info)
-				// 	if err != nil {
-				// 		fmt.Println("Error marshalling JSON:", err)
-				// 	}
+					jsonString, err := json.Marshal(info)
+					if err != nil {
+						fmt.Println("Error marshalling JSON:", err)
+					}
 
-				// 	partition, offset, err := producer.SendMessage(&sarama.ProducerMessage{
-				// 		Topic: "get_user_stars",
-				// 		Value: sarama.StringEncoder(jsonString),
-				// 	})
-				// 	if err != nil {
-				// 		fmt.Println("Error sending message:", err)
-				// 	}
+					partition, offset, err := producer.SendMessage(&sarama.ProducerMessage{
+						Topic: "get_user_stars",
+						Value: sarama.StringEncoder(jsonString),
+					})
+					if err != nil {
+						fmt.Println("Error sending message:", err)
+					}
 
-				// 	fmt.Printf("Sent message: Topic - %s, Partition - %d, Offset - %d\n",
-				// 		"get_user_stars", partition, offset)
-				// }
+					fmt.Printf("Sent message: Topic - %s, Partition - %d, Offset - %d\n",
+						"get_user_stars", partition, offset)
+				}
 
 				for _, repo := range stars {
 					err = database.CreateRepository(driver, &repo, info.UserId, pool)
-					if err != nil {
-						fmt.Printf("error creating repository %d, %s:", repo.ID, repo.FullName)
-					} else {
-						err = database.AddRepoDescriptionVector(pool, &repo, info.UserId)
-					}
 				}
 			}
 		}

@@ -12,7 +12,8 @@ run-postgres:
 run-neo4j:
 	docker run --rm \
 	-v stargazer-neo4j:/data \
-	-dp 7687:7687 \
+	-p7474:7474 -p7687:7687 \
+	-d \
 	--name stargazer-neo4j \
 	-e NEO4J_AUTH=neo4j/randompassword \
 	neo4j:latest

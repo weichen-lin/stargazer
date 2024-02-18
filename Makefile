@@ -31,3 +31,9 @@ migrate-down:
 	-database "postgresql://johndoe:randompassword@localhost:5432/mydb?sslmode=disable" \
 	-verbose \
 	down
+
+service-up:
+	docker-compose -f service.docker-compose.yml up -d
+
+service-down:
+	docker-compose -f service.docker-compose.yml down

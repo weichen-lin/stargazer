@@ -54,7 +54,7 @@ func GetUserInfo(name string) (*database.User, error) {
 }
 
 func GetUserProfileConsumer() (func(neo4j.DriverWithContext), error) {
-	brokers := []string{"localhost:9092"}
+	brokers := []string{"stargazer-kafka:9092"}
 	config := sarama.NewConfig()
 	config.Consumer.Return.Errors = true
 	config.Producer.Return.Successes = true

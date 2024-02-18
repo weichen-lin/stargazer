@@ -55,7 +55,7 @@ func GetUserStarredRepos(info *database.GetGithubReposInfo) ([]database.Reposito
 }
 
 func GetGithubReposConsumer() (func(neo4j.DriverWithContext, *gorm.DB), error) {
-	brokers := []string{"localhost:9092"}
+	brokers := []string{"stargazer-kafka:9092"}
 	config := sarama.NewConfig()
 	config.Consumer.Return.Errors = true
 	config.Producer.Return.Successes = true

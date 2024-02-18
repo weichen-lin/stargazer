@@ -51,7 +51,7 @@ func main() {
 		return
 	}
 
-	brokers := []string{"localhost:9092"}
+	brokers := []string{"stargazer-kafka:9092"}
 	config := sarama.NewConfig()
 	config.Producer.Return.Successes = true
 	config.Producer.Return.Errors = true

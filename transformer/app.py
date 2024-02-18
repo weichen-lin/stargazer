@@ -3,16 +3,26 @@ from crawler import Crawler
 from model import RepoEmbeddingInfoSchema, db
 from pydantic import ValidationError
 import os
+from functools import wraps
 
 app = Flask(__name__)
 
 
-db_url = os.environ.get("DATABASE_URL")
+DATABASE_URL = os.environ.get("DATABASE_URL")
+VALID_TOKEN = os.environ.get("AUTHENTICATION_TOKEN")
 
-app.config["SQLALCHEMY_DATABASE_URI"] = db_url
+app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URL
 
 db.init_app(app)
 
+def requires_auth(func):
+    @wraps(func)
+    def decorated(*args, **kwargs):
+        auth_header = request.headers.get('Authorization')
+        if not auth_header or auth_header != f"Bearer {VALID_TOKEN}":
+            return jsonify({"error": "Unauthorized"}), 401
+        return func(*args, **kwargs)
+    return decorated
 
 @app.route("/")
 def healthy_check():
@@ -20,6 +30,7 @@ def healthy_check():
 
 
 @app.route("/vectorize", methods=["POST"])
+@requires_auth
 def vectorize():
     if request.is_json:
         data = request.get_json()

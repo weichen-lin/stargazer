@@ -2,12 +2,14 @@ from flask import Flask, request, jsonify
 from crawler import Crawler
 from model import RepoEmbeddingInfoSchema, db
 from pydantic import ValidationError
+import os
 
 app = Flask(__name__)
 
-app.config["SQLALCHEMY_DATABASE_URI"] = (
-    "postgresql://johndoe:randompassword@localhost/mydb"
-)
+
+db_url = os.environ.get("DATABASE_URL")
+
+app.config["SQLALCHEMY_DATABASE_URI"] = db_url
 
 db.init_app(app)
 
@@ -24,9 +26,9 @@ def vectorize():
 
         try:
             model = RepoEmbeddingInfoSchema(**data)
-            result = Crawler(model.repo_id)
+            result, status = Crawler(model.repo_id)
 
-            return jsonify({"message": result}), 200
+            return jsonify({"message": result}), status
 
         except ValidationError as e:
             return jsonify({"error": str(e)}), 400
@@ -39,4 +41,4 @@ def vectorize():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(host="0.0.0.0", port=8000, debug=True)

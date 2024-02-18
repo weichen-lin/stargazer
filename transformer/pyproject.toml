@@ -1,27 +1,21 @@
 [tool.poetry]
-name = "stargazer-transformer"
+name = "transformer"
 version = "0.1.0"
 description = ""
-authors = ["WeiChen Lin <asdfg090487@gmail.com>"]
+authors = ["WeiChen Lin <asdfg09487@gmail.com>"]
 readme = "README.md"
-packages = [{include = "stargazer_transformer"}]
 
 [tool.poetry.dependencies]
 python = "^3.10"
-requests = "^2.31.0"
-beautifulsoup4 = "^4.12.3"
+openai = "^1.12.0"
+pydantic = "^2.6.1"
+flask = "^3.0.2"
+numpy = "^1.26.4"
+gensim = "^4.3.2"
 playwright = "^1.41.2"
 nltk = "^3.8.1"
-transformers = "^4.37.2"
-cython = "^3.0.8"
-torch = "^2.2.0"
-gensim = "^4.3.2"
-flask = "^3.0.2"
-sqlalchemy = "^2.0.27"
-psycopg2-binary = "^2.9.9"
 flask-sqlalchemy = "^3.1.1"
-numpy = "^1.26.4"
-pydantic = "^2.6.1"
+psycopg2-binary = "^2.9.9"
 pgvector = "^0.2.5"
 
 

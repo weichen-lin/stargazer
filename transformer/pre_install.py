@@ -1,3 +1,4 @@
-from transformers import pipeline
+from nltk import download
 
-pipe = pipeline("summarization", model="Falconsai/text_summarization")
+download("punkt")
+download("stopwords")

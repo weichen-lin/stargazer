@@ -1,13 +1,9 @@
 import re
-from nltk import download
 from nltk.stem.porter import PorterStemmer
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 
 ps = PorterStemmer()
-
-download("punkt")
-download("stopwords")
 
 
 def clean_text(text):

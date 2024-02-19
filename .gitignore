@@ -36,3 +36,7 @@ __pycache__/
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+
+credentials.json
+secrets.env

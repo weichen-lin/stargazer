@@ -10,5 +10,3 @@ RUN pip install poetry \
     && poetry run playwright install chromium 
 
 RUN poetry run python pre_install.py
-
-# CMD ["poetry", "run", "flask", "run"]

@@ -2,17 +2,11 @@ from flask import Flask, request, jsonify
 from crawler import Crawler
 from model import RepoEmbeddingInfoSchema, db
 from pydantic import ValidationError
-import os
 from functools import wraps
-from dotenv import load_dotenv
-
-load_dotenv()
+from config import VALID_TOKEN, DATABASE_URL
+import os
 
 app = Flask(__name__)
-
-
-DATABASE_URL = os.environ.get("DATABASE_URL")
-VALID_TOKEN = os.environ.get("AUTHENTICATION_TOKEN")
 
 app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URL
 
@@ -46,13 +40,15 @@ def vectorize():
 
         except ValidationError as e:
             return jsonify({"error": str(e)}), 400
-
+    
         except Exception as e:
             return jsonify({"error": str(e)}), 404
 
     else:
         return jsonify({"error": "Request must be JSON"}), 400
 
+port = int(os.environ.get("PORT", 8080))
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8000)
+
+    app.run(host="0.0.0.0", port=port)

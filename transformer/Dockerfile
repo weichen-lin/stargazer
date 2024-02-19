@@ -1,9 +1,10 @@
-FROM asia-east1-docker.pkg.dev/stargazer-414509/stargazer-images/stargazer-transformer:base
+FROM --platform=linux/amd64 asia-east1-docker.pkg.dev/stargazer-414509/stargazer-images/stargazer-transformer:base
 
 WORKDIR /app
 
 COPY secrets.env /app/.env
 
-EXPOSE 8000
+ENV PORT $PATH
+EXPOSE 8080
 
-CMD ["poetry", "run", "python", "app.py"]
+CMD ["python", "app.py"]

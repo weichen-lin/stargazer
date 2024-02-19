@@ -4,14 +4,11 @@ from gensim.models.doc2vec import Doc2Vec, TaggedDocument
 from numpy import array, float32
 from model import db, RepoEmbeddingInfo
 from openai import OpenAI
-import os
-
-OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
+from config import OPENAI_API_KEY
 
 client = OpenAI(
     api_key=OPENAI_API_KEY,
 )
-
 
 def Crawler(id: int) -> tuple[str, int]:
 

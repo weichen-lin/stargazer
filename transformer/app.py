@@ -4,6 +4,9 @@ from model import RepoEmbeddingInfoSchema, db
 from pydantic import ValidationError
 import os
 from functools import wraps
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__)
 

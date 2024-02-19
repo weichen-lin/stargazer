@@ -1,10 +1,8 @@
 FROM asia-east1-docker.pkg.dev/stargazer-414509/stargazer-images/stargazer-transformer:base
 
-ENV AUTHENTICATION_TOKEN=$AUTHENTICATION_TOKEN
-ENV DATABASE_URL=$DATABASE_URL
-ENV OPENAI_API_KEY=$OPENAI_API_KEY
-
 WORKDIR /app
+
+COPY secrets.env /app/.env
 
 EXPOSE 8000
 

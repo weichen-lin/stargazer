@@ -1,14 +1,11 @@
-FROM --platform=linux/amd64 mcr.microsoft.com/playwright/python:v1.40.0-jammy
+FROM asia-east1-docker.pkg.dev/stargazer-414509/stargazer-images/stargazer-transformer:base
+
+ENV AUTHENTICATION_TOKEN=$AUTHENTICATION_TOKEN
+ENV DATABASE_URL=$DATABASE_URL
+ENV OPENAI_API_KEY=$OPENAI_API_KEY
 
 WORKDIR /app
 
-COPY . .
+EXPOSE 8000
 
-RUN pip install poetry \
-    && poetry config virtualenvs.create false \
-    && poetry install --no-dev \
-    && poetry run playwright install chromium 
-
-RUN poetry run python pre_install.py
-
-# CMD ["poetry", "run", "flask", "run"]
+CMD ["poetry", "run", "python", "app.py"]

@@ -12,10 +12,12 @@ FROM --platform=linux/amd64 alpine:latest
 
 WORKDIR /app
 
+COPY secrets.env /app/.env
+
+ENV APP_ENV=production
+
 EXPOSE 8080
 
-ENV POSTGRESQL_URL=postgresql://johndoe:randompassword@stargazer-postgres:5432/mydb?sslmode=disable
-ENV NEO4J_URL=neo4j://stargazer-neo4j:7687
-ENV NEO4J_PASSWORD=randompassword
-
 COPY --from=builder /app/main.exe .
+
+CMD ["./main.exe"]

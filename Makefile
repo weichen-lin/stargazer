@@ -37,3 +37,9 @@ service-up:
 
 service-down:
 	docker-compose -f service.docker-compose.yml down
+
+producer-up:
+	docker-compose -f kafka.docker-compose.yml up
+
+producer-down:
+	docker-compose -f kafka.docker-compose.yml down

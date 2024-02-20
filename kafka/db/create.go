@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"os"
 	"unicode"
 
@@ -194,7 +193,7 @@ func CreateRepository(driver neo4j.DriverWithContext, repo *Repository, user_id 
 		}
 
 		if count > 0 {
-			tx.Rollback()
+			tx.Commit()
 			return
 		}
 
@@ -209,7 +208,6 @@ func CreateRepository(driver neo4j.DriverWithContext, repo *Repository, user_id 
 			DefaultBranch:   repo.DefaultBranch,
 		}).Error; err != nil {
 			tx.Rollback()
-			log.Fatalf("failed to insert repo data: %v. %d", err, repo.ID)
 		} else {
 			tx.Commit()
 		}

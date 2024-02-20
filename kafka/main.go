@@ -21,13 +21,13 @@ type GetGithubReposInfo struct {
 
 func main() {
 
-	if os.Getenv("APP_ENV") != "production" {
+	if os.Getenv("APP_ENV") == "production" {
 		godotenv.Load(
-			".env.dev",
+			".env",
 		)
 	} else {
 		godotenv.Load(
-			".env",
+			".env.dev",
 		)
 	}
 
@@ -51,7 +51,7 @@ func main() {
 		return
 	}
 
-	brokers := []string{"stargazer-kafka:9092"}
+	brokers := []string{"localhost:9092"}
 	config := sarama.NewConfig()
 	config.Producer.Return.Successes = true
 	config.Producer.Return.Errors = true

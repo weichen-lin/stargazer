@@ -1,10 +1,9 @@
-from cleaner import clean_text, get_tokens
 from playwright.sync_api import sync_playwright
-from gensim.models.doc2vec import Doc2Vec, TaggedDocument
-from numpy import array, float32
 from model import db, RepoEmbeddingInfo
 from openai import OpenAI
 from config import OPENAI_API_KEY
+from helper import get_embedding
+from sqlalchemy import select
 
 client = OpenAI(
     api_key=OPENAI_API_KEY,
@@ -47,15 +46,9 @@ def Crawler(id: int) -> tuple[str, int]:
             summary = chat_completion.choices[0].message.content
 
             repo.readme_summary = summary
-            summary = clean_text(summary)
 
-            vector = [TaggedDocument(words=get_tokens(summary), tags=["repo"])]
-
-            model = Doc2Vec(vector, vector_size=150, window=2, min_count=1, workers=1)
-            doc_vectors = model.dv["repo"]
-
-            vector = array(doc_vectors, dtype=float32)
-            repo.summary_embedding = vector.tolist()
+            vector = get_embedding(summary)
+            repo.summary_embedding = vector
 
             db.session.commit()
 
@@ -63,3 +56,11 @@ def Crawler(id: int) -> tuple[str, int]:
 
         except Exception as e:
             raise ValueError(f"Error while crawling: {str(e)}")
+
+def Responser(text: str, limit: int = 5) -> list[dict]:
+
+    vector = get_embedding(text)
+
+    items = db.session.scalars(select(RepoEmbeddingInfo).order_by(RepoEmbeddingInfo.summary_embedding.cosine_distance(vector)).limit(limit))
+
+    return [item._to_json() for item in items], 200

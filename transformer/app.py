@@ -1,10 +1,9 @@
 from flask import Flask, request, jsonify
-from crawler import Crawler
-from model import RepoEmbeddingInfoSchema, db
+from crawler import Crawler, Responser
+from model import RepoEmbeddingInfoSchema, MessageSchema, db
 from pydantic import ValidationError
 from functools import wraps
 from config import VALID_TOKEN, DATABASE_URL
-import os
 
 app = Flask(__name__)
 
@@ -15,11 +14,13 @@ db.init_app(app)
 def requires_auth(func):
     @wraps(func)
     def decorated(*args, **kwargs):
-        auth_header = request.headers.get('Authorization')
+        auth_header = request.headers.get("Authorization")
         if not auth_header or auth_header != f"Bearer {VALID_TOKEN}":
             return jsonify({"error": "Unauthorized"}), 401
         return func(*args, **kwargs)
+
     return decorated
+
 
 @app.route("/")
 def healthy_check():
@@ -40,14 +41,37 @@ def vectorize():
 
         except ValidationError as e:
             return jsonify({"error": str(e)}), 400
-    
+
         except Exception as e:
             return jsonify({"error": str(e)}), 404
 
     else:
         return jsonify({"error": "Request must be JSON"}), 400
 
-port = int(os.environ.get("PORT", 8080))
+
+@app.route("/get_suggestions", methods=["POST"])
+@requires_auth
+def get_suggestions():
+    if request.is_json:
+        data = request.get_json()
+
+        try:
+            model = MessageSchema(**data)
+            result, status = Responser(model.message)
+
+            return jsonify({"items": result}), status
+
+        except ValidationError as e:
+            return jsonify({"error": str(e)}), 400
+
+        except Exception as e:
+            return jsonify({"error": str(e)}), 404
+
+    else:
+        return jsonify({"error": "Request must be JSON"}), 400
+
+
+port = 8080
 
 if __name__ == "__main__":
 

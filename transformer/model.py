@@ -30,6 +30,22 @@ class RepoEmbeddingInfo(db.Model):
     def __repr__(self):
         return "<RepoEmbeddingInfo %r>" % self.repo_id
 
+    def _to_json(self):
+        return {
+            "id": self.id,
+            "repo_id": self.repo_id,
+            "full_name": self.full_name,
+            "avatar_url": self.avatar_url,
+            "html_url": self.html_url,
+            "stargazers_count": self.stargazers_count,
+            "default_branch": self.default_branch,
+            "description": self.description,
+        }
+
 
 class RepoEmbeddingInfoSchema(BaseModel):
     repo_id: int
+
+
+class MessageSchema(BaseModel):
+    message: str

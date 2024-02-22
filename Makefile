@@ -43,3 +43,6 @@ producer-up:
 
 producer-down:
 	docker-compose -f kafka.docker-compose.yml down
+
+clean-env:
+	unset AUTHENTICATION_TOKEN DATABASE_URL OPENAI_API_KEY VSCODE_ENV_REPLACE GITHUB_CLIENT_ID GITHUB_CLIENT_SECRET NEXTAUTH_URL NEO4J_URL NEO4J_PASSWORD

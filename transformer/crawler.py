@@ -4,6 +4,7 @@ from openai import OpenAI
 from config import OPENAI_API_KEY
 from helper import get_embedding
 from sqlalchemy import select
+from helper import get_token_length
 
 client = OpenAI(
     api_key=OPENAI_API_KEY,
@@ -32,15 +33,23 @@ def Crawler(id: int) -> tuple[str, int]:
             page = browser.new_page()
             page.goto(repo.html_url)
 
-            article = page.wait_for_selector("article.markdown-body")
+
+            selectors = ["article.markdown-body", ".plain"]
+
+            article = page.wait_for_selector(f'{", ".join(selectors)}')
+
+            content = f"The following is a repository from github. After reading the material, can you give me a summary? Reply in English\n{article.text_content()}"
+
+            tokens = get_token_length(content)
+
             chat_completion = client.chat.completions.create(
                 messages=[
                     {
                         "role": "user",
-                        "content": f"The following is a repository from github. After reading the material, can you give me a summary? Reply in English\n{article.text_content()}",
+                        "content": content,
                     }
                 ],
-                model="gpt-3.5-turbo",
+                model= "gpt-3.5-turbo" if tokens < 16000 else "gpt-4-turbo-preview",
             )
 
             summary = chat_completion.choices[0].message.content

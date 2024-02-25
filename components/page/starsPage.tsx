@@ -4,22 +4,9 @@ import { useArrangement } from '@/hooks/stars'
 import { GridRepo, ListRepo } from '@/components/repo'
 import clsx from 'clsx'
 import { MobileBar, DesktopBar } from '@/components/sidebar/star'
-import { useSearchParams } from 'next/navigation'
+import type { Repository } from '@/actions/neo4j'
 
-interface Star {
-  id: number
-  full_name: string
-  owner: {
-    avatar_url: string
-  }
-  html_url: string
-  description: string
-  homepage: string
-  stargazers_count: number
-  language: string
-}
-
-export default function Stars({ stars, total }: { stars: Star[]; total: number }) {
+export default function Stars({ stars, total }: { stars: Repository[]; total: number }) {
   const { arrangement, toggleArrangement } = useArrangement()
 
   return (

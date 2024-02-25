@@ -4,7 +4,7 @@ import { GitHubLogoIcon, StarIcon } from '@radix-ui/react-icons'
 import { motion } from 'framer-motion'
 import clsx from 'clsx'
 import Tilt from 'react-parallax-tilt'
-import { IStar } from './type'
+import type { Repository } from '@/actions/neo4j'
 
 const config = {
   scale: 1.05,
@@ -15,7 +15,7 @@ const config = {
   glareMaxOpacity: 0.1,
 }
 
-export default function GridRepo(props: IStar & { index: number }) {
+export default function GridRepo(props: Repository & { index: number }) {
   const [repoOwner, repo] = props.full_name.split('/')
   const { stargazers_count, language, description, index, html_url, full_name, owner } = props
   return (

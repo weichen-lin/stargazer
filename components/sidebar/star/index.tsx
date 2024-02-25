@@ -13,7 +13,6 @@ import { signOut } from 'next-auth/react'
 const Bars = [
   { name: 'My Stars', icon: <StarIcon />, path: 'stars', needPath: true },
   { name: 'Start Chat', icon: <ChatBubbleIcon />, path: 'chats', needPath: false },
-  { name: 'Settings', icon: <GearIcon />, path: 'settings', needPath: false },
 ]
 
 interface SidebarProps {

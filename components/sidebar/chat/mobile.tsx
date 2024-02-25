@@ -6,6 +6,7 @@ import { HamburgerMenuIcon } from '@radix-ui/react-icons'
 import Sidebar from '@/components/sidebar/star'
 import clsx from 'clsx'
 import { ChatSettingDrawer } from '@/components/util/chatSetting'
+import { ModeToggle } from '@/components/provider'
 
 export default function MobileSidebar() {
   return (
@@ -22,7 +23,10 @@ export default function MobileSidebar() {
           </SheetContent>
         </Sheet>
         <div className='flex-1 text-xl lg:text-3xl font-semibold w-[200px] pl-3'>Start Chat</div>
-        <ChatSettingDrawer />
+        <div className='flex gap-x-4'>
+          <ModeToggle />
+          <ChatSettingDrawer />
+        </div>
       </div>
     </div>
   )

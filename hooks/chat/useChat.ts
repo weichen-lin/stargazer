@@ -1,5 +1,5 @@
 import { useState, useRef, KeyboardEvent } from 'react'
-import { SemanticSearch } from '@/actions'
+import { GetSuggesions } from '@/actions'
 
 type MessageKeyType = 'question' | 'suggest' | 'error'
 
@@ -7,6 +7,7 @@ export interface SuggestionProps {
   avatar_url: string
   html_url: string
   full_name: string
+  description: string | null
 }
 
 interface MessageValueType {
@@ -28,11 +29,6 @@ export default function useChat() {
   const [isDisabled, setIsDisabled] = useState<boolean>(false)
   const [text, setText] = useState<string>('')
 
-  const _Search = async (q: string) => {
-    const res = await SemanticSearch(q)
-    return res
-  }
-
   const ref = useRef<HTMLTextAreaElement>(null)
 
   const onFoucs = () => {
@@ -47,15 +43,31 @@ export default function useChat() {
     setText(event.target.value)
   }
 
+  const sendMessage = async (text: string) => {
+    setText('')
+    addMessage(text)
+    setIsloading(true)
+    const res = await GetSuggesions(text)
+    setIsloading(false)
+    return res
+  }
+
+  const handleButtonOnClick = async () => {
+    const res = await sendMessage(text)
+
+    if (res.length === 0) {
+      setMessages(prev => [...prev, { type: 'error', value: '没有找到相关的项目' }])
+    } else {
+      setMessages(prev => [...prev, { type: 'suggest', value: res }])
+    }
+  }
+
   const handleKeyDown = async (event: KeyboardEvent<HTMLTextAreaElement>) => {
     if (event.key === 'Enter' && event.shiftKey) {
       return
     } else if (event.key === 'Enter') {
-      // 阻止 Enter 键的默认行为（即换行）
       event.preventDefault()
-      setText('')
-      addMessage(text)
-      const res = (await _Search(text)) as SuggestionProps[]
+      const res = await sendMessage(text)
 
       if (res.length === 0) {
         setMessages(prev => [...prev, { type: 'error', value: '没有找到相关的项目' }])
@@ -69,5 +81,17 @@ export default function useChat() {
     setMessages(prev => [...prev, { type: 'question', value: message }])
   }
 
-  return { messages, addMessage, isLoading, isDisabled, ref, text, onFoucs, onBlur, handleKeyDown, handleTextValue }
+  return {
+    messages,
+    addMessage,
+    handleButtonOnClick,
+    isLoading,
+    isDisabled,
+    ref,
+    text,
+    onFoucs,
+    onBlur,
+    handleKeyDown,
+    handleTextValue,
+  }
 }

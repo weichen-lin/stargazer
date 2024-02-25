@@ -5,10 +5,23 @@ import { Button } from '@/components/ui/button'
 import { PaperPlaneIcon, GitHubLogoIcon } from '@radix-ui/react-icons'
 import clsx from 'clsx'
 import { useChat, SuggestionProps } from '@/hooks/chat'
-import { useRef, useEffect } from 'react'
+import { useRef, useEffect, useState } from 'react'
+import { motion } from 'framer-motion'
+import { useSession } from 'next-auth/react'
 
 export default function Chatter() {
-  const { isLoading, isDisabled, messages, ref, text, onFoucs, onBlur, handleKeyDown, handleTextValue } = useChat()
+  const {
+    isLoading,
+    isDisabled,
+    messages,
+    handleButtonOnClick,
+    ref,
+    text,
+    onFoucs,
+    onBlur,
+    handleKeyDown,
+    handleTextValue,
+  } = useChat()
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
@@ -44,9 +57,14 @@ export default function Chatter() {
           onKeyDown={handleKeyDown}
           value={text}
           onChange={handleTextValue}
-          disabled={isDisabled}
+          disabled={isDisabled || isLoading}
         />
-        <Button className='absolute right-3 bottom-3 flex items-center' loading={isLoading} disabled={isDisabled}>
+        <Button
+          className='absolute right-3 bottom-3 flex items-center'
+          loading={isLoading}
+          disabled={isDisabled}
+          onClick={() => handleButtonOnClick()}
+        >
           <PaperPlaneIcon />
         </Button>
       </div>
@@ -65,7 +83,7 @@ const StarGazerResponse = (props: { suggestions: SuggestionProps[] }) => {
         </div>
         <div className='px-3.5 py-3 flex flex-col w-full gap-y-5'>
           {suggestions.map((e, i) => (
-            <Suggestions key={i} {...e} />
+            <Suggestions key={i} {...e} index={i} />
           ))}
         </div>
       </div>
@@ -74,12 +92,16 @@ const StarGazerResponse = (props: { suggestions: SuggestionProps[] }) => {
 }
 
 const UserRequest = ({ message }: { message: string }) => {
+  const { data } = useSession()
+
+  const image = data?.user?.image ?? '/icon.png'
+
   return (
     <div className='flex justify-end w-full lg:w-2/3 lg:mx-auto'>
       <div className='flex flex-col items-end gap-y-2 w-full sm:max-w-[480px]'>
         <div className='flex gap-x-3 items-center justify-end'>
           <div className='font-semibold'>You</div>
-          <img src='/icon.png' alt='stargazer' className='rounded-full w-7 h-7' />
+          <img src={image} alt='stargazer' className='rounded-full w-7 h-7' />
         </div>
         <div className='px-3.5 py-3 flex flex-col w-full gap-y-5'>
           <div
@@ -97,19 +119,36 @@ const UserRequest = ({ message }: { message: string }) => {
   )
 }
 
-const Suggestions = (props: SuggestionProps) => {
-  const { avatar_url, full_name, html_url } = props
+const Suggestions = (props: SuggestionProps & { index: number }) => {
+  const { avatar_url, full_name, html_url, description, index } = props
+  const [isOpen, setIsOpen] = useState(false)
   return (
-    <div className='rounded-md drop-shadow-md shadow-md w-full flex gap-x-3 items-center justify-between border-[1px] border-slate-100/40 p-2'>
-      <div className='flex gap-x-2 items-center'>
-        <div className='w-10 h-10'>
-          <img src={avatar_url} alt='stargazer' className='rounded-full w-full h-full' />
+    <motion.div
+      initial={{ opacity: 0, y: -100 }}
+      animate={{ opacity: 1, y: 0, transition: { delay: index * 0.05 } }}
+      className='rounded-md drop-shadow-md shadow-md w-full flex border-[1px] border-slate-100/40 p-2 flex-col gap-y-4'
+    >
+      <div
+        className='flex justify-between w-full items-center'
+        onClick={() => {
+          setIsOpen(!isOpen)
+        }}
+      >
+        <div className='flex gap-x-2 items-center'>
+          <div className='w-10 h-10'>
+            <img src={avatar_url} alt='stargazer' className='rounded-full w-full h-full' />
+          </div>
+          <div>{full_name}</div>
         </div>
-        <div>{full_name}</div>
+        <a className='p-2 rounded-full hover:bg-slate-300/30' href={html_url} target='_blank'>
+          <GitHubLogoIcon />
+        </a>
       </div>
-      <a className='p-2 rounded-full hover:bg-slate-300/30' href={html_url} target='_blank'>
-        <GitHubLogoIcon />
-      </a>
-    </div>
+      {isOpen && (
+        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className='w-full py-1 px-2'>
+          {description}
+        </motion.div>
+      )}
+    </motion.div>
   )
 }

@@ -9,3 +9,8 @@ LIMIT $limit
 WITH total, collect(r) as limitedRepositories
 RETURN total, limitedRepositories;
 `
+
+export const getUserInfo = `
+MATCH (n:User {email: $email})
+RETURN n;
+`

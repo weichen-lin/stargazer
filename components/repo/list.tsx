@@ -3,9 +3,9 @@ import LanguageMap from './color'
 import { GitHubLogoIcon, StarIcon } from '@radix-ui/react-icons'
 import { motion } from 'framer-motion'
 import clsx from 'clsx'
-import { IStar } from './type'
+import type { Repository } from '@/actions/neo4j'
 
-export default function ListRepo(props: IStar & { index: number }) {
+export default function ListRepo(props: Repository & { index: number }) {
   const [repoOwner, repo] = props.full_name.split('/')
   const { stargazers_count, language, description, html_url, full_name, owner, index } = props
   return (

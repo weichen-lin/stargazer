@@ -1,9 +1,6 @@
 import GitHubProvider from 'next-auth/providers/github'
 import type { AuthOptions } from 'next-auth'
-import { driver, auth } from 'neo4j-driver'
-import { Neo4jAdapter } from '@/actions/adapter'
-
-const conn = driver(process.env.NEO4J_URL as string, auth.basic('neo4j', process.env.NEO4J_PASSWORD as string))
+import { Neo4jAdapter, conn } from '@/actions/adapter'
 
 export const options: AuthOptions = {
   providers: [

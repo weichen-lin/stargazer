@@ -24,8 +24,7 @@ jobs:
       - name: 'Docker auth'
         run: |-
           gcloud auth configure-docker ${{ vars.LOCATION }}-docker.pkg.dev && \
-          echo ${{ secrets.SECRETS_ENV }} > transformer/secrets.env && \
-          echo $PWD
+          echo ${{ secrets.SECRETS_ENV }} > transformer/secrets.env
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v2
@@ -34,11 +33,14 @@ jobs:
           push: true
           tags: ${{ vars.LOCATION }}-docker.pkg.dev/${{ vars.PROJECT_ID }}/${{ vars.PROJECT }}/stargazer-transformer:latest
 
-      # - name: Deploy to Cloud Run
-      #   uses: google-github-actions/deploy-cloudrun@main
-      #   with:
-      #     image: ${{ vars.LOCATION }}-docker.pkg.dev/${{ vars.PROJECT_ID }}/${{ vars.PROJECT }}/stargazer-transformer:latest
-      #     service: stargazer-transformer
-      #     region: $LOCATION
-      #     platform: managed
-      #     allow-unauthenticated: true
+      - name: Deploy to Cloud Run
+        uses: google-github-actions/deploy-cloudrun@main
+        with:
+          image: ${{ vars.LOCATION }}-docker.pkg.dev/${{ vars.PROJECT_ID }}/${{ vars.PROJECT }}/stargazer-transformer:latest
+          service: stargazer-transformer
+          region: ${{ vars.LOCATION }}
+          platform: managed
+          allow-unauthenticated: true
+          resources: |
+            cpu: 2000m
+            memory: 4Gi

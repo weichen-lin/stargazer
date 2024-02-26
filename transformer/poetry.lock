@@ -609,6 +609,25 @@ files = [
 ]
 
 [[package]]
+name = "neo4j"
+version = "5.17.0"
+description = "Neo4j Bolt driver for Python"
+category = "main"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "neo4j-5.17.0.tar.gz", hash = "sha256:dcd7150a0c3834a89a6e27505e614f340376f31c97c48ba60dc70a220ee85e3b"},
+]
+
+[package.dependencies]
+pytz = "*"
+
+[package.extras]
+numpy = ["numpy (>=1.7.0,<2.0.0)"]
+pandas = ["numpy (>=1.7.0,<2.0.0)", "pandas (>=1.1.0,<3.0.0)"]
+pyarrow = ["pyarrow (>=1.0.0)"]
+
+[[package]]
 name = "nltk"
 version = "3.8.1"
 description = "Natural Language Toolkit"
@@ -1005,6 +1024,18 @@ files = [
 
 [package.extras]
 cli = ["click (>=5.0)"]
+
+[[package]]
+name = "pytz"
+version = "2024.1"
+description = "World timezone definitions, modern and historical"
+category = "main"
+optional = false
+python-versions = "*"
+files = [
+    {file = "pytz-2024.1-py2.py3-none-any.whl", hash = "sha256:328171f4e3623139da4983451950b28e95ac706e13f3f2630a879749e7a8b319"},
+    {file = "pytz-2024.1.tar.gz", hash = "sha256:2a29735ea9c18baf14b448846bde5a48030ed267578472d8955cd0e7443a9812"},
+]
 
 [[package]]
 name = "regex"
@@ -1433,4 +1464,4 @@ watchdog = ["watchdog (>=2.3)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "54ab4a1ec60edcf33bab14cc68ff7666feb212c94b09c4ac1e3ccc264d86a5b7"
+content-hash = "b11900ef77eafc8316a47f0117753a6937339e42b2a62f1fed1263348df261d3"

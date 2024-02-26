@@ -1,7 +1,7 @@
 from playwright.sync_api import sync_playwright
 from model import db, RepoEmbeddingInfo
 from openai import OpenAI
-from config import OPENAI_API_KEY
+from config import OPENAI_API_KEY, NEO4J_CLIENT
 from helper import get_embedding
 from sqlalchemy import select
 from helper import get_token_length
@@ -66,10 +66,25 @@ def Crawler(id: int) -> tuple[str, int]:
         except Exception as e:
             raise ValueError(f"Error while crawling: {str(e)}")
 
-def Responser(text: str, limit: int = 5) -> list[dict]:
+def Responser(name: str, text: str) -> list[dict]:
 
-    vector = get_embedding(text)
+    info = NEO4J_CLIENT.get_user_info(name)
 
-    items = db.session.scalars(select(RepoEmbeddingInfo).order_by(RepoEmbeddingInfo.summary_embedding.cosine_distance(vector)).limit(limit))
+    if info is None:
+        raise ValueError(f"User {name} not found")
+
+    client = OpenAI(
+            api_key=info['openAIKey'],
+        )
+
+    text = text.replace("\n", " ")
+    vector = client.embeddings.create(input = [text], model="text-embedding-3-small").data[0].embedding
+
+    items = db.session.scalars(
+        select(RepoEmbeddingInfo)
+        .filter(RepoEmbeddingInfo.summary_embedding.cosine_distance(vector) > info['cosine'])
+        .order_by(RepoEmbeddingInfo.summary_embedding.cosine_distance(vector))
+        .limit(info['limit'])
+    )
 
     return [item._to_json() for item in items], 200

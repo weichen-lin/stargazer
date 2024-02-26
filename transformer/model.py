@@ -49,3 +49,4 @@ class RepoEmbeddingInfoSchema(BaseModel):
 
 class MessageSchema(BaseModel):
     message: str
+    name: str

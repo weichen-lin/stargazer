@@ -4,6 +4,7 @@ from model import RepoEmbeddingInfoSchema, MessageSchema, db
 from pydantic import ValidationError
 from functools import wraps
 from config import VALID_TOKEN, DATABASE_URL
+from openai import AuthenticationError
 
 app = Flask(__name__)
 
@@ -57,12 +58,18 @@ def get_suggestions():
 
         try:
             model = MessageSchema(**data)
-            result, status = Responser(model.message)
+            result, status = Responser(name=model.name, text=model.message)
 
             return jsonify({"items": result}), status
 
         except ValidationError as e:
             return jsonify({"error": str(e)}), 400
+
+        except ValueError as e:
+            return jsonify({"error": str(e)}), 404
+
+        except AuthenticationError:
+            return jsonify({"error": "Invalid OpenAI Key"}), 401
 
         except Exception as e:
             return jsonify({"error": str(e)}), 404

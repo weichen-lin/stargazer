@@ -24,7 +24,8 @@ jobs:
       - name: 'Docker auth'
         run: |-
           gcloud auth configure-docker ${{ vars.LOCATION }}-docker.pkg.dev && \
-          echo ${{ secrets.SECRETS_ENV }} > secrets.env
+          echo ${{ secrets.SECRETS_ENV }} > transformer/secrets.env && \
+          echo $PWD
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v2

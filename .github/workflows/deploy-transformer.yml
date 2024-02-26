@@ -30,12 +30,12 @@ jobs:
         with:
           context: transformer
           push: true
-          tags: ${{ vars.LOCATION }}-docker.pkg.dev/$PROJECT_ID/$PROJECT/stargazer-transformer:latest
+          tags: ${{ vars.LOCATION }}-docker.pkg.dev/${{ vars.PROJECT_ID }}/${{ vars.PROJECT }}/stargazer-transformer:latest
 
       # - name: Deploy to Cloud Run
       #   uses: google-github-actions/deploy-cloudrun@main
       #   with:
-      #     image: ${{ github.LOCATION }}-docker.pkg.dev/$PROJECT_ID/$PROJECT/stargazer-transformer:latest
+      #     image: ${{ vars.LOCATION }}-docker.pkg.dev/${{ vars.PROJECT_ID }}/${{ vars.PROJECT }}/stargazer-transformer:latest
       #     service: stargazer-transformer
       #     region: $LOCATION
       #     platform: managed

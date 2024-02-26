@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -19,18 +19,18 @@ jobs:
       - name: 'Set up Cloud SDK'
         uses: 'google-github-actions/setup-gcloud@v1'
         with:
-          project_id: '${{ env.PROJECT_ID }}'
+          project_id: '${{ vars.PROJECT_ID }}'
 
       - name: 'Docker auth'
         run: |-
-          gcloud auth configure-docker ${{ env.LOCATION }}-docker.pkg.dev
+          gcloud auth configure-docker ${{ vars.LOCATION }}-docker.pkg.dev
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v2
         with:
           context: transformer
           push: true
-          tags: ${{ env.LOCATION }}-docker.pkg.dev/$PROJECT_ID/$PROJECT/stargazer-transformer:latest
+          tags: ${{ vars.LOCATION }}-docker.pkg.dev/$PROJECT_ID/$PROJECT/stargazer-transformer:latest
 
       # - name: Deploy to Cloud Run
       #   uses: google-github-actions/deploy-cloudrun@main

@@ -34,13 +34,11 @@ jobs:
           tags: ${{ vars.LOCATION }}-docker.pkg.dev/${{ vars.PROJECT_ID }}/${{ vars.PROJECT }}/stargazer-transformer:latest
 
       - name: Deploy to Cloud Run
-        uses: google-github-actions/deploy-cloudrun@main
-        with:
-          image: ${{ vars.LOCATION }}-docker.pkg.dev/${{ vars.PROJECT_ID }}/${{ vars.PROJECT }}/stargazer-transformer:latest
-          service: stargazer-transformer
-          region: ${{ vars.LOCATION }}
-          platform: managed
-          allow-unauthenticated: true
-          resources: |
-            cpu: 2000m
-            memory: 4Gi
+        run: |-
+          gcloud run deploy stargazer-transformer \
+            --image ${{ vars.LOCATION }}-docker.pkg.dev/${{ vars.PROJECT_ID }}/${{ vars.PROJECT }}/stargazer-transformer:latest \
+            --platform managed \
+            --region ${{ vars.REGION }} \
+            --allow-unauthenticated \
+            --cpu 2 \
+            --memory 4Gi

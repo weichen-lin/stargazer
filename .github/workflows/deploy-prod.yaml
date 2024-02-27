@@ -8,7 +8,7 @@ on:
       - main
     paths-ignore:
       - kafka/*
-      - .github/*
+      - .github/**/*
       - transformer/*
       - migrate/*
 

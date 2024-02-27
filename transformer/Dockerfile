@@ -10,7 +10,7 @@ RUN pip install poetry \
     && poetry run playwright install chromium \
     && poetry run python pre_install.py
 
-COPY secrets.env /app/.env
+COPY secrets.env /app/secrets.env
 
 ENV PORT $PATH
 EXPOSE 8080

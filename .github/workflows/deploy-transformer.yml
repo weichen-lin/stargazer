@@ -40,5 +40,7 @@ jobs:
             --platform managed \
             --region ${{ vars.LOCATION }} \
             --allow-unauthenticated \
+            --member="allUsers" \
+            --role="roles/run.invoker" \
             --cpu 2 \
             --memory 4Gi

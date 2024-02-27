@@ -11,7 +11,7 @@ services:
     container_name: kafka-stargazer
     image: wurstmeister/kafka
     ports:
-      - '9092:9092'
+      - '9092'
     expose:
       - '9093'
     environment:
@@ -26,6 +26,19 @@ services:
       - kafka-net
     depends_on:
       - zookeeper
+
+  producer:
+    container_name: stargazer-producer
+    image: asia-east1-docker.pkg.dev/stargazer-414509/stargazer-images/stargazer-producer:latest
+    build:
+      context: .
+    ports:
+      - '8080:8080'
+    networks:
+      - kafka-net
+    depends_on:
+      - kafka
+    restart: always
 
 networks:
   kafka-net:

@@ -3,7 +3,7 @@ project_id = stargazer-414509
 repository = stargazer-images
 
 run-kafka:
-	docker-compose -f kafka.docker-compose.yml up -d
+	docker-compose -f kafka.docker-compose.yml up
 
 stop-kafka:
 	docker-compose -f kafka.docker-compose.yml down
@@ -13,8 +13,8 @@ format:
 
 # ./kafka-console-producer.sh --bootstrap-server your_kafka_broker:9092 --topic your_topic_name
 
-build-base:
-	docker build -t $(location)-docker.pkg.dev/$(project_id)/$(repository)/stargazer-producer:base .
+build-kafka:
+	docker build -t $(location)-docker.pkg.dev/$(project_id)/$(repository)/stargazer-producer:latest .
 
-push-base: 
-	docker push $(location)-docker.pkg.dev/$(project_id)/$(repository)/stargazer-producer:base
+push-kafka: 
+	docker push $(location)-docker.pkg.dev/$(project_id)/$(repository)/stargazer-producer:latest

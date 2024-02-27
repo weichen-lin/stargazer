@@ -21,15 +21,9 @@ type GetGithubReposInfo struct {
 
 func main() {
 
-	if os.Getenv("APP_ENV") == "production" {
-		godotenv.Load(
-			".env",
-		)
-	} else {
-		godotenv.Load(
-			".env.dev",
-		)
-	}
+	godotenv.Load(
+		"secrets.env",
+	)
 
 	neo4j_url := os.Getenv("NEO4J_URL")
 	neo4j_password := os.Getenv("NEO4J_PASSWORD")
@@ -51,7 +45,7 @@ func main() {
 		return
 	}
 
-	brokers := []string{"localhost:9092"}
+	brokers := []string{"kafka:9093"}
 	config := sarama.NewConfig()
 	config.Producer.Return.Successes = true
 	config.Producer.Return.Errors = true
@@ -63,6 +57,10 @@ func main() {
 	}
 
 	get_repo_consumer, err := consumer.GetGithubReposConsumer()
+	if err != nil {
+		fmt.Println("Error creating consumer:", err)
+		return
+	}
 
 	go get_repo_consumer(driver, pool)
 
@@ -83,6 +81,9 @@ func main() {
 		}
 
 		jsonString, err := json.Marshal(info)
+		if err != nil {
+			c.JSON(500, gin.H{"error": err.Error()})
+		}
 
 		partition, offset, err := producer.SendMessage(&sarama.ProducerMessage{
 			Topic: "get_user_stars",

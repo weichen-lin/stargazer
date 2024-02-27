@@ -12,9 +12,7 @@ FROM --platform=linux/amd64 alpine:latest
 
 WORKDIR /app
 
-COPY secrets.env /app/.env
-
-ENV APP_ENV=production
+COPY secrets.env /app/secrets.env
 
 EXPOSE 8080
 

@@ -55,7 +55,7 @@ func GetUserStarredRepos(info *database.GetGithubReposInfo) ([]database.Reposito
 }
 
 func GetGithubReposConsumer() (func(neo4j.DriverWithContext, *gorm.DB), error) {
-	brokers := []string{"localhost:9092"}
+	brokers := []string{"kafka:9093"}
 	config := sarama.NewConfig()
 	config.Consumer.Return.Errors = true
 	config.Producer.Return.Successes = true
@@ -118,7 +118,7 @@ func GetGithubReposConsumer() (func(neo4j.DriverWithContext, *gorm.DB), error) {
 				}
 
 				for _, repo := range stars {
-					err = database.CreateRepository(driver, &repo, info.UserId, pool)
+					database.CreateRepository(driver, &repo, info.UserId, pool)
 				}
 			}
 		}

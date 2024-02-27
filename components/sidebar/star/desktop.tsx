@@ -5,6 +5,8 @@ import { motion } from 'framer-motion'
 import { ArrangeSetting, FixPagination } from '@/components/tab'
 import type { Arrangements } from '@/hooks/stars'
 import clsx from 'clsx'
+import { Button } from '@/components/ui/button'
+import { SymbolIcon } from '@radix-ui/react-icons'
 
 interface SheetBarProps {
   total: number
@@ -26,11 +28,14 @@ const DesktopBar = (props: SheetBarProps) => {
     >
       <div className='flex justify-between w-full items-center'>
         <div className='text-xl lg:text-3xl font-semibold w-[200px] pl-3'>My Stars</div>
-        <div className='flex items-center gap-x-12'>
-          <div className='flex items-center gap-x-12'>
+        <div className='flex items-center gap-x-4'>
+          <div className='flex items-center gap-x-4'>
             <FixPagination total={total} />
             <ArrangeSetting arrangement={arrangement} toggle={toggleArrangement} />
           </div>
+          <Button variant='outline' size='icon' className='ml-4'>
+            <SymbolIcon />
+          </Button>
           <ModeToggle />
         </div>
       </div>

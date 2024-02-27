@@ -1,6 +1,6 @@
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
-import { HamburgerMenuIcon } from '@radix-ui/react-icons'
+import { HamburgerMenuIcon, SymbolIcon } from '@radix-ui/react-icons'
 import Sidebar from '@/components/sidebar/star'
 import { ModeToggle } from '@/components/provider'
 import { motion } from 'framer-motion'
@@ -37,14 +37,19 @@ const MobileBar = (props: SheetBarProps) => {
           </SheetContent>
         </Sheet>
         <div className='text-xl lg:text-3xl font-semibold w-[200px] pl-3'>My Stars</div>
-        <div className='flex items-center gap-x-6'>
+        <div className='flex items-center gap-x-2'>
           <ArrangeSetting arrangement={arrangement} toggle={toggleArrangement} />
+          <Button variant='outline' size='icon' className='ml-4'>
+            <SymbolIcon />
+          </Button>
           <ModeToggle />
         </div>
       </div>
-      <motion.div initial={{ x: 80 }} animate={{ x: 0 }} className='flex justify-between items-center w-full'>
-        <FixPagination total={total} />
-      </motion.div>
+      {total > 0 && (
+        <motion.div initial={{ x: 80 }} animate={{ x: 0 }} className='flex justify-between items-center w-full'>
+          <FixPagination total={total} />
+        </motion.div>
+      )}
     </div>
   )
 }

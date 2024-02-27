@@ -208,7 +208,6 @@ export function client(conn: Driver) {
     /** Reads values from the database */
     async read<T>(statement: string, values?: any): Promise<T | null> {
       const session = conn.session()
-      console.log({ values })
       try {
         const result = await session.executeRead(tx => tx.run(statement, values))
         return format.from<T>(result?.records[0]?.get(0)) ?? null

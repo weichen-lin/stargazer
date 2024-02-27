@@ -38,7 +38,7 @@ jobs:
           gcloud run deploy stargazer-transformer \
             --image ${{ vars.LOCATION }}-docker.pkg.dev/${{ vars.PROJECT_ID }}/${{ vars.PROJECT }}/stargazer-transformer:latest \
             --platform managed \
-            --region ${{ vars.REGION }} \
+            --region ${{ vars.LOCATION }} \
             --allow-unauthenticated \
             --cpu 2 \
             --memory 4Gi

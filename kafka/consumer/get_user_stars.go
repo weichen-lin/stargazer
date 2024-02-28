@@ -56,7 +56,8 @@ func GetUserStarredRepos(info *database.GetGithubReposInfo) ([]database.Reposito
 }
 
 func GetGithubReposConsumer() (func(neo4j.DriverWithContext, *gorm.DB), error) {
-	brokers := []string{"localhost:9092"}
+	kafka_url := os.Getenv("KAFKA_URL")
+	brokers := []string{kafka_url}
 	config := sarama.NewConfig()
 	config.Consumer.Return.Errors = true
 	config.Producer.Return.Successes = true

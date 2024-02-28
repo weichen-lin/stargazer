@@ -54,7 +54,8 @@ func GetUserInfo(name string) (*database.User, error) {
 }
 
 func GetUserProfileConsumer() (func(neo4j.DriverWithContext), error) {
-	brokers := []string{"localhost:9092"}
+	kafka_url := os.Getenv("KAFKA_URL")
+	brokers := []string{kafka_url}
 	config := sarama.NewConfig()
 	config.Consumer.Return.Errors = true
 	config.Producer.Return.Successes = true

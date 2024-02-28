@@ -48,7 +48,8 @@ func main() {
 		return
 	}
 
-	brokers := []string{"localhost:9092"}
+	kafka_url := os.Getenv("KAFKA_URL")
+	brokers := []string{kafka_url}
 	config := sarama.NewConfig()
 	config.Producer.Return.Successes = true
 	config.Producer.Return.Errors = true

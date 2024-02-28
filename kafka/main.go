@@ -3,18 +3,21 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"os"
+	"time"
 
 	"github.com/IBM/sarama"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
+	"github.com/patrickmn/go-cache"
 	"github.com/weichen-lin/kafka-service/consumer"
 	database "github.com/weichen-lin/kafka-service/db"
 )
 
 type GetGithubReposInfo struct {
-	UserId   string  `form:"user_id" json:"user_id" binding:"required"`
+	UserId   string `form:"user_id" json:"user_id" binding:"required"`
 	Username string `form:"username" json:"username" binding:"required"`
 	Page     int    `form:"page" json:"page" binding:"required"`
 }
@@ -45,7 +48,7 @@ func main() {
 		return
 	}
 
-	brokers := []string{"kafka:9093"}
+	brokers := []string{"localhost:9092"}
 	config := sarama.NewConfig()
 	config.Producer.Return.Successes = true
 	config.Producer.Return.Errors = true
@@ -64,25 +67,43 @@ func main() {
 
 	go get_repo_consumer(driver, pool)
 
+	server_cache := cache.New(20*time.Minute, 10*time.Minute)
+
 	r := gin.Default()
 
 	r.GET("/health", func(c *gin.Context) {
-		c.JSON(200, gin.H{
+
+		c.JSON(http.StatusOK, gin.H{
 			"message": "OK",
 		})
 	})
 
-	r.POST("/get_user_stars", func(c *gin.Context) {
+	r.POST("/get_user_stars", AuthMiddleware(), func(c *gin.Context) {
 		var info GetGithubReposInfo
 
 		if err := c.ShouldBindJSON(&info); err != nil {
-			c.JSON(400, gin.H{"error": err.Error()})
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
+		if _, found := server_cache.Get(info.UserId); found {
+
+			_, expired, _ := server_cache.GetWithExpiration(info.UserId)
+			remain := expired.Sub(time.Now())
+			mins := int(remain.Minutes())
+
+			c.JSON(http.StatusConflict, gin.H{
+				"message": "This user is already being processed. Please try again later.",
+				"expires": fmt.Sprintf("%d minutes", mins),
+			})
+			return
+		}
+
+		server_cache.Set(info.UserId, true, time.Minute*30)
+
 		jsonString, err := json.Marshal(info)
 		if err != nil {
-			c.JSON(500, gin.H{"error": err.Error()})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		}
 
 		partition, offset, err := producer.SendMessage(&sarama.ProducerMessage{
@@ -91,7 +112,7 @@ func main() {
 		})
 
 		if err != nil {
-			c.JSON(500, gin.H{"error": err.Error()})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		}
 
 		c.JSON(200, gin.H{
@@ -102,4 +123,19 @@ func main() {
 	})
 
 	r.Run(":8080")
+}
+
+func AuthMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		token := c.GetHeader("Authorization")
+		expectedToken := os.Getenv("AUTHENTICATION_TOKEN")
+
+		if token != "Bearer "+expectedToken {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+			c.Abort()
+			return
+		}
+
+		c.Next()
+	}
 }

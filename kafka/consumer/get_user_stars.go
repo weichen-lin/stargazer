@@ -10,6 +10,7 @@ import (
 	"github.com/IBM/sarama"
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 	database "github.com/weichen-lin/kafka-service/db"
+	"github.com/weichen-lin/kafka-service/util"
 	"gorm.io/gorm"
 )
 
@@ -55,7 +56,7 @@ func GetUserStarredRepos(info *database.GetGithubReposInfo) ([]database.Reposito
 }
 
 func GetGithubReposConsumer() (func(neo4j.DriverWithContext, *gorm.DB), error) {
-	brokers := []string{"kafka:9093"}
+	brokers := []string{"localhost:9092"}
 	config := sarama.NewConfig()
 	config.Consumer.Return.Errors = true
 	config.Producer.Return.Successes = true
@@ -115,6 +116,17 @@ func GetGithubReposConsumer() (func(neo4j.DriverWithContext, *gorm.DB), error) {
 
 					fmt.Printf("Sent message: Topic - %s, Partition - %d, Offset - %d\n",
 						"get_user_stars", partition, offset)
+
+				} else {
+					email, _ := database.GetUserEmail(driver, info.Username)
+					
+					params := &util.SendMailParams{
+						Email: email,
+						Name: info.Username,
+						StarsCount: info.Page * 30 + len(stars),
+					}
+
+					util.SendMail(params)
 				}
 
 				for _, repo := range stars {

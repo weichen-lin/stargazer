@@ -36,7 +36,7 @@ type Repository struct {
 }
 
 type GetGithubReposInfo struct {
-	UserId   string  `json:"user_id"`
+	UserId   string `json:"user_id"`
 	Username string `json:"username"`
 	Page     int    `json:"page"`
 }
@@ -274,7 +274,6 @@ func CreateRepository(driver neo4j.DriverWithContext, repo *Repository, user_id 
 
 		return nil, result.Err()
 	})
-
 
 	if id, ok := id.(string); ok {
 		return nil

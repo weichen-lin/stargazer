@@ -1,12 +1,13 @@
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
-import { HamburgerMenuIcon, SymbolIcon } from '@radix-ui/react-icons'
+import { HamburgerMenuIcon } from '@radix-ui/react-icons'
 import Sidebar from '@/components/sidebar/star'
 import { ModeToggle } from '@/components/provider'
 import { motion } from 'framer-motion'
 import { ArrangeSetting, FixPagination } from '@/components/tab'
 import type { Arrangements } from '@/hooks/stars'
 import clsx from 'clsx'
+import { SyncStars } from '@/components/repo'
 
 interface SheetBarProps {
   total: number
@@ -39,9 +40,7 @@ const MobileBar = (props: SheetBarProps) => {
         <div className='text-xl lg:text-3xl font-semibold w-[200px] pl-3'>My Stars</div>
         <div className='flex items-center gap-x-2'>
           <ArrangeSetting arrangement={arrangement} toggle={toggleArrangement} />
-          <Button variant='outline' size='icon' className='ml-4'>
-            <SymbolIcon />
-          </Button>
+          <SyncStars />
           <ModeToggle />
         </div>
       </div>

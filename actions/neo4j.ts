@@ -15,6 +15,21 @@ const fetcher = async <T>(q: string, params: T) => {
   }
 }
 
+interface GetUserProviderParams {
+  name: string
+}
+
+export const getUserProviderInfo = async (name: string): Promise<string> => {
+  const q = `
+  MATCH (u:User { name: $name })-[:HAS_ACCOUNT]->(a:Account)
+  RETURN a{.*}
+  `
+
+  const data = await fetcher(q, { name })
+  const target = Array.isArray(data) ? data[0] : data
+  return target?.a?.providerAccountId ?? null
+}
+
 interface UserReposParams {
   username: string
   page: Integer

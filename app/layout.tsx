@@ -2,6 +2,8 @@ import type { Metadata } from 'next'
 import { Gabarito } from 'next/font/google'
 import './globals.css'
 import { ThemeProvider, AuthProvider } from '@/components/provider'
+import { ToastContainer } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
 
 const gabarito = Gabarito({
   weight: '400',
@@ -26,6 +28,7 @@ export default function RootLayout({
         <ThemeProvider attribute='class' defaultTheme='system' enableSystem disableTransitionOnChange>
           <AuthProvider>{children}</AuthProvider>
         </ThemeProvider>
+        <ToastContainer />
       </body>
     </html>
   )

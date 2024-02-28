@@ -127,7 +127,10 @@ func GetGithubReposConsumer() (func(neo4j.DriverWithContext, *gorm.DB), error) {
 						StarsCount: info.Page * 30 + len(stars),
 					}
 
-					util.SendMail(params)
+					err := util.SendMail(params)
+					if err != nil {
+						fmt.Println("Error sending email:", err)
+					}
 				}
 
 				for _, repo := range stars {

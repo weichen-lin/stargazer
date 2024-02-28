@@ -13,6 +13,7 @@ FROM --platform=linux/amd64 alpine:latest
 WORKDIR /app
 
 COPY secrets.env /app/secrets.env
+COPY templates /app/templates
 
 EXPOSE 8080
 

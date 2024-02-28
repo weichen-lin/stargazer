@@ -29,7 +29,7 @@ export default function Stars({ stars, total }: { stars: Repository[]; total: nu
           <div className='w-full flex flex-col items-center justify-center gap-y-4 max-w-[400px] h-full md:max-w-full'>
             <Image src='/empty.png' width={250} height={250} alt='empty' />
             <div className='text-gray-500 text-center'>
-              It seems that Stargazer doesn't have information about your GitHub stars.
+              It seems that Stargazer doesn&apos;t have information about your GitHub stars.
             </div>
             <div className='text-gray-500 text-center'>
               Please click on the symbol in the upper right corner

@@ -6,21 +6,21 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/IBM/sarama"
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
+	"github.com/patrickmn/go-cache"
 	database "github.com/weichen-lin/kafka-service/db"
 	"github.com/weichen-lin/kafka-service/util"
 	"gorm.io/gorm"
 )
 
-func GetUserStarredRepos(info *database.GetGithubReposInfo) ([]database.Repository, error) {
-	token := os.Getenv("GITHUB_TOKEN")
-	if token == "" {
-		return nil, fmt.Errorf("GITHUB_TOKEN not set")
-	}
+var tokenCache = cache.New(20*time.Minute, 10*time.Minute)
 
-	url := fmt.Sprintf("https://api.github.com/users/%s/starred?&page=%d", info.Username, info.Page)
+func GetUserStarredRepos(info *database.GetGithubReposInfo, token string) ([]database.Repository, error) {
+
+	url := fmt.Sprintf("https://api.github.com/user/starred?&page=%d", info.Page)
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -76,6 +76,7 @@ func GetGithubReposConsumer() (func(neo4j.DriverWithContext, *gorm.DB), error) {
 	consumerPartitionConsumer, err := consumer.ConsumePartition("get_user_stars", 0, sarama.OffsetNewest)
 	if err != nil {
 		fmt.Println("Error creating partition consumer:", err)
+		return nil, err
 	}
 
 	return func(driver neo4j.DriverWithContext, pool *gorm.DB) {
@@ -92,11 +93,33 @@ func GetGithubReposConsumer() (func(neo4j.DriverWithContext, *gorm.DB), error) {
 				err = json.Unmarshal(message.Value, &info)
 				if err != nil {
 					fmt.Println("Error parsing JSON:", err)
+					continue
 				}
 
-				stars, err := GetUserStarredRepos(&info)
+				var token string
+
+				if tokenFormCache, found := tokenCache.Get(info.UserId); !found {
+					tokenValue, err := database.GetUserGithubToken(driver, info.UserId)
+					if err != nil {
+						fmt.Println("Error getting user token:", err)
+						continue
+					}
+					token = tokenValue
+					tokenCache.Set(info.UserId, tokenValue, cache.DefaultExpiration)
+				} else {
+					tokenValue, ok := tokenFormCache.(string)
+					if !ok {
+						fmt.Println("Error converting token to string:", token)
+						continue
+					}
+					token = tokenValue
+				}
+
+				stars, err := GetUserStarredRepos(&info, token)
+
 				if err != nil {
 					fmt.Println("Error getting user stars:", err)
+					continue
 				}
 
 				if len(stars) == 30 {
@@ -105,6 +128,7 @@ func GetGithubReposConsumer() (func(neo4j.DriverWithContext, *gorm.DB), error) {
 					jsonString, err := json.Marshal(info)
 					if err != nil {
 						fmt.Println("Error marshalling JSON:", err)
+						continue
 					}
 
 					partition, offset, err := producer.SendMessage(&sarama.ProducerMessage{
@@ -113,6 +137,7 @@ func GetGithubReposConsumer() (func(neo4j.DriverWithContext, *gorm.DB), error) {
 					})
 					if err != nil {
 						fmt.Println("Error sending message:", err)
+						continue
 					}
 
 					fmt.Printf("Sent message: Topic - %s, Partition - %d, Offset - %d\n",

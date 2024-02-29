@@ -125,7 +125,6 @@ interface UpdateInfoParams {
   email: string
   limit: number
   openAIKey: string
-  githubToken: string
   cosine: number
 }
 

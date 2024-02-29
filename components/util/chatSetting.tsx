@@ -51,7 +51,7 @@ export function ChatSettingDrawer() {
 }
 
 const ChatSetting = () => {
-  const { limit, openAIKey, githubToken, cosine, changeKey, changeLimit, changeToken, changeCosine } = useSetting()
+  const { limit, openAIKey, cosine, changeKey, changeLimit, changeCosine } = useSetting()
   const session = useSession()
   const [isLoading, setIsLoading] = useState(false)
 
@@ -59,17 +59,15 @@ const ChatSetting = () => {
 
   const update = async () => {
     setIsLoading(true)
-    await updateInfo({ email, limit, openAIKey: openAIKey ?? '', githubToken: githubToken ?? '', cosine })
+    await updateInfo({ email, limit, openAIKey: openAIKey ?? '', cosine })
     setIsLoading(false)
   }
-
-  const notVerified = !email
 
   return (
     <Tabs defaultValue='tokens' className='flex flex-col items-center w-full max-w-[400px] mx-auto pt-6'>
       <TabsList>
         <TabsTrigger value='tokens' disabled={isLoading}>
-          Tokens
+          Token
         </TabsTrigger>
         <TabsTrigger value='preference' disabled={isLoading}>
           Preference
@@ -81,29 +79,6 @@ const ChatSetting = () => {
             <DrawerTitle className='text-2xl text-center'>Setup all token you need</DrawerTitle>
           </DrawerHeader>
           <div className='p-4 w-full flex flex-col gap-y-8'>
-            <div className='flex flex-col gap-y-2'>
-              <h1 className='font-semibold flex gap-x-2 items-center'>
-                Github Token
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <InfoCircledIcon color='#CE2C31' />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      Your GitHub token will only be used to fetch repositories you follow on GitHub.
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </h1>
-              <Input
-                placeholder='Your Github Token'
-                value={githubToken ?? ''}
-                onChange={e => {
-                  changeToken(e.target.value)
-                }}
-                disabled={isLoading}
-              />
-            </div>
             <div className='flex flex-col gap-y-2'>
               <h1 className='font-semibold flex gap-x-2 items-center'>
                 OpenAI API Key

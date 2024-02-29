@@ -11,7 +11,7 @@ interface syncUserStarsParams {
   page: number
 }
 
-export async function syncUserStars(name: string): Promise<{ status: number; message: string }> {
+export async function syncUserStars(name: string): Promise<{ status: number; title: string; message: string }> {
   const providerId = await getUserProviderInfo(name)
   const params: syncUserStarsParams = {
     user_id: providerId,
@@ -30,18 +30,23 @@ export async function syncUserStars(name: string): Promise<{ status: number; mes
 
   const status = response.status
   let message: string
+  let title: string
 
   if (status === 200) {
-    message = "We have received your request, and you will receive a confirmation email once it's completed."
+    title = 'Scheduled: Catch up'
+    message = "You will receive a confirmation email once it's completed."
   } else if (status === 409) {
     const json = await response.json()
-    message = `Your request is currently being processed. You'll be able to make another request after ${json.expires}`
+    title = 'In Progress: Catch up'
+    message = `You'll be able to make another request after ${json.expires}`
   } else {
-    message = 'An error occurred while processing your request. Please try again later.'
+    title = 'An error occurred'
+    message = 'Please try again later.'
   }
 
   return {
     status,
+    title,
     message,
   }
 }

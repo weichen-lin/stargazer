@@ -5,22 +5,29 @@ import { SymbolIcon } from '@radix-ui/react-icons'
 import { useState } from 'react'
 import { syncUserStars } from '@/actions/producer'
 import { useSession } from 'next-auth/react'
-import { toast } from 'react-toastify'
+import { useToast } from '@/components/ui/use-toast'
 
 export default function SyncStars() {
   const [syncing, setSyncing] = useState(false)
   const { data: session } = useSession()
+  const { toast } = useToast()
 
   const getStars = async () => {
     if (session?.user) {
       setSyncing(true)
-      const { status, message } = await syncUserStars(session?.user?.name ?? '')
+      const { status, title, message } = await syncUserStars(session?.user?.name ?? '')
       setSyncing(false)
-
       if (status === 200) {
-        toast.success(message, { position: 'bottom-center' })
+        toast({
+          title,
+          description: message,
+        })
       } else {
-        toast.error(message, { position: 'bottom-center' })
+        toast({
+          title,
+          description: message,
+          variant: 'destructive',
+        })
       }
     }
   }

@@ -8,6 +8,7 @@ import { useChat, SuggestionProps } from '@/hooks/chat'
 import { useRef, useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { useSession } from 'next-auth/react'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 
 export default function Chatter() {
   const {
@@ -35,6 +36,10 @@ export default function Chatter() {
 
   return (
     <div className='h-full flex flex-col justify-between p-4 w-full'>
+      <Alert className='lg:w-2/3 lg:mx-auto'>
+        <AlertTitle>Heads up!</AlertTitle>
+        <AlertDescription>You can add components and dependencies to your app using the cli.</AlertDescription>
+      </Alert>
       <div className='flex-1 py-2 overflow-y-auto gap-y-6 flex flex-col'>
         {messages.map((message, i) => {
           if (message.type === 'question') {

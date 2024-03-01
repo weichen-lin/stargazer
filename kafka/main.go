@@ -90,7 +90,7 @@ func main() {
 		if _, found := server_cache.Get(info.UserId); found {
 
 			_, expired, _ := server_cache.GetWithExpiration(info.UserId)
-			remain := expired.Sub(time.Now())
+			remain := time.Until(expired)
 			mins := int(remain.Minutes())
 
 			c.JSON(http.StatusConflict, gin.H{

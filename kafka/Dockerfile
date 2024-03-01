@@ -6,6 +6,9 @@ COPY go.mod go.sum ./
 RUN go mod download
 
 COPY . .
+
+ENV GIN_MODE=release
+
 RUN go build -o main.exe
 
 FROM --platform=linux/amd64 alpine:latest

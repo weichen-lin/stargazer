@@ -72,7 +72,7 @@ def get_suggestions():
             return jsonify({"error": str(e)}), 404
 
         except AuthenticationError:
-            return jsonify({"error": "Invalid OpenAI Key"}), 401
+            return jsonify({"error": "Invalid OpenAI Key "}), 401
 
         except Exception as e:
             return jsonify({"error": str(e)}), 404

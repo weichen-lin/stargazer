@@ -36,12 +36,15 @@ def vectorize():
 
         try:
             model = RepoEmbeddingInfoSchema(**data)
-            result, status = Crawler(model.repo_id)
+            result, status = Crawler(model.repo_id, model.name)
 
             return jsonify({"message": result}), status
 
         except ValidationError as e:
             return jsonify({"error": str(e)}), 400
+
+        except AuthenticationError:
+            return jsonify({"error": "Invalid OpenAI Key"}), 401
 
         except Exception as e:
             return jsonify({"error": str(e)}), 404

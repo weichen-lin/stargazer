@@ -1,16 +1,20 @@
 from playwright.sync_api import sync_playwright
 from model import db, RepoEmbeddingInfo
 from openai import OpenAI
-from config import OPENAI_API_KEY, NEO4J_CLIENT
-from helper import get_embedding
+from config import NEO4J_CLIENT
 from sqlalchemy import select
 from helper import get_token_length
 
-client = OpenAI(
-    api_key=OPENAI_API_KEY,
-)
+def Crawler(id: int, name: str) -> tuple[str, int]:
 
-def Crawler(id: int) -> tuple[str, int]:
+    info = NEO4J_CLIENT.get_user_info(name)
+
+    if info is None:
+        raise ValueError(f"User {name} not found")
+
+    client = OpenAI(
+            api_key=info['openAIKey'],
+        )
 
     repo = (
         db.session.query(RepoEmbeddingInfo)
@@ -32,7 +36,6 @@ def Crawler(id: int) -> tuple[str, int]:
             browser = p.chromium.launch(headless=True)
             page = browser.new_page()
             page.goto(repo.html_url)
-
 
             selectors = ["article.markdown-body", ".plain"]
 
@@ -56,7 +59,8 @@ def Crawler(id: int) -> tuple[str, int]:
 
             repo.readme_summary = summary
 
-            vector = get_embedding(summary)
+            summary = summary.replace("\n", " ")
+            vector = client.embeddings.create(input = [summary], model="text-embedding-3-small").data[0].embedding
             repo.summary_embedding = vector
 
             db.session.commit()

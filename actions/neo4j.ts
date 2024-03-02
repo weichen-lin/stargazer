@@ -15,10 +15,6 @@ const fetcher = async <T>(q: string, params: T) => {
   }
 }
 
-interface GetUserProviderParams {
-  name: string
-}
-
 export const getUserProviderInfo = async (name: string): Promise<string> => {
   const q = `
   MATCH (u:User { name: $name })-[:HAS_ACCOUNT]->(a:Account)
@@ -137,12 +133,59 @@ export const updateInfo = async (params: UpdateInfoParams) => {
   const session = conn.session()
 
   try {
-    const data = await session.executeWrite(tx => tx.run(q, { data: params, email: params.email }))
+    await session.executeWrite(tx => tx.run(q, { data: params, email: params.email }))
     return 'OK'
   } catch (error) {
     console.error(error)
   } finally {
     await session.close()
+  }
+}
+
+export const getUserStarsRelation = async (email: string) => {
+  const q = `
+  MATCH (u:User { email: $email })-[s:STARS]->(r:Repository)
+  RETURN s{.*}
+  `
+
+  try {
+    const data = await fetcher(q, { email })
+
+    const isVectorized = data?.filter(e => e?.s?.is_vectorized === true)
+
+    return {
+      total: data?.length ?? 0,
+      vectorized: isVectorized?.length ?? 0,
+    }
+  } catch (error) {
+    console.error(error)
+    return {
+      total: 0,
+      vectorized: 0,
+    }
+  }
+}
+
+export const getUserStarsRelationRepos = async (
+  email: string,
+): Promise<{ isVectorized: boolean; repo_id: number }[]> => {
+  const q = `
+  MATCH (u:User { email: $email })-[s:STARS]->(r:Repository)
+  RETURN s{.*}, r{.repo_id}
+  `
+
+  try {
+    const data = await fetcher(q, { email })
+    const info = data?.map(e => ({ isVectorized: e?.s?.is_vectorized === true, repo_id: e?.r?.repo_id?.low })) ?? []
+    return info.sort((a, b) => {
+      if (a.isVectorized === b.isVectorized) {
+        return 0
+      }
+      return a.isVectorized ? -1 : 1
+    })
+  } catch (error) {
+    console.error(error)
+    return []
   }
 }
 

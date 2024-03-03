@@ -12,6 +12,7 @@ app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URL
 
 db.init_app(app)
 
+
 def requires_auth(func):
     @wraps(func)
     def decorated(*args, **kwargs):

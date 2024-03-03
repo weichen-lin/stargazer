@@ -86,12 +86,12 @@ const StarGazerResponse = (props: { suggestions: SuggestionProps[] }) => {
   const { suggestions } = props
   return (
     <div className='w-full lg:w-2/3 lg:mx-auto'>
-      <div className='flex flex-col items-start gap-y-2 w-full sm:max-w-[360px]'>
+      <div className='flex flex-col items-start gap-y-2 w-full'>
         <div className='flex gap-x-3 items-center'>
           <img src='/icon.png' alt='stargazer' className='rounded-full w-7 h-7' />
           <div className='font-semibold'>StarGazer</div>
         </div>
-        <div className='px-3.5 py-3 flex flex-col w-full gap-y-5'>
+        <div className='px-3.5 py-3 flex flex-col lg:flex-row gap-y-5 flex-wrap w-full gap-4'>
           {suggestions.map((e, i) => (
             <Suggestions key={i} {...e} index={i} />
           ))}
@@ -136,7 +136,7 @@ const Suggestions = (props: SuggestionProps & { index: number }) => {
     <motion.div
       initial={{ opacity: 0, y: -100 }}
       animate={{ opacity: 1, y: 0, transition: { delay: index * 0.05 } }}
-      className='rounded-md drop-shadow-md shadow-md w-full flex border-[1px] border-slate-100/40 p-2 flex-col gap-y-4'
+      className='rounded-md drop-shadow-md shadow-md w-full flex border-[1px] border-slate-100/40 p-2 flex-col gap-y-4 max-w-[360px]'
     >
       <div
         className='flex justify-between w-full items-center'
@@ -148,7 +148,7 @@ const Suggestions = (props: SuggestionProps & { index: number }) => {
           <div className='w-10 h-10'>
             <img src={avatar_url} alt='stargazer' className='rounded-full w-full h-full' />
           </div>
-          <div>{full_name}</div>
+          <div className='max-w-[250px] truncate'>{full_name}</div>
         </div>
         <a className='p-2 rounded-full hover:bg-slate-300/30' href={html_url} target='_blank'>
           <GitHubLogoIcon />

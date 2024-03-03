@@ -86,7 +86,7 @@ export const TypewriterEffect = ({
   )
 }
 
-export const TypewriterEffectSmooth = ({
+const TypewriterEffectSmooth = ({
   words,
   className,
   cursorClassName,
@@ -167,3 +167,5 @@ export const TypewriterEffectSmooth = ({
     </div>
   )
 }
+
+export default TypewriterEffectSmooth

@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { Player } from '@lordicon/react'
-import ErrorJson from './wired-outline-1764-pushups.json'
+import ErrorJson from './wired-outline-1140-error.json'
 
 export default function Error() {
   const playerRef = useRef<Player>(null)

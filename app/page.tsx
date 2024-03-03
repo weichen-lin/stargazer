@@ -6,8 +6,10 @@ import { Button } from '@/components/ui/button'
 import { signIn } from 'next-auth/react'
 import { GitHubLogoIcon, HomeIcon } from '@radix-ui/react-icons'
 import { ModeToggle } from '@/components/provider'
-import { TypewriterEffectSmooth } from '@/components/ui/typewriter-effect'
 import { useSession } from 'next-auth/react'
+import dynamic from 'next/dynamic'
+
+const TypeWritter = dynamic(() => import('@/components/ui/typewriter-effect'), { ssr: false })
 
 export default function Home() {
   const words = [
@@ -58,7 +60,7 @@ export default function Home() {
         </div>
         <div className='flex justify-between items-start md:items-center flex-col lg:flex-row gap-6'>
           <div className='flex flex-col'>
-            <TypewriterEffectSmooth words={words} cursorClassName='h-7 lg:h-10' />
+            <TypeWritter words={words} cursorClassName='h-7 lg:h-10' />
             <p className='leading-7'>
               AI is reshaping Star Management beyond Github Stars. Explore limitless potential in AI-driven star
               management – just the start!

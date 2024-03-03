@@ -189,4 +189,22 @@ export const getUserStarsRelationRepos = async (
   }
 }
 
+export const updateStarRelation = async (email: string, repo_id: number, isVectorized: boolean) => {
+  const q = `
+  MATCH (u:User { email: $email })-[s:STARS]->(r:Repository { repo_id: $repo_id })
+  SET s.is_vectorized = $isVectorized
+  RETURN s{.*}
+  `
+
+  const session = conn.session()
+
+  try {
+    await session.executeWrite(tx => tx.run(q, { email, repo_id, isVectorized }))
+  } catch (error) {
+    console.error(error)
+  } finally {
+    await session.close()
+  }
+}
+
 export default fetcher

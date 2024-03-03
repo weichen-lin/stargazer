@@ -7,10 +7,12 @@ import { useChatAlert } from '@/hooks/chat'
 
 const PushUp = dynamic(() => import('@/components/fancyicon/push-up'), { ssr: false })
 const Check = dynamic(() => import('@/components/fancyicon/check'), { ssr: false })
+const Error = dynamic(() => import('@/components/fancyicon/error'), { ssr: false })
 
 export default function ProgressInfo() {
   const [isEstablish, setIsEstablish] = useState(true)
   const [isFinished, setIsFinished] = useState(false)
+  const [errorCode, setErrorCode] = useState<number>(200)
   const [current, setCurrent] = useState(0)
   const [total, setTotal] = useState(0)
   const { startEvent, setCantClose } = useChatAlert()
@@ -22,14 +24,26 @@ export default function ProgressInfo() {
       setIsEstablish(false)
 
       const msg = JSON.parse(event.data)
-      if (msg.current === msg.total) {
-        setIsFinished(true)
+      if (msg.error) {
+        setErrorCode(msg.status)
         setCantClose(false)
         eventSource.close()
+        setTimeout(() => {
+          startEvent(false)
+        }, 3500)
       } else {
-        setCantClose(true)
-        setCurrent(msg.current + 1)
-        setTotal(msg.total)
+        if (msg.current === msg.total) {
+          setIsFinished(true)
+          setCantClose(false)
+          setTimeout(() => {
+            startEvent(false)
+          }, 3500)
+          eventSource.close()
+        } else {
+          setCantClose(true)
+          setCurrent(msg.current + 1)
+          setTotal(msg.total)
+        }
       }
     }
 
@@ -50,8 +64,9 @@ export default function ProgressInfo() {
   return (
     <div className='w-full max-w-[450px]'>
       {isEstablish && <Confirming />}
-      {!isEstablish && !isFinished && <Progressing current={current} total={total} />}
+      {!isEstablish && !isFinished && errorCode < 203 && <Progressing current={current} total={total} />}
       {isFinished && <CheckMark />}
+      {errorCode > 202 && <ErrorMsg status={errorCode} />}
     </div>
   )
 }
@@ -70,6 +85,21 @@ const CheckMark = () => {
     <div className='flex justify-center items-center w-full gap-x-4'>
       <Check />
       <div className='pt-1'>Vectorize is complete!</div>
+    </div>
+  )
+}
+
+const MsgMap: { [key: number]: string } = {
+  404: 'Invalid OpenAI API key.',
+}
+
+const ErrorMsg = ({ status }: { status: number }) => {
+  const msg = MsgMap[status] || 'Error occurred. Please try again later.'
+
+  return (
+    <div className='flex justify-center items-center w-full gap-x-4'>
+      <Error />
+      <div className='pt-1'>{msg}</div>
     </div>
   )
 }

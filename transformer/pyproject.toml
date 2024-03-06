@@ -20,6 +20,7 @@ pgvector = "^0.2.5"
 python-dotenv = "^1.0.1"
 tiktoken = "^0.6.0"
 neo4j = "^5.17.0"
+sentence-transformers = "^2.5.1"
 
 
 [tool.poetry.group.dev.dependencies]

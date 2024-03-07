@@ -4,7 +4,6 @@ from openai import OpenAI
 from config import NEO4J_CLIENT
 from sqlalchemy import select
 from helper import get_token_length
-from model import db, RepoEmbeddingInfo
 
 
 def Crawler(id: int, name: str) -> tuple[str, int]:

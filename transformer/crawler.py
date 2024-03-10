@@ -2,9 +2,8 @@ from playwright.sync_api import sync_playwright
 from model import db, RepoEmbeddingInfo
 from openai import OpenAI
 from config import NEO4J_CLIENT
-from sqlalchemy import select
-from helper import get_token_length
-
+from helper import get_token_length, get_embedding, get_formatted_text
+from elastic import insert_data, knn_search
 
 def Crawler(id: int, name: str) -> tuple[str, int]:
 
@@ -29,7 +28,7 @@ def Crawler(id: int, name: str) -> tuple[str, int]:
     if repo.html_url is None:
         raise ValueError(f"Repo with id {id} does not have an html_url")
 
-    if repo.summary_embedding is not None:
+    if repo.elk_vector is not None:
         return f"already generate embedding on repo: {id}", 201
 
     if repo.readme_summary is None or repo.readme_summary == "":
@@ -62,22 +61,8 @@ def Crawler(id: int, name: str) -> tuple[str, int]:
                 repo.readme_summary = summary
 
                 summary = summary.replace("\n", " ")
-                vector = (
-                    client.embeddings.create(
-                        input=[article.text_content()], model="text-embedding-3-small"
-                    )
-                    .data[0]
-                    .embedding
-                )
-                repo.summary_embedding = vector
-
-                # vector = [TaggedDocument(words=get_tokens(summary), tags=['repo'])]
-
-                # model = Doc2Vec(vector, vector_size=150, window=2, min_count=1, workers=1)
-                # doc_vectors = model.dv['repo']
-
-                # vector = array(doc_vectors, dtype=float32)
-                # repo.summary_embedding = vector.tolist()
+                vector = get_embedding(summary)
+                repo.elk_vector = vector
 
                 db.session.commit()
 
@@ -90,22 +75,16 @@ def Crawler(id: int, name: str) -> tuple[str, int]:
         summary = repo.readme_summary
         summary = summary.replace("\n", " ")
 
-        # vector = [TaggedDocument(words=get_tokens(summary), tags=['repo'])]
+        vector = get_embedding(summary)
 
-        # model = Doc2Vec(vector, vector_size=150, window=2, min_count=1, workers=1)
-        # doc_vectors = model.dv['repo']
-
-        # vector = array(doc_vectors, dtype=float32)
-        # repo.summary_embedding = vector.tolist()
-
-        vector = (
-            client.embeddings.create(input=[summary], model="text-embedding-3-small")
-            .data[0]
-            .embedding
-        )
-        repo.summary_embedding = vector
+        repo.elk_vector = vector
 
         db.session.commit()
+
+        try:
+            insert_data(id, repo._to_elastic())
+        except Exception as e:
+            raise ValueError(f"Error while inserting to elastic: {str(id)}")
 
         return f"success generate embedding on repo: {id}", 200
 
@@ -117,51 +96,27 @@ def Responser(name: str, text: str) -> list[dict]:
     if info is None:
         raise ValueError(f"User {name} not found")
 
-    client = OpenAI(
-        api_key=info["openAIKey"],
-    )
+    q = get_formatted_text(text)
+    q = text.replace("\n", " ")
 
-    content = """
-    You have a vector database containing summarized vectors of GitHub repositories that users have starred.
-    Now, a user has presented a question.
-    Please help me refine the following description for a more accurate expression, reply in English:
-    {question}
-    """
+    vector = get_embedding(q)
 
-    text = text.replace("\n", " ")
-    completion = client.chat.completions.create(
-        messages=[
-            {
-                "role": "user",
-                "content": content.format(question=text),
-            }
-        ],
-        model="gpt-3.5-turbo",
-    )
+    response = knn_search(vector)
+    
+    items = []
 
-    text = completion.choices[0].message.content
-
-    vector = (
-        client.embeddings.create(input=[text], model="text-embedding-3-small")
-        .data[0]
-        .embedding
-    )
-
-    # vector = [TaggedDocument(words=get_tokens(text), tags=['repo'])]
-
-    # model = Doc2Vec(vector, vector_size=150, window=2, min_count=1, workers=1)
-    # doc_vectors = model.dv['repo']
-
-    # vector = array(doc_vectors, dtype=float32)
-    # vector = vector.tolist()
-
-    # print(vector)
-
-    items = db.session.scalars(
-        select(RepoEmbeddingInfo)
-        .filter(1 - RepoEmbeddingInfo.summary_embedding.cosine_distance(vector) > 0)
-        .order_by(RepoEmbeddingInfo.summary_embedding.cosine_distance(vector))
-        .limit(info["limit"])
-    )
-
-    return [item._to_json() for item in items], 200
+    if response['hits']['total']['value'] > 0:
+        for hit in response['hits']['hits']:
+            source = hit['_source']
+            items.append({
+                "full_name": source['full_name'],
+                "avatar_url": source['avatar_url'],
+                "html_url": source['html_url'],
+                "description": source['description'],
+                "stargazers_count": source['stargazers_count']
+            })
+        
+        return items, 200
+            
+    else:
+        return [], 200

@@ -6,6 +6,15 @@ from pgvector.sqlalchemy import Vector
 
 db = SQLAlchemy()
 
+class ElasticSearchDoc(BaseModel):
+    full_name: str
+    avatar_url: str
+    html_url: str
+    stargazers_count: int
+    language: str
+    description: str
+    readme_summary: str
+    elk_vector: list
 
 class RepoEmbeddingInfo(db.Model):
     __tablename__ = "repo_embedding_info"
@@ -26,6 +35,7 @@ class RepoEmbeddingInfo(db.Model):
     description = db.Column(db.Text)
     readme_summary = db.Column(db.Text)
     summary_embedding = db.Column(Vector, nullable=True)
+    elk_vector = db.Column(Vector, nullable=True)
 
     def __repr__(self):
         return "<RepoEmbeddingInfo %r>" % self.repo_id
@@ -42,6 +52,17 @@ class RepoEmbeddingInfo(db.Model):
             "description": self.description,
         }
 
+    def _to_elastic(self) -> ElasticSearchDoc:
+        return {
+            "full_name": self.full_name,
+            "avatar_url": self.avatar_url,
+            "html_url": self.html_url,
+            "stargazers_count": self.stargazers_count,
+            "language": self.language,
+            "description": self.description,
+            "readme_summary": self.readme_summary,
+            "elk_vector": self.elk_vector.tolist() if self.elk_vector is not None else None,
+        }
 
 class RepoEmbeddingInfoSchema(BaseModel):
     repo_id: int

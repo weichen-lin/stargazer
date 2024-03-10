@@ -10,3 +10,6 @@ NEO4J_URI = os.environ.get("NEO4J_URL")
 NEO4J_PASSWORD = os.environ.get("NEO4J_PASSWORD")
 
 NEO4J_CLIENT = UserInfo(NEO4J_URI, "neo4j", NEO4J_PASSWORD)
+
+ELASTIC_PASSWORD = os.environ.get("ELASTIC_PASSWORD")
+ELASTIC_CLOUD_ID = os.environ.get("ELASTIC_CLOUD_ID")

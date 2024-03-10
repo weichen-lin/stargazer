@@ -1,16 +1,30 @@
 from elasticsearch import Elasticsearch
+from model import ElasticSearchDoc
+from config import ELASTIC_PASSWORD, ELASTIC_CLOUD_ID
 
 
-# client = Elasticsearch(
-#     "https://localhost:9200",  # Elasticsearch endpoint
-#     basic_auth=("elastic", "test_password"),  # Elasticsearch credentials
-#     verify_certs=False,  # Disable SSL certificate verification
-#     ca_certs=False,  # Disable CA certificates
-# )
-
+# Create the client instance
 client = Elasticsearch(
-    "https://localhost:9200",  # Elasticsearch endpoint
-    api_key=('for_local_test', '6g4PdlmUSo-AIVSQSYxxwA'),  # API key ID and secret
+    cloud_id=ELASTIC_CLOUD_ID,
+    basic_auth=("elastic", ELASTIC_PASSWORD)
 )
 
-client.indices.create(index="my_index")
+def insert_data(id: str, data :ElasticSearchDoc):
+    client.index(index="repository", id=id, body=data)
+
+def knn_search(vector: list):
+    query_body = {
+        "knn": {
+            "field": "elk_vector",
+            "query_vector": vector,
+            "k": 10,
+            "num_candidates": 100
+        },
+        "_source": {
+            "includes": ["full_name", "avatar_url", "html_url", "description", "stargazers_count"]
+        }
+    }
+
+    res = client.search(index="repository", body=query_body)
+    
+    return res

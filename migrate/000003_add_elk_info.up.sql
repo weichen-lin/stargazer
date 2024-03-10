@@ -1,0 +1,1 @@
+ALTER TABLE repo_embedding_info ADD COLUMN elk_vector VECTOR(384);

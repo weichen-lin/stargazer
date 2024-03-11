@@ -6,6 +6,8 @@ export const runtime = 'nodejs'
 // This is required to enable streaming
 export const dynamic = 'force-dynamic'
 
+export const maxDuration = 300
+
 export async function GET(request: NextRequest) {
   // check referer is from the same origin
   const origin = request.headers.get('host')

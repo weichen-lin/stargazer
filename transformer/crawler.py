@@ -64,6 +64,11 @@ def Crawler(id: int, name: str) -> tuple[str, int]:
                 vector = get_embedding(summary)
                 repo.elk_vector = vector
 
+                try:
+                    insert_data(id, repo._to_elastic())
+                except Exception as e:
+                    raise ValueError(f"Error while inserting to elastic: {str(id)}, {str(e)}")
+
                 db.session.commit()
 
                 return f"success generate embedding on repo: {id}", 200
@@ -84,7 +89,7 @@ def Crawler(id: int, name: str) -> tuple[str, int]:
         try:
             insert_data(id, repo._to_elastic())
         except Exception as e:
-            raise ValueError(f"Error while inserting to elastic: {str(id)}")
+            raise ValueError(f"Error while inserting to elastic: {str(id)}, {str(e)}")
 
         return f"success generate embedding on repo: {id}", 200
 

@@ -9,16 +9,14 @@ import (
 )
 
 type TransFormerParam struct {
-	RepoId   int `json:"repo_id"`
-	Name string `json:"name"`
+	RepoId int    `json:"repo_id"`
+	Name   string `json:"name"`
 }
-
 
 type SyncUserStarMsg struct {
-	RepoId int `json:"repo_id"`
+	RepoId   int    `json:"repo_id"`
 	UserName string `json:"username"`
 }
-
 
 func VectorizeStar(payload *SyncUserStarMsg) (int, error) {
 	token := os.Getenv("AUTHENTICATION_TOKEN")
@@ -27,7 +25,7 @@ func VectorizeStar(payload *SyncUserStarMsg) (int, error) {
 
 	params := TransFormerParam{
 		RepoId: payload.RepoId,
-		Name: payload.UserName,
+		Name:   payload.UserName,
 	}
 
 	jsonstring, err := json.Marshal(params)
@@ -54,7 +52,6 @@ func VectorizeStar(payload *SyncUserStarMsg) (int, error) {
 	body := new(bytes.Buffer)
 	body.ReadFrom(resp.Body)
 	fmt.Println(body.String())
-
 
 	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
 		return 400, fmt.Errorf("error: %d", resp.StatusCode)

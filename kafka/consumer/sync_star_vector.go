@@ -37,7 +37,7 @@ func SyncStarVectorConsumer() (func(neo4j.DriverWithContext), error) {
 			case message := <-consumerPartitionConsumer.Messages():
 				fmt.Printf("Received message: Topic - %s, Key - %s, Value - %s\n",
 					message.Topic, message.Key, message.Value)
-				
+
 				var info workflow.SyncUserStarMsg
 
 				err := json.Unmarshal(message.Value, &info)

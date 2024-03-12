@@ -18,7 +18,7 @@ func GetUserEmail(driver neo4j.DriverWithContext, name string) (string, error) {
 			RETURN u.email AS email
             `,
 			map[string]interface{}{
-				"name":    name,
+				"name": name,
 			})
 
 		if err != nil {
@@ -59,7 +59,7 @@ func GetUserGithubToken(driver neo4j.DriverWithContext, userId string) (string, 
 			RETURN a.access_token AS token
             `,
 			map[string]interface{}{
-				"userId":    userId,
+				"userId": userId,
 			})
 
 		if err != nil {
@@ -88,7 +88,6 @@ func GetUserGithubToken(driver neo4j.DriverWithContext, userId string) (string, 
 		return "", err
 	}
 
-
 	if access_token, ok := access_token.(string); ok {
 		return access_token, nil
 	} else {
@@ -100,8 +99,6 @@ func ConfirmVectorize(driver neo4j.DriverWithContext, info *workflow.SyncUserSta
 	session := driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	defer session.Close(context.Background())
 
-	fmt.Println("start to make vectorize success")
-	fmt.Println("info:", info)
 	_, err := session.ExecuteWrite(context.Background(), func(transaction neo4j.ManagedTransaction) (interface{}, error) {
 		result, err := transaction.Run(context.Background(), `
 			MATCH (u:User { name: $name })-[s:STARS]->(r:Repository { repo_id: $repo_id })
@@ -109,8 +106,8 @@ func ConfirmVectorize(driver neo4j.DriverWithContext, info *workflow.SyncUserSta
 			RETURN s{.*}
             `,
 			map[string]interface{}{
-				"name":    info.UserName,
-				"repo_id": info.RepoId,
+				"name":         info.UserName,
+				"repo_id":      info.RepoId,
 				"isVectorized": true,
 			})
 
@@ -129,8 +126,6 @@ func ConfirmVectorize(driver neo4j.DriverWithContext, info *workflow.SyncUserSta
 		fmt.Println("Error make vectorize success from neo4j:", err)
 		return err
 	}
-
-	fmt.Println("make vectorize success end")
 
 	return nil
 }

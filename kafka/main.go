@@ -14,18 +14,12 @@ import (
 	"github.com/patrickmn/go-cache"
 	"github.com/weichen-lin/kafka-service/consumer"
 	database "github.com/weichen-lin/kafka-service/db"
-	"github.com/weichen-lin/kafka-service/workflow"
 )
 
 type GetGithubReposInfo struct {
 	UserId   string `form:"user_id" json:"user_id" binding:"required"`
 	Username string `form:"username" json:"username" binding:"required"`
 	Page     int    `form:"page" json:"page" binding:"required"`
-}
-
-type SyncUserStars struct {
-	Stars []int `json:"stars" binding:"required" form:"stars"`
-	Username string `json:"username" binding:"required" form:"username"`
 }
 
 func main() {
@@ -135,40 +129,7 @@ func main() {
 		})
 	})
 
-	r.PATCH("/sync_user_stars", AuthMiddleware(), func(c *gin.Context) {
-		var info SyncUserStars
-
-		if err := c.ShouldBindJSON(&info); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
-
-		for i := 0; i < len(info.Stars); i++ {
-
-			info := workflow.SyncUserStarMsg{
-				RepoId:   info.Stars[i],
-				UserName: info.Username,
-			}
-
-			jsonString, err := json.Marshal(info)
-			if err != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			}
-
-			_, _, err = producer.SendMessage(&sarama.ProducerMessage{
-				Topic: "sync_star_vector",
-				Value: sarama.StringEncoder(jsonString),
-			})
-
-			if err != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			}
-		}
-
-		c.JSON(200, gin.H{
-			"message": "OK",
-		})
-	})
+	r.PATCH("/sync_user_stars", AuthMiddleware(), HandleConnections)
 
 	r.Run(":8080")
 }

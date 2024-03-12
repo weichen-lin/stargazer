@@ -9,8 +9,8 @@ import (
 )
 
 type SendMailParams struct {
-	Email     string
-	Name 	string
+	Email      string
+	Name       string
 	StarsCount int
 }
 
@@ -30,10 +30,10 @@ func SendMail(params *SendMailParams) error {
 	auth := smtp.PlainAuth("", senderEmail, senderPassword, smtpHost)
 
 	templateData := struct {
-		UserName string
+		UserName   string
 		StarsCount int
-	} {
-		UserName: params.Name,
+	}{
+		UserName:   params.Name,
 		StarsCount: params.StarsCount,
 	}
 

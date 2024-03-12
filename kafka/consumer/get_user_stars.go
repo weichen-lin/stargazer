@@ -145,11 +145,11 @@ func GetGithubReposConsumer() (func(neo4j.DriverWithContext, *gorm.DB), error) {
 
 				} else {
 					email, _ := database.GetUserEmail(driver, info.Username)
-					
+
 					params := &util.SendMailParams{
-						Email: email,
-						Name: info.Username,
-						StarsCount: (info.Page - 1) * 30 + len(stars),
+						Email:      email,
+						Name:       info.Username,
+						StarsCount: (info.Page-1)*30 + len(stars),
 					}
 
 					err := util.SendMail(params)

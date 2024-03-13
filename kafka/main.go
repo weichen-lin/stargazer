@@ -14,6 +14,7 @@ import (
 	"github.com/patrickmn/go-cache"
 	"github.com/weichen-lin/kafka-service/consumer"
 	database "github.com/weichen-lin/kafka-service/db"
+	"github.com/weichen-lin/kafka-service/util"
 )
 
 type GetGithubReposInfo struct {
@@ -129,7 +130,7 @@ func main() {
 		})
 	})
 
-	r.PATCH("/sync_user_stars", AuthMiddleware(), HandleConnections)
+	r.GET("/sync_user_stars", AuthJWTMiddleware(), Neo4jDriverMiddleware(driver), HandleConnections)
 
 	r.Run(":8080")
 }
@@ -145,6 +146,38 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
+		c.Next()
+	}
+}
+
+func AuthJWTMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		token := c.GetHeader("Authorization")
+		expectedToken := os.Getenv("AUTHENTICATION_TOKEN")
+
+		jwtMaker, err := util.NewJWTMaker(expectedToken)
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+			c.Abort()
+			return
+		}
+
+		payload, err := jwtMaker.VerifyToken(token)
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+			c.Abort()
+			return
+		}
+
+		c.Set("userName", payload.UserName)
+
+		c.Next()
+	}
+}
+
+func Neo4jDriverMiddleware(driver neo4j.DriverWithContext) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Set("neo4jDriver", driver)
 		c.Next()
 	}
 }

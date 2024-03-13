@@ -33,6 +33,7 @@
     "clsx": "^2.1.0",
     "cookie": "^0.6.0",
     "framer-motion": "^11.0.3",
+    "jsonwebtoken": "^9.0.2",
     "lottie-web": "^5.12.2",
     "lucide-react": "^0.323.0",
     "neo4j-driver": "^5.17.0",

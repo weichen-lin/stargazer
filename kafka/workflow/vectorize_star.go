@@ -9,12 +9,12 @@ import (
 )
 
 type TransFormerParam struct {
-	RepoId int    `json:"repo_id"`
+	RepoId int64  `json:"repo_id"`
 	Name   string `json:"name"`
 }
 
 type SyncUserStarMsg struct {
-	RepoId   int    `json:"repo_id"`
+	RepoId   int64  `json:"repo_id"`
 	UserName string `json:"username"`
 }
 
@@ -51,7 +51,6 @@ func VectorizeStar(payload *SyncUserStarMsg) (int, error) {
 	// Check the response message
 	body := new(bytes.Buffer)
 	body.ReadFrom(resp.Body)
-	fmt.Println(body.String())
 
 	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
 		return 400, fmt.Errorf("error: %d", resp.StatusCode)

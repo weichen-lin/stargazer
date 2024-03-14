@@ -49,8 +49,6 @@ func HandleConnections(c *gin.Context) {
 		return
 	}
 
-	fmt.Printf("success get %d stars", len(stars))
-
 	client := &Client{
 		UserName:   userName,
 		StatusCode: make(chan int),
@@ -61,54 +59,60 @@ func HandleConnections(c *gin.Context) {
 
 	c.Stream(func(w io.Writer) bool {
 		w.(http.ResponseWriter).Header().Set("Content-Type", "text/event-stream")
-			w.(http.ResponseWriter).Header().Set("Cache-Control", "no-cache")
-			w.(http.ResponseWriter).Header().Set("Connection", "keep-alive")
-			w.(http.ResponseWriter).Header().Set("Access-Control-Allow-Origin", "*")
-	
-			c.SSEvent("data", gin.H{"data": len(stars)})
-			c.Writer.Flush()
-	
-			go func(driver neo4j.DriverWithContext) {
-				defer close(client.StatusCode)
-				for i := 0; i < len(stars); i++ {
-	
-					id := stars[i]
-	
-					status, _ := workflow.VectorizeStar(&workflow.SyncUserStarMsg{
-						UserName: userName,
-						RepoId:   id,
-					})
-	
-					client.StatusCode <- status
-	
-					err := database.ConfirmVectorize(driver, &workflow.SyncUserStarMsg{
-						UserName: userName,
-						RepoId:   id,
-					})
-	
-					if err != nil {
-						c.SSEvent("error", gin.H{"data": err.Error()})
-						c.Writer.Flush()
-					}
-				}
-			}(neo4jDriver.(neo4j.DriverWithContext))
-	
-			for {
-				select {
-				case msg, ok := <-client.StatusCode:
-					
-					if !ok {
-						return false
-					}
+		w.(http.ResponseWriter).Header().Set("Cache-Control", "no-cache")
+		w.(http.ResponseWriter).Header().Set("Connection", "keep-alive")
+		w.(http.ResponseWriter).Header().Set("Access-Control-Allow-Origin", "*")
 
-					c.SSEvent("data", gin.H{"data": msg})
+		c.SSEvent("message", map[string]interface{}{"total": len(stars)})
+		c.Writer.Flush()
+
+		go func(driver neo4j.DriverWithContext) {
+			defer close(client.StatusCode)
+			for i := 0; i < len(stars); i++ {
+
+				id := stars[i]
+
+				_, err := workflow.VectorizeStar(&workflow.SyncUserStarMsg{
+					UserName: userName,
+					RepoId:   id,
+				})
+
+				if err != nil {
+					c.SSEvent("message", map[string]interface{}{"error": err.Error()})
 					c.Writer.Flush()
-				case <-c.Request.Context().Done():
-					fmt.Println("client closed")
-					return false
+					c.AbortWithStatus(http.StatusInternalServerError)
+					return
+				}
+
+				client.StatusCode <- i
+
+				err = database.ConfirmVectorize(driver, &workflow.SyncUserStarMsg{
+					UserName: userName,
+					RepoId:   id,
+				})
+
+				if err != nil {
+					c.SSEvent("message", map[string]interface{}{"error": err.Error()})
+					c.Writer.Flush()
+					c.AbortWithStatus(http.StatusInternalServerError)
+					return
 				}
 			}
+		}(neo4jDriver.(neo4j.DriverWithContext))
+
+		for {
+			select {
+			case msg, ok := <-client.StatusCode:
+
+				if !ok {
+					return false
+				}
+				c.SSEvent("message", map[string]interface{}{"current": msg, "total": len(stars)})
+				c.Writer.Flush()
+			case <-c.Request.Context().Done():
+				fmt.Println("client closed")
+				return false
+			}
+		}
 	})
 }
-
-

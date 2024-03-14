@@ -4,6 +4,9 @@ import dynamic from 'next/dynamic'
 import { Progress } from '@/components/ui/progress'
 import { useEffect, useState } from 'react'
 import { useChatAlert } from '@/hooks/chat'
+import { EventSourcePolyfill } from 'event-source-polyfill'
+import { useSession } from 'next-auth/react'
+import { generateAccessToken } from '@/actions/util'
 
 const PushUp = dynamic(() => import('@/components/fancyicon/push-up'), { ssr: false })
 const Check = dynamic(() => import('@/components/fancyicon/check'), { ssr: false })
@@ -16,49 +19,65 @@ export default function ProgressInfo() {
   const [current, setCurrent] = useState(0)
   const [total, setTotal] = useState(0)
   const { startEvent, setCantClose } = useChatAlert()
+  const { data: session } = useSession()
 
   useEffect(() => {
-    const eventSource = new EventSource('/api/sse')
+    const startSyncStars = async () => {
+      try {
+        const user = session?.user?.name ?? ''
+        const token = await generateAccessToken(user)
+        const eventSource = new EventSourcePolyfill(`${process.env.NEXT_PUBLIC_PRODUCER_URL}/sync_user_stars`, {
+          headers: {
+            Authorization: token,
+          },
+        })
 
-    eventSource.onmessage = event => {
-      setIsEstablish(false)
+        eventSource.onmessage = event => {
+          setIsEstablish(false)
 
-      const msg = JSON.parse(event.data)
-      if (msg.error) {
-        setErrorCode(msg.status)
-        setCantClose(false)
-        eventSource.close()
-        setTimeout(() => {
-          startEvent(false)
-        }, 3500)
-      } else {
-        if (msg.current === msg.total) {
-          setIsFinished(true)
+          const msg = JSON.parse(event.data)
+
+          switch (true) {
+            case msg.error:
+              setErrorCode(400)
+              setCantClose(false)
+              eventSource.close()
+              setTimeout(() => {
+                startEvent(false)
+              }, 3500)
+              break
+
+            case msg.current === msg.total:
+              setIsFinished(true)
+              setCantClose(false)
+              setTimeout(() => {
+                startEvent(false)
+              }, 3500)
+              eventSource.close()
+              break
+
+            default:
+              setCantClose(true)
+              setCurrent(msg.current + 1)
+              setTotal(msg.total)
+          }
+        }
+
+        eventSource.onerror = () => {
           setCantClose(false)
+          setIsFinished(true)
+          eventSource.close()
           setTimeout(() => {
             startEvent(false)
-          }, 3500)
-          eventSource.close()
-        } else {
-          setCantClose(true)
-          setCurrent(msg.current + 1)
-          setTotal(msg.total)
+          }, 2000)
         }
+      } catch (e) {
+        console.error(e)
+        return null
       }
     }
 
-    eventSource.onerror = () => {
-      setCantClose(false)
-      setIsFinished(true)
-      eventSource.close()
-      setTimeout(() => {
-        startEvent(false)
-      }, 2000)
-    }
-
-    return () => {
-      eventSource.close()
-    }
+    startSyncStars()
   }, [])
 
   return (

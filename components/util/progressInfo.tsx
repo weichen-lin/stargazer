@@ -72,7 +72,6 @@ export default function ProgressInfo() {
           }, 2000)
         }
       } catch (e) {
-        console.error(e)
         return null
       }
     }

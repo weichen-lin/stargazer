@@ -1,4 +1,4 @@
-package main
+package controller
 
 import (
 	"fmt"
@@ -7,7 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
-	database "github.com/weichen-lin/kafka-service/db"
+	neo4jOpeartion "github.com/weichen-lin/kafka-service/neo4j"
 	"github.com/weichen-lin/kafka-service/workflow"
 )
 
@@ -43,7 +43,7 @@ func HandleConnections(c *gin.Context) {
 		return
 	}
 
-	stars, err := database.GetUserNotVectorize(neo4jDriver.(neo4j.DriverWithContext), userName)
+	stars, err := neo4jOpeartion.GetUserNotVectorize(neo4jDriver.(neo4j.DriverWithContext), userName)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve user stars"})
 		return
@@ -86,7 +86,7 @@ func HandleConnections(c *gin.Context) {
 
 				client.StatusCode <- i
 
-				err = database.ConfirmVectorize(driver, &workflow.SyncUserStarMsg{
+				err = neo4jOpeartion.ConfirmVectorize(driver, &workflow.SyncUserStarMsg{
 					UserName: userName,
 					RepoId:   id,
 				})

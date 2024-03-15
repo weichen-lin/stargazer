@@ -11,14 +11,15 @@ import (
 	"github.com/IBM/sarama"
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 	"github.com/patrickmn/go-cache"
-	database "github.com/weichen-lin/kafka-service/db"
+	neo4jOpeartion "github.com/weichen-lin/kafka-service/neo4j"
 	"github.com/weichen-lin/kafka-service/util"
+	"github.com/weichen-lin/kafka-service/workflow"
 	"gorm.io/gorm"
 )
 
 var tokenCache = cache.New(20*time.Minute, 10*time.Minute)
 
-func GetUserStarredRepos(info *database.GetGithubReposInfo, token string) ([]database.Repository, error) {
+func GetUserStarredRepos(info *workflow.GetGithubReposInfo, token string) ([]neo4jOpeartion.Repository, error) {
 
 	url := fmt.Sprintf("https://api.github.com/user/starred?&page=%d", info.Page)
 
@@ -40,7 +41,7 @@ func GetUserStarredRepos(info *database.GetGithubReposInfo, token string) ([]dat
 		return nil, fmt.Errorf("error code at get user stars: %d", resp.StatusCode)
 	}
 
-	var repos []database.Repository
+	var repos []neo4jOpeartion.Repository
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
@@ -88,7 +89,7 @@ func GetGithubReposConsumer() (func(neo4j.DriverWithContext, *gorm.DB), error) {
 				fmt.Printf("Received message: Topic - %s, Key - %s, Value - %s\n",
 					message.Topic, message.Key, message.Value)
 
-				var info database.GetGithubReposInfo
+				var info workflow.GetGithubReposInfo
 
 				err = json.Unmarshal(message.Value, &info)
 				if err != nil {
@@ -99,7 +100,7 @@ func GetGithubReposConsumer() (func(neo4j.DriverWithContext, *gorm.DB), error) {
 				var token string
 
 				if tokenFormCache, found := tokenCache.Get(info.UserId); !found {
-					tokenValue, err := database.GetUserGithubToken(driver, info.UserId)
+					tokenValue, err := neo4jOpeartion.GetUserGithubToken(driver, info.Username)
 					if err != nil {
 						fmt.Println("Error getting user token:", err)
 						continue
@@ -131,20 +132,17 @@ func GetGithubReposConsumer() (func(neo4j.DriverWithContext, *gorm.DB), error) {
 						continue
 					}
 
-					partition, offset, err := producer.SendMessage(&sarama.ProducerMessage{
+					_, _, err = producer.SendMessage(&sarama.ProducerMessage{
 						Topic: "get_user_stars",
 						Value: sarama.StringEncoder(jsonString),
 					})
+
 					if err != nil {
 						fmt.Println("Error sending message:", err)
 						continue
 					}
-
-					fmt.Printf("Sent message: Topic - %s, Partition - %d, Offset - %d\n",
-						"get_user_stars", partition, offset)
-
 				} else {
-					email, _ := database.GetUserEmail(driver, info.Username)
+					email, _ := neo4jOpeartion.GetUserEmail(driver, info.Username)
 
 					params := &util.SendMailParams{
 						Email:      email,
@@ -159,7 +157,7 @@ func GetGithubReposConsumer() (func(neo4j.DriverWithContext, *gorm.DB), error) {
 				}
 
 				for _, repo := range stars {
-					database.CreateRepository(driver, &repo, info.UserId, pool)
+					neo4jOpeartion.CreateRepository(driver, &repo, info.UserId, pool)
 				}
 			}
 		}

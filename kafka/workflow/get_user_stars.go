@@ -25,8 +25,8 @@ type Repository struct {
 }
 
 type GetGithubReposInfo struct {
-	UserId   int64  `json:"user_id"`
-	Username string `json:"username"`
+	UserId   string `json:"user_id"`
+	Username string `json:"user_name"`
 	Page     int    `json:"page"`
 }
 

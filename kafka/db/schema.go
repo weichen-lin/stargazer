@@ -22,6 +22,7 @@ type RepoEmbeddingInfo struct {
 	Description      string           `gorm:"type:text"`
 	ReadmeSummary    string           `gorm:"type:text"`
 	SummaryEmbedding *pgvector.Vector `gorm:"type:vector()"`
+	ELKVector        *pgvector.Vector `gorm:"type:vector()"`
 }
 
 func (RepoEmbeddingInfo) TableName() string {

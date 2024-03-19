@@ -15,6 +15,7 @@ import (
 	"github.com/weichen-lin/kafka-service/controller"
 	database "github.com/weichen-lin/kafka-service/db"
 	"github.com/weichen-lin/kafka-service/middleware"
+	"github.com/weichen-lin/kafka-service/zapper"
 )
 
 func main() {
@@ -73,9 +74,11 @@ func main() {
 		MaxAge:        12 * time.Hour,
 	}
 
+
 	r.Use(cors.New(cors_config))
 
 	r.GET("/health", func(c *gin.Context) {
+		zapper.Info("Health check")
 		c.JSON(http.StatusOK, gin.H{
 			"message": "OK",
 		})

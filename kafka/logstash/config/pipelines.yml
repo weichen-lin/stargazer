@@ -1,0 +1,2 @@
+- pipeline.id: test-local
+  path.config: '/usr/share/logstash/pipeline/producer.conf'

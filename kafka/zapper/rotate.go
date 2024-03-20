@@ -28,6 +28,7 @@ type Option = zap.Option
 func NewTeeWithRotate(tops []TeeOption, opts ...Option) *Logger {
 	var cores []zapcore.Core
 	cfg := zap.NewProductionConfig()
+	cfg.EncoderConfig.TimeKey = "timestamp"
 	cfg.EncoderConfig.EncodeTime = func(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
 		enc.AppendString(t.Format("2006-01-02T15:04:05.000Z0700"))
 	}
@@ -54,6 +55,17 @@ func NewTeeWithRotate(tops []TeeOption, opts ...Option) *Logger {
 		)
 		cores = append(cores, core)
 	}
+
+	udpLogWriter, err := NewUDPLogWriter("127.0.0.1", 5001, zapcore.NewJSONEncoder(cfg.EncoderConfig))
+	if err != nil {
+		panic(err)
+	}
+
+	cores = append(cores, zapcore.NewCore(
+		zapcore.NewJSONEncoder(cfg.EncoderConfig),
+		zapcore.AddSync(udpLogWriter),
+		zapcore.DebugLevel,
+	))
 
 	logger := &Logger{
 		l: zap.New(zapcore.NewTee(cores...), opts...),

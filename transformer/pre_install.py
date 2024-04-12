@@ -3,7 +3,7 @@ import tiktoken
 from sentence_transformers import SentenceTransformer
 from transformers import T5Tokenizer, T5ForConditionalGeneration
 
-model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
+model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
 
 # download("punkt", download_dir="/usr/share/nltk_data")
 # download("stopwords", download_dir="/usr/share/nltk_data")

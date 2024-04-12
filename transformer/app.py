@@ -1,16 +1,12 @@
 from flask import Flask, request, jsonify
 from crawler import Crawler, Responser
-from model import RepoEmbeddingInfoSchema, MessageSchema, db
+from model import RepoEmbeddingInfoSchema, MessageSchema
 from pydantic import ValidationError
 from functools import wraps
-from config import VALID_TOKEN, DATABASE_URL
+from config import VALID_TOKEN
 from openai import AuthenticationError
 
 app = Flask(__name__)
-
-app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URL
-
-db.init_app(app)
 
 
 def requires_auth(func):
@@ -24,7 +20,7 @@ def requires_auth(func):
     return decorated
 
 
-@app.route("/")
+@app.route("/healthz")
 def healthy_check():
     return "ok", 200
 
@@ -34,7 +30,6 @@ def healthy_check():
 def vectorize():
     if request.is_json:
         data = request.get_json()
-
         try:
             model = RepoEmbeddingInfoSchema(**data)
             result, status = Crawler(model.repo_id, model.name)
@@ -82,8 +77,7 @@ def get_suggestions():
         return jsonify({"error": "Request must be JSON"}), 400
 
 
-port = 8080
+port = 5000
 
 if __name__ == "__main__":
-
-    app.run(host="0.0.0.0", port=port)
+    app.run(host="0.0.0.0", port=port, debug=True)

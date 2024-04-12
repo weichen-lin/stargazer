@@ -11,6 +11,7 @@ export function Neo4jAdapter(driver: Driver): Adapter {
     async createUser(data) {
       const id = crypto.randomUUID()
       const user = { ...data, id, emailVerified: null, openaiKey: null, githubToken: null }
+      console.log({ user })
       await write(`CREATE (u:User $data)`, { data: { ...user } })
       return user
     },

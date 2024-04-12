@@ -45,6 +45,7 @@ func main() {
 	}
 
 	kafka_url := os.Getenv("KAFKA_URL")
+	fmt.Println("Kafka URL:", kafka_url)
 	brokers := []string{kafka_url}
 	config := sarama.NewConfig()
 	config.Producer.Return.Successes = true
@@ -88,5 +89,5 @@ func main() {
 
 	r.GET("/sync_user_stars", middleware.AuthJWTMiddleware(), middleware.Neo4jDriverMiddleware(driver), controller.HandleConnections)
 
-	r.Run(":8080")
+	r.Run(":8000")
 }

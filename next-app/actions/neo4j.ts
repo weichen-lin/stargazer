@@ -57,8 +57,10 @@ export const getUserRepos = async (params: UserReposParams): Promise<{ total: nu
   WITH total, collect(r) as l
   RETURN total, l;
   `
+  console.log('start fetcher')
 
   const data = await fetcher(q, params)
+  console.log('end fetcher')
 
   const target = Array.isArray(data) ? data[0] : data
   const total = target?.total?.low ?? 0

@@ -58,6 +58,7 @@ func GetUserStarredRepos(info *workflow.GetGithubReposInfo, token string) ([]neo
 
 func GetGithubReposConsumer() (func(neo4j.DriverWithContext, *gorm.DB), error) {
 	kafka_url := os.Getenv("KAFKA_URL")
+	fmt.Println("Kafka URL:", kafka_url)
 	brokers := []string{kafka_url}
 	config := sarama.NewConfig()
 	config.Consumer.Return.Errors = true

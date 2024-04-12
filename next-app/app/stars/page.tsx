@@ -22,17 +22,25 @@ const parsePage = (a: { p: string }): number => {
 }
 
 export default async function Home({ searchParams }: { searchParams: { p: string } }) {
-  const session = await getServerSession(options)
-  if (!session) {
+  try {
+    console.log('searchParams asdadas')
+    const session = await getServerSession(options)
+    if (!session) {
+      redirect('/')
+    }
+
+    console.log('get session ..... ')
+
+    const name = (session as any)?.user?.name ?? ''
+    const page = parsePage(searchParams as any)
+    const { total, stars } = await getUserRepos({ username: name, page: int(page), limit: int(20) })
+    return (
+      <div className='w-full h-full flex flex-col lg:flex-row'>
+        <Stars stars={stars} total={total} />
+      </div>
+    )
+  } catch (error) {
+    console.log('error at getServerSession', error)
     redirect('/')
   }
-  const name = (session as any)?.user?.name ?? ''
-  const page = parsePage(searchParams as any)
-  const { total, stars } = await getUserRepos({ username: name, page: int(page), limit: int(20) })
-
-  return (
-    <div className='w-full h-full flex flex-col lg:flex-row'>
-      <Stars stars={stars} total={total} />
-    </div>
-  )
 }

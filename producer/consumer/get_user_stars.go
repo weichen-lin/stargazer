@@ -14,7 +14,6 @@ import (
 	neo4jOpeartion "github.com/weichen-lin/kafka-service/neo4j"
 	"github.com/weichen-lin/kafka-service/util"
 	"github.com/weichen-lin/kafka-service/workflow"
-	"gorm.io/gorm"
 )
 
 var tokenCache = cache.New(20*time.Minute, 10*time.Minute)
@@ -56,9 +55,8 @@ func GetUserStarredRepos(info *workflow.GetGithubReposInfo, token string) ([]neo
 	return repos, nil
 }
 
-func GetGithubReposConsumer() (func(neo4j.DriverWithContext, *gorm.DB), error) {
+func GetGithubReposConsumer() (func(neo4j.DriverWithContext), error) {
 	kafka_url := os.Getenv("KAFKA_URL")
-	fmt.Println("Kafka URL:", kafka_url)
 	brokers := []string{kafka_url}
 	config := sarama.NewConfig()
 	config.Consumer.Return.Errors = true
@@ -81,7 +79,7 @@ func GetGithubReposConsumer() (func(neo4j.DriverWithContext, *gorm.DB), error) {
 		return nil, err
 	}
 
-	return func(driver neo4j.DriverWithContext, pool *gorm.DB) {
+	return func(driver neo4j.DriverWithContext) {
 		for {
 			select {
 			case err := <-consumerPartitionConsumer.Errors():
@@ -158,7 +156,7 @@ func GetGithubReposConsumer() (func(neo4j.DriverWithContext, *gorm.DB), error) {
 				}
 
 				for _, repo := range stars {
-					neo4jOpeartion.CreateRepository(driver, &repo, info.UserId, pool)
+					neo4jOpeartion.CreateRepository(driver, &repo, info.UserId)
 				}
 			}
 		}

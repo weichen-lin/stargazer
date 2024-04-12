@@ -53,7 +53,7 @@ var (
 )
 
 type Logger struct {
-	l     *zap.Logger
+	l *zap.Logger
 }
 
 type Field = zap.Field

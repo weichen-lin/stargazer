@@ -6,8 +6,6 @@ import (
 	"fmt"
 
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
-	database "github.com/weichen-lin/kafka-service/db"
-	"gorm.io/gorm"
 )
 
 type User struct {
@@ -32,42 +30,9 @@ type Repository struct {
 	DefaultBranch   string `json:"default_branch"`
 }
 
-func CreateRepository(driver neo4j.DriverWithContext, repo *Repository, user_id string, pool *gorm.DB) error {
+func CreateRepository(driver neo4j.DriverWithContext, repo *Repository, user_id string) error {
 	session := driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	defer session.Close(context.Background())
-
-	tx := pool.Begin()
-	if tx.Error != nil {
-		return fmt.Errorf("error at begin transaction: %v", tx.Error)
-	}
-
-	go func() {
-		var count int64
-		if err := tx.Model(&database.RepoEmbeddingInfo{}).Where("repo_id = ?", repo.ID).Count(&count).Error; err != nil {
-			tx.Rollback()
-			return
-		}
-
-		if count > 0 {
-			tx.Commit()
-			return
-		}
-
-		if err := tx.Create(&database.RepoEmbeddingInfo{
-			RepoID:          repo.ID,
-			FullName:        repo.FullName,
-			Description:     repo.Description,
-			AvatarURL:       repo.Owner.AvatarURL,
-			HTMLURL:         repo.HTMLURL,
-			StargazersCount: repo.StargazersCount,
-			Language:        repo.Language,
-			DefaultBranch:   repo.DefaultBranch,
-		}).Error; err != nil {
-			tx.Rollback()
-		} else {
-			tx.Commit()
-		}
-	}()
 
 	// Make constraint first
 	constraint := `CREATE CONSTRAINT IF NOT EXISTS FOR (r:Repository) REQUIRE r.repo_id IS UNIQUE`

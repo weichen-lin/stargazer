@@ -13,9 +13,7 @@ import (
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 	"github.com/weichen-lin/kafka-service/consumer"
 	"github.com/weichen-lin/kafka-service/controller"
-	database "github.com/weichen-lin/kafka-service/db"
 	"github.com/weichen-lin/kafka-service/middleware"
-	"github.com/weichen-lin/kafka-service/zapper"
 )
 
 func main() {
@@ -26,6 +24,7 @@ func main() {
 
 	neo4j_url := os.Getenv("NEO4J_URL")
 	neo4j_password := os.Getenv("NEO4J_PASSWORD")
+	fmt.Println(neo4j_url, neo4j_password)
 
 	driver, err := neo4j.NewDriverWithContext(
 		neo4j_url,
@@ -36,16 +35,7 @@ func main() {
 		return
 	}
 
-	postgresql_url := os.Getenv("POSTGRESQL_URL")
-
-	pool, err := database.NewPostgresDB(postgresql_url)
-	if err != nil {
-		fmt.Println("Error creating postgres connection:", err)
-		return
-	}
-
 	kafka_url := os.Getenv("KAFKA_URL")
-	fmt.Println("Kafka URL:", kafka_url)
 	brokers := []string{kafka_url}
 	config := sarama.NewConfig()
 	config.Producer.Return.Successes = true
@@ -63,7 +53,7 @@ func main() {
 		return
 	}
 
-	go get_repo_consumer(driver, pool)
+	go get_repo_consumer(driver)
 
 	r := gin.Default()
 
@@ -75,11 +65,7 @@ func main() {
 		MaxAge:        12 * time.Hour,
 	}
 
-
-	r.Use(cors.New(cors_config))
-
 	r.GET("/health", func(c *gin.Context) {
-		zapper.Info("Health check")
 		c.JSON(http.StatusOK, gin.H{
 			"message": "OK",
 		})
@@ -87,7 +73,7 @@ func main() {
 
 	r.POST("/get_user_stars", middleware.AuthMiddleware(), middleware.ProducerMiddleware(producer), controller.GetUserStars)
 
-	r.GET("/sync_user_stars", middleware.AuthJWTMiddleware(), middleware.Neo4jDriverMiddleware(driver), controller.HandleConnections)
+	r.GET("/sync_user_stars", cors.New(cors_config), middleware.AuthJWTMiddleware(), middleware.Neo4jDriverMiddleware(driver), controller.HandleConnections)
 
 	r.Run(":8000")
 }

@@ -14,10 +14,8 @@ import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Slider } from '@/components/ui/slider'
-import { useSetting } from '@/components/provider/setting'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { updateInfo } from '@/actions/neo4j'
-import { useSession } from 'next-auth/react'
+import { useUserSetting } from '@/hooks/setting'
 
 export function ChatSettingDialog() {
   return (
@@ -27,7 +25,7 @@ export function ChatSettingDialog() {
           <GearIcon className='h-5 w-5' />
         </Button>
       </DialogTrigger>
-      <DialogContent className='sm:max-w-[425px]'>
+      <DialogContent className='sm:max-w-[425px] max-w-[375px] mx-auto'>
         <ChatSetting />
       </DialogContent>
     </Dialog>
@@ -51,20 +49,10 @@ export function ChatSettingDrawer() {
 }
 
 const ChatSetting = () => {
-  const { limit, openAIKey, cosine, changeKey, changeLimit, changeCosine } = useSetting()
-  const session = useSession()
-  const [isLoading, setIsLoading] = useState(false)
-
-  const email = session.data?.user?.email ?? ''
-
-  const update = async () => {
-    setIsLoading(true)
-    await updateInfo({ email, limit, openAIKey: openAIKey ?? '', cosine })
-    setIsLoading(false)
-  }
+  const { isLoading, openAIKey, githubToken, limit, cosine, change, update } = useUserSetting()
 
   return (
-    <Tabs defaultValue='tokens' className='flex flex-col items-center w-full max-w-[400px] mx-auto pt-6'>
+    <Tabs defaultValue='tokens' className='flex flex-col items-center w-full pt-6'>
       <TabsList>
         <TabsTrigger value='tokens' disabled={isLoading}>
           Token
@@ -78,6 +66,31 @@ const ChatSetting = () => {
           <DrawerHeader>
             <DrawerTitle className='text-2xl text-center'>Setup all token you need</DrawerTitle>
           </DrawerHeader>
+          <div className='p-4 w-full flex flex-col gap-y-8'>
+            <div className='flex flex-col gap-y-2'>
+              <h1 className='font-semibold flex gap-x-2 items-center'>
+                Github Token
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <InfoCircledIcon color='#CE2C31' />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      Your GitHub token will only be used to fetch repositories you follow on GitHub.
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </h1>
+              <Input
+                placeholder='Your Github Token'
+                value={githubToken ?? ''}
+                onChange={e => {
+                  change('githubToken', e.target.value)
+                }}
+                disabled={isLoading}
+              />
+            </div>
+          </div>
           <div className='p-4 w-full flex flex-col gap-y-8'>
             <div className='flex flex-col gap-y-2'>
               <h1 className='font-semibold flex gap-x-2 items-center'>
@@ -98,7 +111,7 @@ const ChatSetting = () => {
                 placeholder='Your OpenAI API Key'
                 value={openAIKey ?? ''}
                 onChange={e => {
-                  changeKey(e.target.value)
+                  change('openAIKey', e.target.value)
                 }}
                 disabled={isLoading}
               />
@@ -143,7 +156,7 @@ const ChatSetting = () => {
                 max={1}
                 step={0.01}
                 onValueChange={e => {
-                  changeCosine(e[0])
+                  change('cosine', e[0])
                 }}
                 disabled={isLoading}
               />
@@ -155,11 +168,11 @@ const ChatSetting = () => {
                 type='number'
                 value={limit}
                 onChange={e => {
-                  changeLimit(e.target.valueAsNumber)
+                  change('limit', parseInt(e.target.value))
                 }}
                 onBlur={() => {
                   if (limit > 20) {
-                    changeLimit(20)
+                    change('limit', 20)
                   }
                 }}
                 max={20}

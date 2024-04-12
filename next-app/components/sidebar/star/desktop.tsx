@@ -6,6 +6,7 @@ import { ArrangeSetting, FixPagination } from '@/components/tab'
 import type { Arrangements } from '@/hooks/stars'
 import clsx from 'clsx'
 import { SyncStars } from '@/components/repo'
+import { ChatSettingDialog } from '@/components/util/chatSetting'
 
 interface SheetBarProps {
   total: number
@@ -32,6 +33,7 @@ const DesktopBar = (props: SheetBarProps) => {
             <FixPagination total={total} />
             <ArrangeSetting arrangement={arrangement} toggle={toggleArrangement} />
           </div>
+          <ChatSettingDialog />
           <SyncStars />
           <ModeToggle />
         </div>

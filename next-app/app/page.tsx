@@ -79,7 +79,6 @@ export default function Home() {
             Sign in with Github
           </Button>
         )}
-
         <div className='text-center'>© WeiChen Lin 2024</div>
       </div>
     </main>

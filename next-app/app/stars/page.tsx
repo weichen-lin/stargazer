@@ -23,13 +23,10 @@ const parsePage = (a: { p: string }): number => {
 
 export default async function Home({ searchParams }: { searchParams: { p: string } }) {
   try {
-    console.log('searchParams asdadas')
     const session = await getServerSession(options)
     if (!session) {
       redirect('/')
     }
-
-    console.log('get session ..... ')
 
     const name = (session as any)?.user?.name ?? ''
     const page = parsePage(searchParams as any)
@@ -39,8 +36,7 @@ export default async function Home({ searchParams }: { searchParams: { p: string
         <Stars stars={stars} total={total} />
       </div>
     )
-  } catch (error) {
-    console.log('error at getServerSession', error)
+  } catch {
     redirect('/')
   }
 }

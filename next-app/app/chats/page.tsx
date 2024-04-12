@@ -6,7 +6,6 @@ import { getUserInfo } from '@/actions/neo4j'
 import { getServerSession } from 'next-auth'
 import { redirect } from 'next/navigation'
 import { options } from '@/app/api/auth/[...nextauth]/option'
-import { SettingProvider } from '@/components/provider/setting'
 
 export default async function ChatPage() {
   const session = await getServerSession(options)
@@ -28,13 +27,11 @@ export default async function ChatPage() {
 
   return (
     <div className='flex flex-col w-full h-screen'>
-      <SettingProvider info={info}>
-        <MobileSidebar />
-        <DesktopBar />
-        <div className='flex-1 w-full overflow-auto'>
-          <Chatter />
-        </div>
-      </SettingProvider>
+      <MobileSidebar />
+      <DesktopBar />
+      <div className='flex-1 w-full overflow-auto'>
+        <Chatter />
+      </div>
     </div>
   )
 }

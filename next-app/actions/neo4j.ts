@@ -57,10 +57,8 @@ export const getUserRepos = async (params: UserReposParams): Promise<{ total: nu
   WITH total, collect(r) as l
   RETURN total, l;
   `
-  console.log('start fetcher')
 
   const data = await fetcher(q, params)
-  console.log('end fetcher')
 
   const target = Array.isArray(data) ? data[0] : data
   const total = target?.total?.low ?? 0
@@ -88,13 +86,16 @@ export const getUserRepos = async (params: UserReposParams): Promise<{ total: nu
   }
 }
 
-export interface UserInfo {
+export interface IUserSetting {
+  openAIKey: string
+  githubToken: string
+  limit: number
+  cosine: number
+}
+
+export interface UserInfo extends IUserSetting {
   email: string
   name: string
-  limit: number
-  openAIKey: string | null
-  githubToken: string | null
-  cosine: number
 }
 
 export const getUserInfo = async (params: { email: string }): Promise<UserInfo | null> => {
@@ -123,6 +124,7 @@ interface UpdateInfoParams {
   email: string
   limit: number
   openAIKey: string
+  githubToken: string
   cosine: number
 }
 

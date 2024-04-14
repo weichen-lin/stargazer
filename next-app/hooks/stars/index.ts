@@ -1,4 +1,5 @@
 import useArrangement, { Arrangements } from './useArrangement'
+import useSearch from './useSearch'
 
-export { useArrangement }
+export { useArrangement, useSearch }
 export type { Arrangements }

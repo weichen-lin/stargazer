@@ -25,19 +25,19 @@ services:
     networks:
       - startgazer-net
 
-  kafka-ui:
-    image: provectuslabs/kafka-ui
-    container_name: kafka-ui
-    ports:
-      - '8080:8080'
-    restart: 'always'
-    environment:
-      KAFKA_CLUSTERS_0_NAME: 'lkorDA4qT6W1K_dk0LHvtg'
-      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9094
-    depends_on:
-      - kafka
-    networks:
-      - startgazer-net
+  # kafka-ui:
+  #   image: provectuslabs/kafka-ui
+  #   container_name: kafka-ui
+  #   ports:
+  #     - '8080:8080'
+  #   restart: 'always'
+  #   environment:
+  #     KAFKA_CLUSTERS_0_NAME: 'lkorDA4qT6W1K_dk0LHvtg'
+  #     KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9094
+  #   depends_on:
+  #     - kafka
+  #   networks:
+  #     - startgazer-net
 
   neo4j:
     image: neo4j:5.18.0

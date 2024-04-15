@@ -22,6 +22,12 @@ class Neo4jOperations:
     def __init__(self, uri, user, password):
         self.driver = GraphDatabase.driver(uri, auth=(user, password))
 
+        try:
+            with self.driver.session() as session:
+                session.execute_write(self._make_index)
+        except Exception as e:
+            print(f"Error while creating index: {str(e)}")
+
     def close(self):
         self.driver.close()
 
@@ -67,6 +73,28 @@ class Neo4jOperations:
             session.execute_write(
                 self._save_repo_info, repo_id, readme_summary, repo_vector
             )
+
+    @staticmethod
+    def _make_index(tx):
+        # full-text index for searching repositories
+        tx.run(
+            """
+            CREATE FULLTEXT INDEX REPOSITORY_FULL_TEXT_SEARCH IF NOT EXISTS
+            FOR (r:Repository) ON EACH [r.full_name, r.description, r.readme_summary]
+        """
+        )
+
+        # vector index for semantic searching repositories
+        tx.run(
+            """
+            CREATE VECTOR INDEX `REPOSITORY_VECTOR_INDEX` IF NOT EXISTS
+            FOR (n: Repository) ON (n.repo_vector)
+            OPTIONS {indexConfig: {
+                `vector.dimensions`: 384,
+                `vector.similarity_function`: 'cosine'
+            }};
+        """
+        )
 
     @staticmethod
     def _get_user_info(tx, name):

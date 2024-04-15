@@ -69,7 +69,7 @@ def Crawler(id: int, name: str) -> tuple[str, int]:
                     )
                 except Exception as e:
                     raise ValueError(
-                        f"Error while inserting to elastic: {str(id)}, {str(e)}"
+                        f"Error while inserting to neo4j: {str(id)}, {str(e)}"
                     )
 
                 return f"success generate embedding on repo: {id}", 200
@@ -108,7 +108,8 @@ def Responser(name: str, text: str) -> list[dict]:
     q = text.replace("\n", " ")
 
     vector = get_embedding(q)
-    print(vector)
+    print(len(vector))
+
     items = []
 
     return items, 200

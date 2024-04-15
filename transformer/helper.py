@@ -34,6 +34,6 @@ content = """
 def get_formatted_text(text: str) -> str:
 
     input_ids = tokenizer(content.format(question=text), return_tensors="pt").input_ids
-    outputs = t5_model.generate(input_ids)
+    outputs = t5_model.generate(input_ids, max_new_tokens=60)
 
     return remove_tags(tokenizer.decode(outputs[0]))

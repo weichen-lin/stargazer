@@ -3,7 +3,7 @@ from crawler import Crawler, Responser
 from model import RepoEmbeddingInfoSchema, MessageSchema
 from pydantic import ValidationError
 from functools import wraps
-from config import VALID_TOKEN
+from config import VALID_TOKEN, TRANSFORMER_PORT, IS_PRODUCTION
 from openai import AuthenticationError
 
 app = Flask(__name__)
@@ -77,7 +77,7 @@ def get_suggestions():
         return jsonify({"error": "Request must be JSON"}), 400
 
 
-port = 5000
+port = int(TRANSFORMER_PORT)
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=port, debug=True)
+    app.run(host="0.0.0.0", port=port, debug=IS_PRODUCTION)

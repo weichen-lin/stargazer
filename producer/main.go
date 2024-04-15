@@ -9,7 +9,6 @@ import (
 	"github.com/IBM/sarama"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 	"github.com/weichen-lin/kafka-service/consumer"
 	"github.com/weichen-lin/kafka-service/controller"
@@ -18,13 +17,8 @@ import (
 
 func main() {
 
-	godotenv.Load(
-		"secrets.env",
-	)
-
 	neo4j_url := os.Getenv("NEO4J_URL")
 	neo4j_password := os.Getenv("NEO4J_PASSWORD")
-	fmt.Println(neo4j_url, neo4j_password)
 
 	driver, err := neo4j.NewDriverWithContext(
 		neo4j_url,

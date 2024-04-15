@@ -20,8 +20,7 @@ type SyncUserStarMsg struct {
 
 func VectorizeStar(payload *SyncUserStarMsg) (int, error) {
 	token := os.Getenv("AUTHENTICATION_TOKEN")
-
-	url := "https://stargazer-transformer-qmy6az4wfa-de.a.run.app/vectorize"
+	url := os.Getenv("TRANSFORMER_URL")
 
 	params := TransFormerParam{
 		RepoId: payload.RepoId,

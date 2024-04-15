@@ -13,12 +13,18 @@ import (
 	"github.com/patrickmn/go-cache"
 	neo4jOpeartion "github.com/weichen-lin/kafka-service/neo4j"
 	"github.com/weichen-lin/kafka-service/util"
-	"github.com/weichen-lin/kafka-service/workflow"
 )
 
 var tokenCache = cache.New(20*time.Minute, 10*time.Minute)
 
-func GetUserStarredRepos(info *workflow.GetGithubReposInfo, token string) ([]neo4jOpeartion.Repository, error) {
+
+type GetGithubReposInfo struct {
+	UserId   string `json:"user_id"`
+	Username string `json:"user_name"`
+	Page     int    `json:"page"`
+}
+
+func GetUserStarredRepos(info *GetGithubReposInfo, token string) ([]neo4jOpeartion.Repository, error) {
 
 	url := fmt.Sprintf("https://api.github.com/user/starred?&page=%d", info.Page)
 
@@ -88,7 +94,7 @@ func GetGithubReposConsumer() (func(neo4j.DriverWithContext), error) {
 				fmt.Printf("Received message: Topic - %s, Key - %s, Value - %s\n",
 					message.Topic, message.Key, message.Value)
 
-				var info workflow.GetGithubReposInfo
+				var info GetGithubReposInfo
 
 				err = json.Unmarshal(message.Value, &info)
 				if err != nil {

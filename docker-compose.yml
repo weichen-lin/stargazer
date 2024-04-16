@@ -78,6 +78,9 @@ services:
       - .env.local
     depends_on:
       - kafka
+      - neo4j
+      - producer
+      - transformer
     restart: 'always'
     networks:
       - startgazer-net

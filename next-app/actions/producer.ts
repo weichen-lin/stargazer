@@ -7,7 +7,7 @@ const TOKEN = process.env.AUTHENTICATION_TOKEN
 
 interface syncUserStarsParams {
   user_id: string
-  username: string
+  user_name: string
   page: number
 }
 
@@ -15,7 +15,7 @@ export async function syncUserStars(name: string): Promise<{ status: number; tit
   const providerId = await getUserProviderInfo(name)
   const params: syncUserStarsParams = {
     user_id: providerId,
-    username: name,
+    user_name: name,
     page: 1,
   }
 

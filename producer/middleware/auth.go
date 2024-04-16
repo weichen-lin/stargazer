@@ -26,9 +26,9 @@ func AuthMiddleware() gin.HandlerFunc {
 func AuthJWTMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		token := c.GetHeader("Authorization")
-		expectedToken := os.Getenv("AUTHENTICATION_TOKEN")
+		jwtSecret := os.Getenv("AUTHENTICATION_TOKEN")
 
-		jwtMaker, err := util.NewJWTMaker(expectedToken)
+		jwtMaker, err := util.NewJWTMaker(jwtSecret)
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 			c.Abort()

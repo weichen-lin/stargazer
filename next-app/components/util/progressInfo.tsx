@@ -22,11 +22,13 @@ export default function ProgressInfo() {
   const { data: session } = useSession()
 
   useEffect(() => {
+    let eventSource: EventSourcePolyfill | null = null
+    
     const startSyncStars = async () => {
       try {
         const user = session?.user?.name ?? ''
         const token = await generateAccessToken(user)
-        const eventSource = new EventSourcePolyfill(`/producer/sync_user_stars`, {
+        eventSource = new EventSourcePolyfill(`/producer/sync_user_stars`, {
           headers: {
             Authorization: token,
           },
@@ -41,7 +43,7 @@ export default function ProgressInfo() {
             case msg.error:
               setErrorCode(400)
               setCantClose(false)
-              eventSource.close()
+              eventSource?.close()
               setTimeout(() => {
                 startEvent(false)
               }, 3500)
@@ -53,7 +55,7 @@ export default function ProgressInfo() {
               setTimeout(() => {
                 startEvent(false)
               }, 3500)
-              eventSource.close()
+              eventSource?.close()
               break
 
             default:
@@ -66,7 +68,7 @@ export default function ProgressInfo() {
         eventSource.onerror = () => {
           setCantClose(false)
           setIsFinished(true)
-          eventSource.close()
+          eventSource?.close()
           setTimeout(() => {
             startEvent(false)
           }, 2000)
@@ -77,6 +79,10 @@ export default function ProgressInfo() {
     }
 
     startSyncStars()
+    
+    return () => {
+      eventSource?.close()
+    }
   }, [])
 
   return (

@@ -3,7 +3,7 @@
 # Common
 export NEO4J_URL=neo4j://localhost:7687
 export NEO4J_PASSWORD=password
-export AUTHENTICATION_TOKEN=localtesttotken
+export AUTHENTICATION_TOKEN=7WYj5ciV7r0bsbYa3IrkC1zxiXM7VLOQhC61Iw/MRck=
 
 # Transformer
 export TRANSFORMER_PORT=5000

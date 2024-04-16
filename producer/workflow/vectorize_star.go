@@ -32,7 +32,7 @@ func VectorizeStar(payload *SyncUserStarMsg) (int, error) {
 		return 400, err
 	}
 
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonstring))
+	req, err := http.NewRequest("POST", url+"/vectorize", bytes.NewBuffer(jsonstring))
 	if err != nil {
 		return 400, err
 	}

@@ -26,7 +26,7 @@ export default function ProgressInfo() {
       try {
         const user = session?.user?.name ?? ''
         const token = await generateAccessToken(user)
-        const eventSource = new EventSourcePolyfill(`${process.env.NEXT_PUBLIC_PRODUCER_URL}/sync_user_stars`, {
+        const eventSource = new EventSourcePolyfill(`/producer/sync_user_stars`, {
           headers: {
             Authorization: token,
           },

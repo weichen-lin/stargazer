@@ -2,7 +2,10 @@ import { isInt, integer, Driver } from 'neo4j-driver'
 import type { Adapter } from '@auth/core/adapters'
 import { driver, auth } from 'neo4j-driver'
 
-export const conn = driver(process.env.NEO4J_URL as string, auth.basic('neo4j', process.env.NEO4J_PASSWORD as string))
+export const conn = driver(
+  process.env.NEO4J_URL ?? 'neo4j://neo4j:7687',
+  auth.basic('neo4j', process.env.NEO4J_PASSWORD ?? 'password'),
+)
 
 export function Neo4jAdapter(driver: Driver): Adapter {
   const { read, write } = client(driver)

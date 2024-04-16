@@ -19,6 +19,7 @@ func main() {
 
 	neo4j_url := os.Getenv("NEO4J_URL")
 	neo4j_password := os.Getenv("NEO4J_PASSWORD")
+	port := os.Getenv("PRODUCER_PORT")
 
 	driver, err := neo4j.NewDriverWithContext(
 		neo4j_url,
@@ -69,5 +70,5 @@ func main() {
 
 	r.GET("/sync_user_stars", cors.New(cors_config), middleware.AuthJWTMiddleware(), middleware.Neo4jDriverMiddleware(driver), controller.HandleConnections)
 
-	r.Run(":8000")
+	r.Run(port)
 }

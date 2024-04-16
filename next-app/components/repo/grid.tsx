@@ -1,4 +1,3 @@
-import Image from 'next/image'
 import LanguageMap from './color'
 import { GitHubLogoIcon, StarIcon } from '@radix-ui/react-icons'
 import { motion } from 'framer-motion'
@@ -35,7 +34,7 @@ export default function GridRepo(props: Repository & { index: number }) {
               <div className='font-semibold text-2xl w-[280px] pr-2 truncate'>{repo}</div>
             </div>
             <div className='w-20 h-20'>
-              <Image src={owner.avatar_url} alt={full_name} width={80} height={80} className='rounded-full' />
+              <img src={owner.avatar_url} alt={full_name} width={80} height={80} className='rounded-full' />
             </div>
           </div>
           <div className='text-slate-500/75 w-full h-28 overflow-y-auto truncate text-wrap dark:text-white/70'>

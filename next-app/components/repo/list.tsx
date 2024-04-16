@@ -1,4 +1,3 @@
-import Image from 'next/image'
 import LanguageMap from './color'
 import { GitHubLogoIcon, StarIcon } from '@radix-ui/react-icons'
 import { motion } from 'framer-motion'
@@ -19,7 +18,7 @@ export default function ListRepo(props: Repository & { index: number }) {
       )}
     >
       <div className='flex'>
-        <Image src={owner.avatar_url} alt={full_name} width={60} height={60} className='rounded-full' />
+        <img src={owner.avatar_url} alt={full_name} width={60} height={60} className='rounded-full' />
         <div className='flex flex-col justify-center items-start w-[280px] px-4'>
           <span className='text-md truncate w-full'>{repoOwner}</span>
           <span className='font-semibold text-2xl truncate w-full'>{repo}</span>

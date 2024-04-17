@@ -1,5 +1,6 @@
 import { create } from 'zustand'
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
+import { GetFullTextSearch, ISuggestion } from '@/actions'
 
 interface ISearch {
   query: string
@@ -34,13 +35,47 @@ const testRepo = {
 
 export default function useSearch() {
   const { query, open, setOpen, setQuery } = searchAtom()
-  const [repos, setRepos] = useState<ISearchRepo[]>([testRepo])
+  const [loading, setLoading] = useState(false)
+  const [repos, setRepos] = useState<ISuggestion[]>([])
+  const ref = useRef<HTMLInputElement>(null)
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null)
+
+  const queryRepos = async (query: string) => {
+    setLoading(true)
+    const repos = await GetFullTextSearch(query)
+    setRepos(repos)
+    setLoading(false)
+
+    if (ref) {
+      ref.current?.focus()
+    }
+  }
+
+  useEffect(() => {
+    if (query.length > 0) {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current)
+      }
+
+      timeoutRef.current = setTimeout(() => {
+        queryRepos(query)
+      }, 500)
+    }
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current)
+      }
+    }
+  }, [query])
 
   return {
     query,
     open,
     repos,
+    ref,
+    loading,
     setOpen,
     setQuery,
+    queryRepos,
   }
 }

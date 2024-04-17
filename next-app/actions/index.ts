@@ -1,3 +1,4 @@
-import { GetSuggesions } from './getSeggesion'
+import { GetSuggesions, GetFullTextSearch, ISuggestion } from './transformer'
 
-export { GetSuggesions }
+export { GetSuggesions, GetFullTextSearch }
+export type { ISuggestion }

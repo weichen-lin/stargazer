@@ -4,11 +4,12 @@ import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { PaperPlaneIcon, GitHubLogoIcon } from '@radix-ui/react-icons'
 import clsx from 'clsx'
-import { useChat, SuggestionProps, useChatAlert } from '@/hooks/chat'
+import { useChat, useChatAlert } from '@/hooks/chat'
 import { useRef, useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useSession } from 'next-auth/react'
 import ChatAlert from '@/components/util/chatAlert'
+import { ISuggestion } from '@/actions'
 
 export default function Chatter() {
   const {
@@ -82,7 +83,7 @@ export default function Chatter() {
   )
 }
 
-const StarGazerResponse = (props: { suggestions: SuggestionProps[] }) => {
+const StarGazerResponse = (props: { suggestions: ISuggestion[] }) => {
   const { suggestions } = props
   return (
     <div className='w-full lg:w-2/3 lg:mx-auto'>
@@ -129,7 +130,7 @@ const UserRequest = ({ message }: { message: string }) => {
   )
 }
 
-const Suggestions = (props: SuggestionProps & { index: number }) => {
+const Suggestions = (props: ISuggestion & { index: number }) => {
   const { avatar_url, full_name, html_url, description, index } = props
   const [isOpen, setIsOpen] = useState(false)
   return (

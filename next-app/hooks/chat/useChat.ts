@@ -1,18 +1,11 @@
 import { useState, useRef, KeyboardEvent } from 'react'
-import { GetSuggesions } from '@/actions'
+import { GetSuggesions, ISuggestion } from '@/actions'
 
 type MessageKeyType = 'question' | 'suggest' | 'error'
 
-export interface SuggestionProps {
-  avatar_url: string
-  html_url: string
-  full_name: string
-  description: string | null
-}
-
 interface MessageValueType {
   question: string
-  suggest: SuggestionProps[]
+  suggest: ISuggestion[]
   error: string
 }
 

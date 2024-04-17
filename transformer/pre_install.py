@@ -10,5 +10,5 @@ model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
 
 encoding = tiktoken.get_encoding("cl100k_base")
 
-tokenizer = T5Tokenizer.from_pretrained("google/flan-t5-base")
+tokenizer = T5Tokenizer.from_pretrained("google/flan-t5-base", legacy=True)
 t5_model = T5ForConditionalGeneration.from_pretrained("google/flan-t5-base")

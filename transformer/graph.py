@@ -12,9 +12,10 @@ class UserInfo:
 
 @dataclass
 class RepoInfo:
-    repo_id: int
+    avatar_url: str
+    full_name: str
+    description: Optional[str]
     readme_summary: Optional[str]
-    repo_vector: Optional[list[float]]
     html_url: str
 
 
@@ -74,6 +75,23 @@ class Neo4jOperations:
                 self._save_repo_info, repo_id, readme_summary, repo_vector
             )
 
+    def get_suggestion_repos(self, name: str, limit: int, similarity: float, vector: list[float]):
+        with self.driver.session() as session:
+            records = session.execute_read(
+                self._get_suggestion_repos, name, limit, similarity, vector
+            )
+
+            return [
+                RepoInfo(
+                    avatar_url=info["avatar_url"],
+                    full_name=info["full_name"],
+                    description=info["description"],
+                    readme_summary=info["readme_summary"],
+                    html_url=info["html_url"],
+                )
+                for info in records
+            ]
+
     @staticmethod
     def _make_index(tx):
         # full-text index for searching repositories
@@ -120,3 +138,23 @@ class Neo4jOperations:
             readme_summary=readme_summary,
             repo_vector=repo_vector,
         )
+
+    @staticmethod
+    def _get_suggestion_repos(tx, name: str, limit: int, similarity: float, vector: list[float]):
+        result = tx.run(
+            """
+            CALL db.index.vector.queryNodes("REPOSITORY_VECTOR_INDEX", 5, $vector)
+            YIELD node, score
+            MATCH (User {name: $name})-[:STARS]-(node)
+            WHERE score > $similarity
+            RETURN node.full_name as full_name, node.description as description, node.readme_summary as readme_summary, node.html_url as html_url
+            """,
+            limit=limit,
+            vector=vector,
+            name=name,
+            similarity=similarity,
+        )
+
+        data = list(result.data())
+        
+        return data

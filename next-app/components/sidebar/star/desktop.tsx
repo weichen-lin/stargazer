@@ -7,7 +7,7 @@ import type { Arrangements } from '@/hooks/stars'
 import clsx from 'clsx'
 import { SyncStars } from '@/components/repo'
 import { ChatSettingDialog } from '@/components/util/chatSetting'
-import Search from '@/components/search/search'
+import { Search } from '@/components/search'
 
 interface SheetBarProps {
   total: number
@@ -17,33 +17,6 @@ interface SheetBarProps {
 
 const DesktopBar = (props: SheetBarProps) => {
   const { total, arrangement, toggleArrangement } = props
-
-  // useEffect(() => {
-  //   const handleKeyDown = (event: KeyboardEvent) => {
-  //     event.preventDefault()
-  //     // 如果是Mac系統
-  //     if (navigator.userAgent.toUpperCase().indexOf('MAC') >= 0) {
-  //       if (event.metaKey && event.key === 'p') {
-  //         // Command + P 被按下
-  //         console.log('Mac: Command + P 被按下')
-  //         // 在此處放置你想要執行的動作
-  //       }
-  //     } else {
-  //       // 如果是Windows系統
-  //       if (event.ctrlKey && event.key === 'p') {
-  //         // Ctrl + P 被按下
-  //         console.log('Windows: Ctrl + P 被按下')
-  //         // 在此處放置你想要執行的動作
-  //       }
-  //     }
-  //   }
-
-  //   document.addEventListener('keydown', handleKeyDown)
-
-  //   return () => {
-  //     document.removeEventListener('keydown', handleKeyDown)
-  //   }
-  // }, [])
 
   return (
     <motion.div

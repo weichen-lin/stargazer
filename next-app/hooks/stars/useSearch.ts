@@ -24,15 +24,6 @@ export interface ISearchRepo {
   full_name: string
 }
 
-const testRepo = {
-  avatar: 'https://avatars.githubusercontent.com/u/60848391?s=48&v=4',
-  html_url: 'https://github.com/weichen-lin/stargazer',
-  description: 'A GitHub repository search engine',
-  summary:
-    'A GitHub repository search engine A GitHub repository search engine A GitHub repository search engine A GitHub repository search engine',
-  full_name: 'weichen-lin/stargazer',
-}
-
 export default function useSearch() {
   const { query, open, setOpen, setQuery } = searchAtom()
   const [loading, setLoading] = useState(false)
@@ -50,6 +41,37 @@ export default function useSearch() {
       ref.current?.focus()
     }
   }
+
+  const openDialog = () => {
+    setOpen(true)
+    if (ref) {
+      ref.current?.focus()
+    }
+  }
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setOpen(false)
+      }
+
+      if (navigator.userAgent.toUpperCase().indexOf('MAC') >= 0) {
+        if (event.metaKey && event.key === 'k') {
+          openDialog()
+        }
+      } else {
+        if (event.ctrlKey && event.key === 'k') {
+          openDialog()
+        }
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [])
 
   useEffect(() => {
     if (query.length > 0) {

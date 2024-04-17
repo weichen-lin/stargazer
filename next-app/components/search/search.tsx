@@ -1,44 +1,49 @@
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog'
 import { useSearch } from '@/hooks/stars'
-import { motion } from 'framer-motion'
 import { Input } from '@/components/ui/input'
-import { useState, useRef } from 'react'
 import { cn } from '@/lib/utils'
 import clsx from 'clsx'
-import { ISuggestion } from '@/actions'
+import FullTextSearchResult from './searchResult'
 
 export default function Search() {
-  const { query, setQuery, open, setOpen, repos, ref } = useSearch()
+  const { query, setQuery, open, setOpen, repos, ref, loading } = useSearch()
 
   return (
     <Dialog open={open} onOpenChange={e => setOpen(e)}>
-      <DialogTrigger>Open</DialogTrigger>
+      <DialogTrigger>
+        <div
+          className={clsx(
+            'flex justify-between gap-x-2 items-center',
+            'w-[120px] border-[1px] border-slate-300/40 py-1 px-2 rounded-lg',
+            'hover:bg-slate-300/40 group',
+          )}
+        >
+          <div className='text-sm text-slate-500 group-hover:text-slate-700'>Search...</div>
+          <div className='text-xs tracking-widest opacity-60 bg-slate-300/40 px-2 py-1 rounded-md group-hover:bg-white group-hover:opacity-80'>
+            ⌘K
+          </div>
+        </div>
+      </DialogTrigger>
       <DialogContent className='border-0 bg-slate-100 top-[30%] max-h-[500px]'>
         <div className={cn('flex flex-col gap-y-4')}>
           <Input
             ref={ref}
             value={query}
+            disabled={loading}
             onChange={e => {
               setQuery(e.target.value)
             }}
             className={clsx(
-              'text-slate-700 rounded-md p-4 bg-white',
+              'text-slate-700 rounded-md p-4 bg-white w-[95%] mx-auto',
               'border-[1px] border-slate-300 focus:shadow-md focus:outline-none focus:ring-0',
               'focus-visible:ring-0 focus:border-slate-500',
             )}
             placeholder='Search for a repository...'
           />
           {repos.length > 0 && (
-            <div className='origin-top overflow-y-scroll h-[300px]'>
+            <div className='origin-top overflow-y-auto h-[400px] flex flex-col gap-y-4 relative overflow-visible pb-12'>
               {repos.map((repo, i) => (
-                <Repo {...repo} query={query} />
+                <FullTextSearchResult {...repo} query={query} key={`search_result_${i}`} />
               ))}
             </div>
           )}
@@ -50,81 +55,5 @@ export default function Search() {
         </div>
       </DialogContent>
     </Dialog>
-  )
-}
-
-function FullTextIndex(s: string, target: string): number[] | null {
-  let left = 0
-  let right = 0
-  const result: number[] = []
-
-  while (right < s.length && left < target.length) {
-    if (s[right].toLowerCase() === target[left]) {
-      result.push(right)
-      left++
-    }
-    right++
-  }
-
-  return result.length === target.length ? result : null
-}
-
-const Repo = (props: ISuggestion & { query: string }) => {
-  const { avatar_url, full_name, description, readme_summary, query } = props
-
-  const full_name_index = FullTextIndex(full_name, query)
-  const description_index = FullTextIndex(description ?? '', query)
-  const summary_index = FullTextIndex(readme_summary, query)
-
-  return (
-    <div className='flex flex-col items-start gap-y-2 p-2 bg-white rounded-lg hover:shadow-md transition-colors'>
-      <div className='flex gap-x-2 items-center'>
-        <img src={avatar_url} alt={full_name} className='w-4 h-4 rounded-md' />
-        <div className='font-semibold text-blue-700 line-clamp-1'>
-          {full_name_index ? (
-            <>
-              {full_name.split('').map((char, i) => {
-                if (full_name_index.includes(i)) {
-                  return <span className='underline decoration-blue-300'>{char}</span>
-                }
-                return <>{char}</>
-              })}
-            </>
-          ) : (
-            full_name
-          )}
-        </div>
-      </div>
-      <div className='flex flex-col pl-6 gap-y-2'>
-        <div className='text-slate-400 text-sm line-clamp-2'>
-          {description_index && description ? (
-            <>
-              {description.split('').map((char, i) => {
-                if (description_index.includes(i)) {
-                  return <span className='underline decoration-blue-500'>{char}</span>
-                }
-                return <>{char}</>
-              })}
-            </>
-          ) : (
-            description ?? ''
-          )}
-        </div>
-        <div className='text-slate-700 text-sm line-clamp-3'>
-          {summary_index ? (
-            <>
-              {readme_summary.split('').map((char, i) => {
-                if (summary_index.includes(i)) {
-                  return <span className='underline decoration-blue-300'>{char}</span>
-                }
-                return <>{char}</>
-              })}
-            </>
-          ) : (
-            readme_summary
-          )}
-        </div>
-      </div>
-    </div>
   )
 }

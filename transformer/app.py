@@ -76,6 +76,7 @@ def get_suggestions():
     else:
         return jsonify({"error": "Request must be JSON"}), 400
 
+
 @app.route("/full_text_search", methods=["POST"])
 @requires_auth
 def get_full_text_search():

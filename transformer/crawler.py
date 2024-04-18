@@ -108,8 +108,6 @@ def Responser(name: str, text: str) -> list[dict]:
     q = text.replace("\n", " ")
 
     vector = get_embedding(q)
-    repos = NEO4J_CLIENT.get_suggestion_repos(
-        name, info.limit, info.cosine, vector
-    )
+    repos = NEO4J_CLIENT.get_suggestion_repos(name, info.limit, info.cosine, vector)
 
     return repos, 200

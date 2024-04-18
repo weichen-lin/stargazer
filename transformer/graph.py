@@ -19,6 +19,14 @@ class RepoInfo:
     html_url: str
 
 
+@dataclass
+class RepoVectorInfo:
+    repo_id: int
+    repo_vector: list[float]
+    readme_summary: Optional[str]
+    html_url: str
+
+
 class Neo4jOperations:
     def __init__(self, uri, user, password):
         self.driver = GraphDatabase.driver(uri, auth=(user, password))
@@ -57,7 +65,7 @@ class Neo4jOperations:
 
             info = records[0]
 
-            return RepoInfo(
+            return RepoVectorInfo(
                 repo_id=info["repo_id"],
                 readme_summary=info["readme_summary"],
                 repo_vector=info["repo_vector"],
@@ -75,12 +83,14 @@ class Neo4jOperations:
                 self._save_repo_info, repo_id, readme_summary, repo_vector
             )
 
-    def get_suggestion_repos(self, name: str, limit: int, similarity: float, vector: list[float]):
+    def get_suggestion_repos(
+        self, name: str, limit: int, similarity: float, vector: list[float]
+    ):
         with self.driver.session() as session:
             records = session.execute_read(
                 self._get_suggestion_repos, name, limit, similarity, vector
             )
-            
+
             return [
                 RepoInfo(
                     avatar_url=info["avatar_url"],
@@ -155,7 +165,9 @@ class Neo4jOperations:
         )
 
     @staticmethod
-    def _get_suggestion_repos(tx, name: str, limit: int, similarity: float, vector: list[float]):
+    def _get_suggestion_repos(
+        tx, name: str, limit: int, similarity: float, vector: list[float]
+    ):
         result = tx.run(
             """
             CALL db.index.vector.queryNodes("REPOSITORY_VECTOR_INDEX", 5, $vector)
@@ -176,7 +188,7 @@ class Neo4jOperations:
         )
 
         data = list(result.data())
-        
+
         return data
 
     @staticmethod
@@ -193,5 +205,5 @@ class Neo4jOperations:
         )
 
         data = list(result.data())
-        
+
         return data

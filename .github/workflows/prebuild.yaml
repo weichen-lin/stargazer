@@ -1,12 +1,14 @@
 name: CI - Build Frontend
 
 on:
-  pull_request:
-  push:
+  push
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: next-app
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3

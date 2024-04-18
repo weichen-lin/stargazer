@@ -3,7 +3,7 @@ name: 'Push Producer Image'
 on:
   push:
     branches:
-      - main
+      - main-dev
     paths:
       - kafka/**
 

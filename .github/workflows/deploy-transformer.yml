@@ -3,7 +3,7 @@ name: 'Deploy Transformer to Google Cloud Run'
 on:
   push:
     branches:
-      - main
+      - main-dev
     paths:
       - transformer/**
 

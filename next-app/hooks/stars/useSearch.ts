@@ -36,10 +36,6 @@ export default function useSearch() {
     const repos = await GetFullTextSearch(query)
     setRepos(repos)
     setLoading(false)
-
-    if (ref) {
-      ref.current?.focus()
-    }
   }
 
   const openDialog = () => {
@@ -81,6 +77,9 @@ export default function useSearch() {
 
       timeoutRef.current = setTimeout(() => {
         queryRepos(query)
+        if (ref) {
+          ref.current?.focus()
+        }
       }, 500)
     }
     return () => {

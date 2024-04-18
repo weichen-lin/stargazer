@@ -76,6 +76,30 @@ def get_suggestions():
     else:
         return jsonify({"error": "Request must be JSON"}), 400
 
+@app.route("/full_text_search", methods=["POST"])
+@requires_auth
+def get_full_text_search():
+    if request.is_json:
+        data = request.get_json()
+
+        try:
+            model = MessageSchema(**data)
+            result, status = Responser(name=model.name, text=model.message)
+
+            return jsonify({"items": result}), status
+
+        except ValidationError as e:
+            return jsonify({"error": str(e)}), 400
+
+        except ValueError as e:
+            return jsonify({"error": str(e)}), 404
+
+        except Exception as e:
+            return jsonify({"error": str(e)}), 404
+
+    else:
+        return jsonify({"error": "Request must be JSON"}), 400
+
 
 port = int(TRANSFORMER_PORT)
 

@@ -24,7 +24,7 @@ export default function Search() {
           </div>
         </div>
       </DialogTrigger>
-      <DialogContent className='border-0 bg-slate-100 top-[30%] max-h-[500px]'>
+      <DialogContent className='border-0 bg-slate-100 top-[30%] max-h-[500px] absolute'>
         <div className={cn('flex flex-col gap-y-4')}>
           <Input
             ref={ref}

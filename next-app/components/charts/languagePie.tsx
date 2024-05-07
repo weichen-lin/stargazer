@@ -20,7 +20,7 @@ export default function LanguagePie() {
   }, [])
 
   return !isLoaded ? (
-    <div className='pt-3 pl-3 mx-auto w-[380px] h-[380px] border-[2px] border-slate-300/70 rounded-lg bg-white drop-shadow-md'>
+    <div className='pt-3 pl-3 w-[380px] h-[380px] border-[2px] border-slate-300/70 rounded-lg bg-white drop-shadow-md'>
       <AgChartsReact
         options={{
           data: data,

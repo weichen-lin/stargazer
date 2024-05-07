@@ -24,7 +24,8 @@ const DesktopBar = () => {
       animate={{ x: 0 }}
       className={clsx(
         'flex-col items-center justify-between hidden lg:flex',
-        'p-3 gap-y-6 border-b-[1px] border-slate-300 backdrop-blur-md bg-white',
+        'p-3 gap-y-6 border-b-[1px] border-slate-300 backdrop-blur-md',
+        'bg-white dark:bg-black dark:border-slate-800 dark:text-white',
       )}
     >
       <div className='flex justify-between w-full items-center'>

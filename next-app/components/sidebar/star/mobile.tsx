@@ -23,7 +23,7 @@ const MobileBar = () => {
     <div
       className={clsx(
         'flex flex-col items-center justify-between',
-        'fixed top-0 left-0 z-10 bg-white',
+        'fixed top-0 left-0 z-10 bg-white dark:bg-black',
         'lg:hidden w-full p-3 gap-y-6 border-b-[1px] border-slate-300 backdrop-blur-md',
       )}
     >

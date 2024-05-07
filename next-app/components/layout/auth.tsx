@@ -41,7 +41,7 @@ export default async function AuthLayout(props: { children: React.ReactNode; pat
             <div className='w-full h-[1px] border-b-[1px] border-slate-700/10 mb-8'></div>
             <Sidebar path={path} />
           </div>
-          <div className='flex-1 flex flex-col pt-20 lg:pt-0 overflow-y-auto bg-blue-50/70'>
+          <div className='flex-1 flex flex-col pt-20 lg:pt-0 overflow-y-auto bg-blue-50/70 dark:bg-slate-900'>
             <MobileBar />
             <DesktopBar />
             {children}

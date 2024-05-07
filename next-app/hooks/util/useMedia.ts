@@ -8,6 +8,7 @@ const useMedia = () => {
   const isTabletOrMobile = useMediaQuery({ query: '(max-width: 1224px)' })
   const isPortrait = useMediaQuery({ query: '(orientation: portrait)' })
   const isRetina = useMediaQuery({ query: '(min-resolution: 2dppx)' })
+  const isMobile = useMediaQuery({ query: '(max-width: 400px)' })
 
   return {
     isDesktopOrLaptop,
@@ -15,6 +16,7 @@ const useMedia = () => {
     isTabletOrMobile,
     isPortrait,
     isRetina,
+    isMobile,
   }
 }
 

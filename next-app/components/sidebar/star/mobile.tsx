@@ -1,3 +1,5 @@
+'use client'
+
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
 import { HamburgerMenuIcon } from '@radix-ui/react-icons'
@@ -16,14 +18,12 @@ interface SheetBarProps {
   toggleArrangement: (arr: Arrangements) => void
 }
 
-const MobileBar = (props: SheetBarProps) => {
-  const { total, arrangement, toggleArrangement } = props
-
+const MobileBar = () => {
   return (
     <div
       className={clsx(
         'flex flex-col items-center justify-between',
-        'fixed top-0 left-0 z-10',
+        'fixed top-0 left-0 z-10 bg-white',
         'lg:hidden w-full p-3 gap-y-6 border-b-[1px] border-slate-300 backdrop-blur-md',
       )}
     >
@@ -40,17 +40,17 @@ const MobileBar = (props: SheetBarProps) => {
         </Sheet>
         <div className='text-xl lg:text-3xl font-semibold w-[200px] pl-3'>My Stars</div>
         <div className='flex items-center gap-x-2'>
-          <ArrangeSetting arrangement={arrangement} toggle={toggleArrangement} />
+          {/* <ArrangeSetting arrangement={arrangement} toggle={toggleArrangement} /> */}
           <SyncStars />
           <ModeToggle />
           <ChatSettingDialog />
         </div>
       </div>
-      {total > 0 && (
+      {/* {total > 0 && (
         <motion.div initial={{ x: 80 }} animate={{ x: 0 }} className='flex justify-between items-center w-full'>
           <FixPagination total={total} />
         </motion.div>
-      )}
+      )} */}
     </div>
   )
 }

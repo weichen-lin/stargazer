@@ -19,6 +19,7 @@ export async function syncUserStars(name: string): Promise<{ status: number; tit
     page: 1,
   }
 
+  console.log({ url: PRODUCER_URL })
   const response = await fetch(`${PRODUCER_URL}/get_user_stars`, {
     method: 'POST',
     headers: {

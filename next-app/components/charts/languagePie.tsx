@@ -4,11 +4,15 @@ import { AgChartsReact } from 'ag-charts-react'
 import { useUser } from '@/context'
 import { useState, useEffect } from 'react'
 import { getLanguageDistribution, ILanguageDistribution } from '@/actions/neo4j'
+import { useMedia } from '@/hooks/util'
+import clsx from 'clsx'
 
 export default function LanguagePie() {
   const { name } = useUser()
   const [isLoaded, setIsLoaded] = useState(true)
   const [data, setData] = useState<ILanguageDistribution[]>([])
+
+  const { isRetina } = useMedia()
 
   useEffect(() => {
     const fetchData = async () => {
@@ -20,7 +24,12 @@ export default function LanguagePie() {
   }, [])
 
   return (
-    <div className='pt-3 pl-3 w-[380px] h-[380px] border-[2px] border-slate-300/70 rounded-lg bg-white drop-shadow-md'>
+    <div
+      className={clsx(
+        'pt-3 pl-3 xl:pt-1 xl:pl-1 2xl:pt-3 2xl:pl-3 border-[2px] border-slate-300/70 rounded-lg bg-white drop-shadow-md',
+        'w-[380px] h-[380px] xl:w-[330px] 2xl:w-[380px] xl:h-[330px] 2xl:h-[380px]',
+      )}
+    >
       {isLoaded ? (
         <LanguagePieLoading />
       ) : data.length > 0 ? (
@@ -42,8 +51,8 @@ export default function LanguagePie() {
                 },
               },
             ],
-            width: 350,
-            height: 350,
+            width: isRetina ? 320 : 350,
+            height: isRetina ? 320 : 350,
           }}
         />
       ) : (

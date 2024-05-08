@@ -6,8 +6,9 @@ export default function Crontab() {
   return (
     <div
       className={clsx(
-        'border-[2px] border-slate-300/70 rounded-lg  w-full h-[200px] flex flex-col items-center justify-center gap-y-4',
+        'border-[2px] border-slate-300/70 rounded-lg flex flex-col items-center justify-center gap-y-4',
         'bg-white drop-shadow-lg dark:bg-slate-300 dark:border-slate-800 dark:text-white px-8',
+        'w-full h-[230px] xl:h-[190px] 2xl:h-[230px]',
       )}
     >
       <div className='flex gap-x-4 items-center w-full'>

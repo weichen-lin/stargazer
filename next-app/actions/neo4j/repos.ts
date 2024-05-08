@@ -1,7 +1,7 @@
 'use server'
 
 import fetcher from './fetcher'
-import { Integer } from 'neo4j-driver'
+import { Integer, DateTime } from 'neo4j-driver'
 
 interface UserReposParams {
   username: string
@@ -130,6 +130,69 @@ export const getLanguageDistribution = async (name: string): Promise<ILanguageDi
     } else {
       return []
     }
+  } catch (error) {
+    console.error(error)
+    return []
+  }
+}
+
+export const getRepositoriesCount = async (name: string): Promise<number> => {
+  const q = `
+  MATCH (u: User {name: $name})-[:STARS {is_delete: false}]-(r:Repository)
+  RETURN COUNT(r) as count;
+  `
+
+  try {
+    const data = await fetcher(q, { name })
+    if (data && data?.length > 0) {
+      return data[0]?.count?.low ?? 0
+    }
+    return 0
+  } catch (error) {
+    console.error(error)
+    return 0
+  }
+}
+
+export interface IRepoAtDashboard {
+  repo_id: number
+  avatar_url: string
+  full_name: string
+  html_url: string
+  open_issues_count: number
+  created_at: string
+  last_updated_at: string
+}
+
+export const getReposByKey = async (name: string, key: string): Promise<IRepoAtDashboard[]> => {
+  const q = `
+  MATCH (u: User {name: $name})-[:STARS {is_delete: false}]-(r:Repository)
+  RETURN 
+  r.repo_id as repo_id, 
+  r.full_name as full_name, 
+  r.avatar_url as avatar_url, 
+  r.html_url as html_url,
+  r.open_issues_count as open_issues_count,
+  r.created_at as created_at, 
+  r.last_updated_at as last_updated_at
+  ORDER BY r.${key} DESC
+  LIMIT 5;
+  `
+
+  try {
+    const data = await fetcher(q, { name })
+    if (data && data?.length > 0) {
+      return data.map((e: any) => ({
+        repo_id: e?.repo_id?.low,
+        full_name: e?.full_name,
+        open_issues_count: e?.open_issues_count?.low,
+        avatar_url: e?.avatar_url,
+        created_at: e?.created_at.toString(),
+        html_url: e?.html_url,
+        last_updated_at: e?.last_updated_at,
+      }))
+    }
+    return []
   } catch (error) {
     console.error(error)
     return []

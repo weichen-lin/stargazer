@@ -1,6 +1,13 @@
-import clsx from 'clsx'
+'use server'
 
-export default function TotalRepositories() {
+import clsx from 'clsx'
+import { GetUser } from '@/actions'
+import { getRepositoriesCount } from '@/actions/neo4j'
+
+export default async function TotalRepositories() {
+  const user = await GetUser()
+  const count = await getRepositoriesCount(user.name)
+
   return (
     <div
       className={clsx(
@@ -8,7 +15,7 @@ export default function TotalRepositories() {
         'bg-white drop-shadow-lg dark:bg-slate-300 dark:border-slate-800 dark:text-white',
       )}
     >
-      <div className='w-full text-center text-6xl text-slate-500'>384</div>
+      <div className='w-full text-center text-6xl text-slate-500'>{count}</div>
       <div className='w-full text-center text-2xl text-slate-500'>Total Repositories</div>
     </div>
   )

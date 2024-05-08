@@ -15,7 +15,9 @@ type User struct {
 }
 
 type Owner struct {
+	Name 	string `json:"login"`
 	AvatarURL string `json:"avatar_url"`
+	Url 	string `json:"url"`
 }
 
 type Repository struct {
@@ -28,6 +30,7 @@ type Repository struct {
 	StargazersCount int    `json:"stargazers_count"`
 	Language        string `json:"language"`
 	DefaultBranch   string `json:"default_branch"`
+	OpenIssuesCount int    `json:"open_issues_count"`
 }
 
 func CreateRepository(driver neo4j.DriverWithContext, repo *Repository, user_id string) error {
@@ -45,29 +48,37 @@ func CreateRepository(driver neo4j.DriverWithContext, repo *Repository, user_id 
 	id, err := session.ExecuteWrite(context.Background(), func(transaction neo4j.ManagedTransaction) (any, error) {
 		result, err := transaction.Run(context.Background(), `
 			MATCH (u:User)-[re:HAS_ACCOUNT]-(a:Account { providerAccountId: $user_id })
-			MERGE (r:Repository {
-			repo_id: $repo_id
-			})
-			ON CREATE SET
-			r.repo_id = $repo_id,
-			r.full_name = $full_name,
-			r.avatar_url = $avatar_url,
-			r.html_url = $html_url,
-			r.description = $description,
-			r.stargazers_count = $stargazers_count,
-			r.language = $language,
-			r.default_branch = $default_branch,
-			r.last_updated_at = $last_updated_at,
-			r.created_at = datetime()
+			MERGE (r:Repository { repo_id: $repo_id })
+			SET r = {
+			repo_id: $repo_id,
+			full_name: $full_name,
+			owner_name: $owner_name,
+			owner_url: $owner_url,
+			avatar_url: $avatar_url,
+			html_url: $html_url,
+			description: $description,
+			stargazers_count: $stargazers_count,
+			language: $language,
+			default_branch: $default_branch,
+			last_updated_at: $last_updated_at,
+			created_at: COALESCE(r.created_at, datetime()),
+			open_issues_count: $open_issues_count,
+			last_synced_at: datetime()
+			}
 			WITH u, r
 			MERGE (u)-[s:STARS]->(r)
 			MERGE (r)-[sb:STARRED_BY]->(u)
-			RETURN r.repo_id AS repo_id;	
+			SET s = {
+			is_delete: COALESCE(s.is_delete, false)
+			}
+			RETURN r.repo_id AS repo_id;
 			`,
 			map[string]interface{}{
 				"user_id":          user_id,
 				"repo_id":          repo.ID,
 				"full_name":        repo.FullName,
+				"owner_name":       repo.Owner.Name,
+				"owner_url":        repo.Owner.Url,
 				"avatar_url":       repo.Owner.AvatarURL,
 				"html_url":         repo.HTMLURL,
 				"description":      repo.Description,
@@ -75,6 +86,7 @@ func CreateRepository(driver neo4j.DriverWithContext, repo *Repository, user_id 
 				"language":         repo.Language,
 				"default_branch":   repo.DefaultBranch,
 				"last_updated_at":  repo.UpdatedAt,
+				"open_issues_count": repo.OpenIssuesCount,
 			})
 
 		if err != nil {

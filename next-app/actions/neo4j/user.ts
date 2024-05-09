@@ -1,17 +1,5 @@
 import { conn } from '@/actions/adapter'
-import { Integer } from 'neo4j-driver'
-
-const fetcher = async <T>(q: string, params: T) => {
-  const session = conn.session()
-  try {
-    const res = await session.executeRead(tx => tx.run(q, params))
-    return res.records.map(r => r.toObject())
-  } catch (error) {
-    console.error(error)
-  } finally {
-    await session.close()
-  }
-}
+import fetcher from './fetcher'
 
 export const getUserInfo = async (params: { email: string }): Promise<UserInfo | null> => {
   const q = `
@@ -79,6 +67,29 @@ export const updateInfo = async (params: UpdateInfoParams) => {
     return 'OK'
   } catch (error) {
     console.error(error)
+  } finally {
+    await session.close()
+  }
+}
+
+interface IUserCrontab {
+  status: boolean
+  lastTriggerTime: string
+  time: number
+}
+
+export const getCrontabInfo = async (name: string): Promise<undefined> => {
+  const q = `
+  MATCH (u:User { name: $name })-[:HAS_CRONTAB]->(c:Crontab)
+  RETURN c{.*}, 
+  `
+  const session = conn.session()
+
+  try {
+    const data = await fetcher(q, { name })
+    return undefined
+  } catch (error) {
+    console.error({ error })
   } finally {
     await session.close()
   }

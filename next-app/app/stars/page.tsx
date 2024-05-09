@@ -11,7 +11,7 @@ export default async function Dashboard() {
     <div
       className={clsx(
         'bg-blue-50/70 dark:bg-slate-900 flex flex-col gap-3 items-center',
-        'w-full md:flex-row md:flex-wrap md:items-center md:justify-center lg:p-2 lg:gap-6 xl:gap-4 2xl:gap-6',
+        'w-full lg:h-full md:flex-row md:flex-wrap md:items-center md:justify-center py-4 lg:py-0 lg:p-2 lg:gap-6 xl:gap-4 2xl:gap-12',
         'from-blue-100/40 to-blue-200/60 bg-gradient-to-br dark:from-slate-500 dark:to-slate-100',
       )}
     >

@@ -9,7 +9,7 @@ import {
   getRepositoriesCount,
   getReposByKey,
 } from './repos'
-import { getUserInfo, getUserProviderInfo, updateInfo } from './user'
+import { getUserInfo, getUserProviderInfo, updateInfo, getCrontabInfo } from './user'
 
 export { Repository, UserInfo, ILanguageDistribution, IRepoAtDashboard }
 export { fetcher }
@@ -21,4 +21,4 @@ export {
   getRepositoriesCount,
   getReposByKey,
 }
-export { getUserInfo, getUserProviderInfo, updateInfo }
+export { getUserInfo, getUserProviderInfo, updateInfo, getCrontabInfo }

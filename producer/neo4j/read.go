@@ -146,3 +146,67 @@ func GetUserNotVectorize(driver neo4j.DriverWithContext, userName string) ([]int
 
 	return records.([]int64), err
 }
+
+type UserCrontab struct {
+	UserName string `json:"user_name"`
+	Hour	 int64    `json:"hour"`
+}
+
+func GetAllUserCrontab(driver neo4j.DriverWithContext) ([]UserCrontab, error) {
+	session := driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
+	defer session.Close(context.Background())
+
+	records, err := session.ExecuteRead(context.Background(), func(transaction neo4j.ManagedTransaction) (interface{}, error) {
+		result, err := transaction.Run(context.Background(), `
+				MATCH (u:User)-[h:HAS_CRONTAB]-(c:Crontab)
+				RETURN u.name as name, c.hour as hour            
+				`,
+			map[string]interface{}{
+			})
+
+		if err != nil {
+			return nil, err
+		}
+
+		if result.Err() != nil {
+			return nil, result.Err()
+		}
+
+		collects, err := result.Collect(context.Background())
+		if err != nil {
+			return nil, err
+		}
+
+		crontabs := make([]UserCrontab, len(collects))
+
+		for i, record := range collects {
+			name, ok := record.Get("name")
+			if !ok {
+				return nil, fmt.Errorf("error at getting crontab from records: %v", record)
+			}
+
+			hour, ok := record.Get("hour")
+			if !ok {
+				return nil, fmt.Errorf("error at getting crontab from records: %v", record)
+			}
+
+			crontabs[i] = UserCrontab{
+				UserName: name.(string),
+				Hour:     hour.(int64),
+			}
+		}
+
+		return crontabs, result.Err()
+	})
+
+	if err != nil {
+		fmt.Println("Error make vectorize success from neo4j:", err)
+		return nil, err
+	}
+
+	if _, ok := records.([]UserCrontab); !ok {
+		return nil, fmt.Errorf("error at converting stars to []int")
+	}
+
+	return records.([]UserCrontab), err
+}

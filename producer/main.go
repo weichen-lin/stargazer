@@ -13,6 +13,7 @@ import (
 	"github.com/weichen-lin/kafka-service/consumer"
 	"github.com/weichen-lin/kafka-service/controller"
 	"github.com/weichen-lin/kafka-service/middleware"
+	"github.com/weichen-lin/kafka-service/scheduler"
 )
 
 func main() {
@@ -29,6 +30,8 @@ func main() {
 		fmt.Println("Error creating driver:", err)
 		return
 	}
+
+	scheduler.Init(driver)
 
 	kafka_url := os.Getenv("KAFKA_URL")
 	brokers := []string{kafka_url}
@@ -69,6 +72,8 @@ func main() {
 	r.POST("/get_user_stars", middleware.AuthMiddleware(), middleware.ProducerMiddleware(producer), controller.GetUserStars)
 
 	r.GET("/sync_user_stars", cors.New(cors_config), middleware.AuthJWTMiddleware(), middleware.Neo4jDriverMiddleware(driver), controller.HandleConnections)
+
+	r.PATCH("/update_cron_tab_setting", middleware.AuthJWTMiddleware(), middleware.Neo4jDriverMiddleware(driver), controller.UpdateCronTabSetting)
 
 	r.Run(port)
 }

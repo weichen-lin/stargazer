@@ -116,3 +116,51 @@ func CreateRepository(driver neo4j.DriverWithContext, repo *Repository, user_id 
 		return fmt.Errorf("error at converting repo_id to string: %v", repo.ID)
 	}
 }
+
+
+func AdjustCrontab(driver neo4j.DriverWithContext, hour int, user_name string) error {
+	session := driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
+	defer session.Close(context.Background())
+
+	name, err := session.ExecuteWrite(context.Background(), func(transaction neo4j.ManagedTransaction) (any, error) {
+		result, err := transaction.Run(context.Background(), `
+			MERGE (u:User {name: $name})-[h:HAS_CRONTAB]-(c:Crontab)
+			SET c = {
+				hour: $hour,
+				updated_at: datetime(),
+				created_at: COALESCE(c.created_at, datetime())
+			}
+			RETURN u.name AS name;
+			`,
+			map[string]interface{}{
+				"name": user_name,
+				"hour": hour,
+			})
+
+		if err != nil {
+			fmt.Println("error at create crontab: ", err)
+			return nil, err
+		}
+
+		if result.Next(context.Background()) {
+			record := result.Record()
+			_name, ok := record.Get("name")
+			if !ok {
+				return nil, fmt.Errorf("create failed")
+			}
+			return _name, nil
+		}
+
+		return nil, result.Err()
+	})
+
+	if err != nil {
+		return err
+	}
+
+	if _, ok := name.(string); ok {
+		return nil
+	} else {
+		return fmt.Errorf("error at converting name to string: %v", user_name)
+	}
+}

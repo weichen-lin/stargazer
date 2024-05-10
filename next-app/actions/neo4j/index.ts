@@ -1,5 +1,5 @@
 import type { Repository, ILanguageDistribution, IRepoAtDashboard } from './repos'
-import type { UserInfo } from './user'
+import type { IUserConfig } from './user'
 import fetcher from './fetcher'
 import {
   getUserRepos,
@@ -9,9 +9,9 @@ import {
   getRepositoriesCount,
   getReposByKey,
 } from './repos'
-import { getUserInfo, getUserProviderInfo, updateInfo, getCrontabInfo } from './user'
+import { getUserInfo, updateInfo, getCrontabInfo } from './user'
 
-export { Repository, UserInfo, ILanguageDistribution, IRepoAtDashboard }
+export { Repository, IUserConfig, ILanguageDistribution, IRepoAtDashboard }
 export { fetcher }
 export {
   getUserRepos,
@@ -21,4 +21,4 @@ export {
   getRepositoriesCount,
   getReposByKey,
 }
-export { getUserInfo, getUserProviderInfo, updateInfo, getCrontabInfo }
+export { getUserInfo, updateInfo, getCrontabInfo }

@@ -10,15 +10,15 @@ import { useUser } from '@/context'
 export default function Crontab() {
   const user = useUser()
 
-  useEffect(() => {
-    const fetchCrontabInfo = async () => {
-      console.log('fetchCrontabInfo')
-      const crontabInfo = await getCrontabInfo(user.name)
-      console.log({ crontabInfo })
-    }
+  // useEffect(() => {
+  //   const fetchCrontabInfo = async () => {
+  //     console.log('fetchCrontabInfo')
+  //     const crontabInfo = await getCrontabInfo(user.name)
+  //     console.log({ crontabInfo })
+  //   }
 
-    fetchCrontabInfo()
-  }, [])
+  //   fetchCrontabInfo()
+  // }, [])
 
   return (
     <div

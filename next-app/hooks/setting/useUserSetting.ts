@@ -1,34 +1,37 @@
+'use client'
+
 import { create } from 'zustand'
 import { useState, useEffect } from 'react'
-import { IUserSetting, getUserInfo, updateInfo } from '@/actions/neo4j'
-import { useSession } from 'next-auth/react'
+import { IUserConfig, getUserInfo, updateInfo } from '@/actions/neo4j'
+import { useUser } from '@/context'
 
-interface Setting extends IUserSetting {
-  change: (key: keyof IUserSetting, value: string | number) => void
+interface IUseConfig {
+  config: IUserConfig
+  setConfig: (config: IUserConfig) => void
+  change: (key: keyof IUserConfig, value: string | number) => void
 }
 
-export const useSetting = create<Setting>(set => ({
-  openAIKey: '',
-  githubToken: '',
-  limit: 5,
-  cosine: 0.8,
-  change: (key, value) => set(state => ({ ...state, [key]: value })),
+export const useConfigState = create<IUseConfig>(set => ({
+  config: {
+    openAIKey: '',
+    githubToken: '',
+    limit: 5,
+    cosine: 0.8,
+  },
+  setConfig: (config: IUserConfig) => set(state => ({ config: { ...state.config, ...config } })),
+  change: (key, value) => set(state => ({ config: { ...state.config, [key]: value } })),
 }))
 
-const useUserSetting = () => {
-  const { openAIKey, githubToken, limit, cosine, change } = useSetting()
+const useConfig = () => {
+  const { config, setConfig, change } = useConfigState()
   const [isLoading, setIsLoading] = useState(true)
-  const session = useSession()
-  const email = session.data?.user?.email ?? ''
+  const { email } = useUser()
 
   const update = async () => {
     try {
       setIsLoading(true)
-      await updateInfo({ email, githubToken, limit, openAIKey, cosine })
-      change('openAIKey', openAIKey)
-      change('limit', limit)
-      change('cosine', cosine)
-      change('githubToken', githubToken)
+      await updateInfo({ email, ...config })
+      setConfig({ ...config })
     } catch {
       console.error('failed to update user setting')
     } finally {
@@ -39,21 +42,15 @@ const useUserSetting = () => {
   useEffect(() => {
     const fetchSetting = async () => {
       setIsLoading(true)
-      const info = await getUserInfo({ email })
-      if (info) {
-        change('openAIKey', info.openAIKey ?? '')
-        change('limit', info.limit ?? 5)
-        change('cosine', info?.cosine ?? 0.8)
-        change('githubToken', info.githubToken ?? '')
-      }
+      const info = await getUserInfo(email)
+      setConfig(info)
       setIsLoading(false)
     }
-    if (email) {
-      fetchSetting()
-    }
+
+    fetchSetting()
   }, [])
 
-  return { isLoading, openAIKey, githubToken, limit, cosine, change, update }
+  return { isLoading, config, change, update }
 }
 
-export default useUserSetting
+export default useConfig

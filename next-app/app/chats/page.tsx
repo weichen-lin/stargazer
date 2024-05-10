@@ -20,7 +20,7 @@ export default async function ChatPage() {
     redirect('/')
   }
 
-  const info = await getUserInfo({ email: email })
+  const info = await getUserInfo(email)
   if (!info) {
     redirect('/')
   }

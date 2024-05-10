@@ -1,6 +1,5 @@
 'use server'
-
-import { getUserProviderInfo } from './neo4j'
+import { generateAccessToken } from './util'
 
 const PRODUCER_URL = process.env.PRODUCER_URL
 const TOKEN = process.env.AUTHENTICATION_TOKEN
@@ -11,22 +10,14 @@ interface syncUserStarsParams {
   page: number
 }
 
-export async function syncUserStars(name: string): Promise<{ status: number; title: string; message: string }> {
-  const providerId = await getUserProviderInfo(name)
-  const params: syncUserStarsParams = {
-    user_id: providerId,
-    user_name: name,
-    page: 1,
-  }
-
-  console.log({ url: PRODUCER_URL })
+export async function syncUserStars(email: string): Promise<{ status: number; title: string; message: string }> {
+  const jwtToken = await generateAccessToken(email)
   const response = await fetch(`${PRODUCER_URL}/get_user_stars`, {
-    method: 'POST',
+    method: 'GET',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${TOKEN}`,
+      Authorization: jwtToken,
     },
-    body: JSON.stringify(params),
   })
 
   const status = response.status

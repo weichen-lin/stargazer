@@ -1,4 +1,5 @@
-import { useState } from 'react'
+'use client'
+
 import { InfoCircledIcon, GearIcon } from '@radix-ui/react-icons'
 import { Button } from '@/components/ui/button'
 import {
@@ -15,7 +16,7 @@ import { Input } from '@/components/ui/input'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Slider } from '@/components/ui/slider'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { useUserSetting } from '@/hooks/setting'
+import { useConfig } from '@/hooks/setting'
 
 export function ChatSettingDialog() {
   return (
@@ -49,7 +50,7 @@ export function ChatSettingDrawer() {
 }
 
 const ChatSetting = () => {
-  const { isLoading, openAIKey, githubToken, limit, cosine, change, update } = useUserSetting()
+  const { isLoading, config, change, update } = useConfig()
 
   return (
     <Tabs defaultValue='tokens' className='flex flex-col items-center w-full pt-6'>
@@ -83,7 +84,7 @@ const ChatSetting = () => {
               </h1>
               <Input
                 placeholder='Your Github Token'
-                value={githubToken ?? ''}
+                value={config.githubToken}
                 onChange={e => {
                   change('githubToken', e.target.value)
                 }}
@@ -109,7 +110,7 @@ const ChatSetting = () => {
               </h1>
               <Input
                 placeholder='Your OpenAI API Key'
-                value={openAIKey ?? ''}
+                value={config.openAIKey}
                 onChange={e => {
                   change('openAIKey', e.target.value)
                 }}
@@ -141,7 +142,7 @@ const ChatSetting = () => {
           <div className='p-4 w-full flex flex-col gap-y-8'>
             <div className='flex flex-col gap-y-4 mb-6'>
               <h1 className='font-semibold flex items-center gap-x-4'>
-                Cosine Similarity : <span>{cosine}</span>
+                Cosine Similarity : <span>{config.cosine}</span>
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger>
@@ -152,7 +153,7 @@ const ChatSetting = () => {
                 </TooltipProvider>
               </h1>
               <Slider
-                defaultValue={[cosine]}
+                defaultValue={[config.cosine]}
                 max={1}
                 step={0.01}
                 onValueChange={e => {
@@ -166,12 +167,12 @@ const ChatSetting = () => {
               <Input
                 placeholder='the limit of response is 20'
                 type='number'
-                value={limit}
+                value={config.limit}
                 onChange={e => {
                   change('limit', parseInt(e.target.value))
                 }}
                 onBlur={() => {
-                  if (limit > 20) {
+                  if (config.limit > 20) {
                     change('limit', 20)
                   }
                 }}

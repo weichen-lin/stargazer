@@ -6,56 +6,55 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
-	neo4jOpeartion "github.com/weichen-lin/kafka-service/neo4j"
+	"github.com/weichen-lin/kafka-service/db"
 	"github.com/weichen-lin/kafka-service/workflow"
 )
 
 type Client struct {
-	UserName   string
+	Email      string
 	StatusCode chan int
 }
 
 type SyncUserStars struct {
-	Stars    []int  `json:"stars" binding:"required" form:"stars"`
-	Username string `json:"username" binding:"required" form:"username"`
+	Stars []int  `json:"stars" binding:"required" form:"stars"`
+	Email string `json:"email" binding:"required" form:"email"`
 }
 
 var clients = make(map[string]*Client)
 
 func HandleConnections(c *gin.Context) {
 
-	userName, ok := c.Value("userName").(string)
+	email, ok := c.Value("email").(string)
 	if !ok {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 		return
 	}
 
-	neo4jDriver, exists := c.Get("neo4jDriver")
+	driver, exists := c.Get("db")
 	if !exists {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Neo4j driver not found"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "db not found"})
 		return
 	}
 
-	_, ok = neo4jDriver.(neo4j.DriverWithContext)
+	driver, ok = driver.(db.Database)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve Neo4j driver"})
 		return
 	}
 
-	stars, err := neo4jOpeartion.GetUserNotVectorize(neo4jDriver.(neo4j.DriverWithContext), userName)
+	stars, err := driver.(db.Database).GetUserNotVectorize(email)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve user stars"})
 		return
 	}
 
 	client := &Client{
-		UserName:   userName,
+		Email:      email,
 		StatusCode: make(chan int),
 	}
 
-	clients[userName] = client
-	defer delete(clients, userName)
+	clients[email] = client
+	defer delete(clients, email)
 
 	c.Stream(func(w io.Writer) bool {
 		w.(http.ResponseWriter).Header().Set("Content-Type", "text/event-stream")
@@ -66,15 +65,15 @@ func HandleConnections(c *gin.Context) {
 		c.SSEvent("message", map[string]interface{}{"total": len(stars)})
 		c.Writer.Flush()
 
-		go func(driver neo4j.DriverWithContext) {
+		go func(driver db.Database) {
 			defer close(client.StatusCode)
 			for i := 0; i < len(stars); i++ {
 
 				id := stars[i]
 
-				_, err := workflow.VectorizeStar(&workflow.SyncUserStarMsg{
-					UserName: userName,
-					RepoId:   id,
+				_, err := workflow.VectorizeStar(&workflow.SyncUserStar{
+					Email:  email,
+					RepoId: id,
 				})
 
 				if err != nil {
@@ -86,9 +85,9 @@ func HandleConnections(c *gin.Context) {
 
 				client.StatusCode <- i
 
-				err = neo4jOpeartion.ConfirmVectorize(driver, &workflow.SyncUserStarMsg{
-					UserName: userName,
-					RepoId:   id,
+				err = driver.(db.Database).ConfirmVectorize(&workflow.SyncUserStar{
+					Email:  email,
+					RepoId: id,
 				})
 
 				if err != nil {
@@ -98,7 +97,7 @@ func HandleConnections(c *gin.Context) {
 					return
 				}
 			}
-		}(neo4jDriver.(neo4j.DriverWithContext))
+		}(driver.(db.Database))
 
 		for {
 			select {

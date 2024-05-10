@@ -1,4 +1,4 @@
-package neo4jOpeartion
+package db
 
 import (
 	"context"
@@ -8,18 +8,18 @@ import (
 	"github.com/weichen-lin/kafka-service/workflow"
 )
 
-func ConfirmVectorize(driver neo4j.DriverWithContext, info *workflow.SyncUserStarMsg) error {
-	session := driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
+func (db *database) ConfirmVectorize(info *workflow.SyncUserStar) error {
+	session := db.driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	defer session.Close(context.Background())
 
 	_, err := session.ExecuteWrite(context.Background(), func(transaction neo4j.ManagedTransaction) (interface{}, error) {
 		result, err := transaction.Run(context.Background(), `
-			MATCH (u:User { name: $name })-[s:STARS]->(r:Repository { repo_id: $repo_id })
+			MATCH (u:User { email: $email })-[s:STARS]->(r:Repository { repo_id: $repo_id })
 			SET s.is_vectorized = $isVectorized
 			RETURN s{.*}
             `,
 			map[string]interface{}{
-				"name":         info.UserName,
+				"email":        info.Email,
 				"repo_id":      info.RepoId,
 				"isVectorized": true,
 			})

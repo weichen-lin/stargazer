@@ -38,7 +38,7 @@ func main() {
 		})
 	})
 
-	r.POST("/get_user_stars", m.BasicAuth(), m.Producer(service.Producer), controller.GetUserStars)
+	r.GET("/get_user_stars", m.JWTAuth(), m.Producer(service.Producer), controller.GetUserStars)
 
 	r.GET("/sync_user_stars", cors.New(cors_config), m.JWTAuth(), m.DatabaseDriver(service.DB), controller.HandleConnections)
 

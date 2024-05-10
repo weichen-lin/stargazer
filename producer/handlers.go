@@ -39,14 +39,14 @@ func GetGithubRepos(db db.Database, msg *sarama.ConsumerMessage, producer sarama
 	if tokenFormCache, found := tokenCache.Get(info.Email); !found {
 		tokenValue, err := db.GetUserConfig(info.Email)
 		if err != nil {
-			return fmt.Errorf("Error getting user token:", err)
+			return fmt.Errorf("Error getting user token %s:", err.Error())
 		}
 		token = tokenValue.GithubToken
 		tokenCache.Set(info.Email, tokenValue.GithubToken, cache.DefaultExpiration)
 	} else {
 		tokenValue, ok := tokenFormCache.(string)
 		if !ok {
-			return fmt.Errorf("Error converting token to string:", token)
+			return fmt.Errorf("Error converting token to string: %s", token)
 		}
 		token = tokenValue
 	}
@@ -54,7 +54,7 @@ func GetGithubRepos(db db.Database, msg *sarama.ConsumerMessage, producer sarama
 	stars, err := util.GetUserStarredRepos(info.Page, token)
 
 	if err != nil {
-		return fmt.Errorf("Error getting user stars:", err)
+		return fmt.Errorf("Error getting user stars: %s", err.Error())
 	}
 
 	if len(stars) == 30 {
@@ -62,7 +62,7 @@ func GetGithubRepos(db db.Database, msg *sarama.ConsumerMessage, producer sarama
 
 		jsonString, err := json.Marshal(info)
 		if err != nil {
-			return fmt.Errorf("Error marshalling JSON:", err)
+			return fmt.Errorf("Error marshalling JSON: %s", err.Error())
 		}
 
 		_, _, err = producer.SendMessage(&sarama.ProducerMessage{
@@ -71,7 +71,7 @@ func GetGithubRepos(db db.Database, msg *sarama.ConsumerMessage, producer sarama
 		})
 
 		if err != nil {
-			return fmt.Errorf("Error sending message:", err)
+			return fmt.Errorf("Error sending message: %s", err.Error())
 		}
 	} else {
 

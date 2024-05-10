@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
@@ -11,25 +10,18 @@ import (
 	"github.com/patrickmn/go-cache"
 )
 
-type GetGithubReposInfo struct {
-	UserId   string `form:"user_id" json:"user_id" binding:"required"`
-	Username string `form:"user_name" json:"user_name" binding:"required"`
-	Page     int    `form:"page" json:"page" binding:"required"`
-}
-
 var getUserStarsLimiter = cache.New(20*time.Minute, 10*time.Minute)
 
 func GetUserStars(c *gin.Context) {
-	var info GetGithubReposInfo
-
-	if err := c.ShouldBindJSON(&info); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	
+	email, ok := c.Value("email").(string)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 		return
 	}
 
-	if _, found := getUserStarsLimiter.Get(info.UserId); found {
-
-		_, expired, _ := getUserStarsLimiter.GetWithExpiration(info.UserId)
+	if _, found := getUserStarsLimiter.Get(email); found {
+		_, expired, _ := getUserStarsLimiter.GetWithExpiration(email)
 		remain := time.Until(expired)
 		mins := int(remain.Minutes())
 
@@ -40,12 +32,7 @@ func GetUserStars(c *gin.Context) {
 		return
 	}
 
-	getUserStarsLimiter.Set(info.UserId, true, time.Minute*30)
-
-	jsonString, err := json.Marshal(info)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-	}
+	getUserStarsLimiter.Set(email, true, time.Minute*30)
 
 	producer, exists := c.Get("kafkaProducer")
 	if !exists {
@@ -53,9 +40,9 @@ func GetUserStars(c *gin.Context) {
 		return
 	}
 
-	_, _, err = producer.(sarama.SyncProducer).SendMessage(&sarama.ProducerMessage{
+	_, _, err := producer.(sarama.SyncProducer).SendMessage(&sarama.ProducerMessage{
 		Topic: "get_user_stars",
-		Value: sarama.StringEncoder(jsonString),
+		Value: sarama.StringEncoder(`{"email":"` + email + `","page":1}`),
 	})
 
 	if err != nil {

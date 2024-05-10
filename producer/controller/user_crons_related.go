@@ -12,7 +12,6 @@ type CronTabSetting struct {
 }
 
 func UpdateCronTabSetting(c *gin.Context) {
-
 	email, ok := c.Value("email").(string)
 	if !ok {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})

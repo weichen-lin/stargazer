@@ -13,7 +13,7 @@ import (
 var getUserStarsLimiter = cache.New(20*time.Minute, 10*time.Minute)
 
 func GetUserStars(c *gin.Context) {
-	
+
 	email, ok := c.Value("email").(string)
 	if !ok {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
@@ -34,7 +34,7 @@ func GetUserStars(c *gin.Context) {
 
 	getUserStarsLimiter.Set(email, true, time.Minute*30)
 
-	producer, exists := c.Get("kafkaProducer")
+	producer, exists := c.Get("producer")
 	if !exists {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Kafka producer not found"})
 		return

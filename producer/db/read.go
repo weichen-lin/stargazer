@@ -5,14 +5,13 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 )
 
 type Config struct {
 	OpenAiKey   string  `json:"openai_key"`
 	GithubToken string  `json:"github_token"`
-	Limit       int64   `json:"limit"`
+	Limit       float64 `json:"limit"`
 	Cosine      float64 `json:"cosine"`
 }
 
@@ -29,13 +28,22 @@ func (db *database) GetUser(email string) (*User, error) {
 	defer session.Close(context.Background())
 
 	records, err := session.ExecuteRead(context.Background(), func(tx neo4j.ManagedTransaction) (any, error) {
-		result, _ := tx.Run(context.Background(), `
+		result, err := tx.Run(context.Background(), `
             MATCH (u:User {email: $email}) 
-            RETURN u.id as id, u.name as name, u.email as email, u.image as image
+            RETURN u.name as name, u.email as email, u.image as image
             `, map[string]any{
 			"email": email,
 		})
-		records, _ := result.Collect(context.Background())
+
+		if err != nil {
+			return nil, err
+		}
+
+		records, err := result.Collect(context.Background())
+		if err != nil {
+			return nil, err
+		}
+
 		return records, nil
 	})
 
@@ -53,10 +61,6 @@ func (db *database) GetUser(email string) (*User, error) {
 	}
 
 	record := users[0].AsMap()
-	id, ok := record["id"].(uuid.UUID)
-	if !ok {
-		return nil, fmt.Errorf("error at getting id from record: %v", record)
-	}
 
 	name, ok := record["name"].(string)
 	if !ok {
@@ -69,7 +73,6 @@ func (db *database) GetUser(email string) (*User, error) {
 	}
 
 	return &User{
-		ID:    id,
 		Name:  name,
 		Email: email,
 		Image: image,
@@ -81,13 +84,21 @@ func (db *database) GetUserConfig(email string) (*Config, error) {
 	defer session.Close(context.Background())
 
 	records, err := session.ExecuteRead(context.Background(), func(tx neo4j.ManagedTransaction) (any, error) {
-		result, _ := tx.Run(context.Background(), `
+		result, err := tx.Run(context.Background(), `
             MATCH (u:User {email: $email})-[:HAS_CONFIG]->(c:Config)
             RETURN c.openai_key as openai_key, c.github_token as github_token, c.limit as limit, c.cosine as cosine
             `, map[string]any{
 			"email": email,
 		})
-		records, _ := result.Collect(context.Background())
+
+		if err != nil {
+			return nil, err
+		}
+
+		records, err := result.Collect(context.Background())
+		if err != nil {
+			return nil, err
+		}
 		return records, nil
 	})
 
@@ -115,7 +126,7 @@ func (db *database) GetUserConfig(email string) (*Config, error) {
 		return nil, fmt.Errorf("error at convert openai_key from record: %v", record)
 	}
 
-	limit, ok := record["limit"].(int64)
+	limit, ok := record["limit"].(float64)
 	if !ok {
 		return nil, fmt.Errorf("error at convert limit from record: %v", record)
 	}
@@ -191,13 +202,20 @@ func (db *database) GetAllUserCrontab() ([]Crontab, error) {
 	defer session.Close(context.Background())
 
 	records, err := session.ExecuteRead(context.Background(), func(transaction neo4j.ManagedTransaction) (interface{}, error) {
-		result, _ := transaction.Run(context.Background(), `
+		result, err := transaction.Run(context.Background(), `
 				MATCH (u:User)-[h:HAS_CRONTAB]-(c:Crontab)
 				RETURN u.email as email, c.hour as hour            
 				`,
 			map[string]interface{}{})
 
-		records, _ := result.Collect(context.Background())
+		if err != nil {
+			return nil, err
+		}
+
+		records, err := result.Collect(context.Background())
+		if err != nil {
+			return nil, err
+		}
 		return records, nil
 	})
 

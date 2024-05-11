@@ -5,15 +5,13 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/google/uuid"
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 )
 
 type User struct {
-	ID    uuid.UUID `json:"id"`
-	Name  string    `json:"name"`
-	Email string    `json:"email"`
-	Image string    `json:"image"`
+	Name  string `json:"name"`
+	Email string `json:"email"`
+	Image string `json:"image"`
 }
 
 type Owner struct {
@@ -47,8 +45,8 @@ func (db *database) CreateRepository(repo *Repository, email string) error {
 		return errors.New("error at create repo constraint: " + err.Error())
 	}
 
-	records, err := session.ExecuteRead(context.Background(), func(tx neo4j.ManagedTransaction) (any, error) {
-		result, _ := tx.Run(context.Background(), `
+	records, err := session.ExecuteWrite(context.Background(), func(tx neo4j.ManagedTransaction) (any, error) {
+		result, err := tx.Run(context.Background(), `
 			MATCH (u:User {email: $email})
 			MERGE (r:Repository { repo_id: $repo_id })
 			SET r = {
@@ -63,7 +61,7 @@ func (db *database) CreateRepository(repo *Repository, email string) error {
 				language: $language,
 				default_branch: $default_branch,
 				last_updated_at: $last_updated_at,
-				open_issues_count: $open_issues_count,
+				open_issues_count: $open_issues_count
 			}
 			WITH u, r
 			MERGE (u)-[s:STARS]->(r)
@@ -90,8 +88,13 @@ func (db *database) CreateRepository(repo *Repository, email string) error {
 				"last_updated_at":   repo.UpdatedAt,
 				"open_issues_count": repo.OpenIssuesCount,
 			})
-		records, _ := result.Collect(context.Background())
-		return records, nil
+
+		if err != nil {
+			fmt.Println("error at create repo: ", err)
+			return nil, err
+		}
+		records, err := result.Collect(context.Background())
+		return records, err
 	})
 
 	if err != nil {

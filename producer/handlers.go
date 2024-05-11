@@ -74,8 +74,12 @@ func GetGithubRepos(db db.Database, msg *sarama.ConsumerMessage, producer sarama
 			return fmt.Errorf("Error sending message: %s", err.Error())
 		}
 	} else {
-
+		fmt.Printf("Finished getting all stars from user %s", info.Email)
 		user, err := db.GetUser(info.Email)
+
+		if err != nil {
+			return fmt.Errorf("Error getting user: %s", err.Error())
+		}
 
 		params := &util.SendMailParams{
 			Email:      info.Email,
@@ -85,12 +89,15 @@ func GetGithubRepos(db db.Database, msg *sarama.ConsumerMessage, producer sarama
 
 		err = util.SendMail(params)
 		if err != nil {
-			fmt.Println("Error sending email:", err)
+			return fmt.Errorf("Error sending mail: %s", err.Error())
 		}
 	}
 
 	for _, repo := range stars {
-		db.CreateRepository(&repo, info.Email)
+		err := db.CreateRepository(&repo, info.Email)
+		if err != nil {
+			return fmt.Errorf("Error creating repo: %s", err.Error())
+		}
 	}
 
 	return nil

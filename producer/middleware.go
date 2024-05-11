@@ -92,7 +92,7 @@ func (m *middleware) DatabaseDriver(db db.Database) gin.HandlerFunc {
 
 func (m *middleware) Producer(producer sarama.SyncProducer) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		c.Set("kafkaProducer", producer)
+		c.Set("producer", producer)
 		c.Next()
 	}
 }

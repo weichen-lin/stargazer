@@ -23,7 +23,7 @@ type Crontab struct {
 	UpdateAt time.Time `json:"update_at"`
 }
 
-func (db *database) GetUser(email string) (*User, error) {
+func (db *Database) GetUser(email string) (*User, error) {
 	session := db.driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	defer session.Close(context.Background())
 
@@ -79,7 +79,7 @@ func (db *database) GetUser(email string) (*User, error) {
 	}, nil
 }
 
-func (db *database) GetUserConfig(email string) (*Config, error) {
+func (db *Database) GetUserConfig(email string) (*Config, error) {
 	session := db.driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	defer session.Close(context.Background())
 
@@ -144,7 +144,7 @@ func (db *database) GetUserConfig(email string) (*Config, error) {
 	}, nil
 }
 
-func (db *database) GetUserNotVectorize(userName string) ([]int64, error) {
+func (db *Database) GetUserNotVectorize(userName string) ([]int64, error) {
 	session := db.driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
 	defer session.Close(context.Background())
 
@@ -197,7 +197,7 @@ func (db *database) GetUserNotVectorize(userName string) ([]int64, error) {
 	return records.([]int64), err
 }
 
-func (db *database) GetAllUserCrontab() ([]Crontab, error) {
+func (db *Database) GetAllUserCrontab() ([]Crontab, error) {
 	session := db.driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
 	defer session.Close(context.Background())
 

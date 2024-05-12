@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 )
@@ -33,7 +34,7 @@ type Repository struct {
 	OpenIssuesCount int    `json:"open_issues_count"`
 }
 
-func (db *database) CreateRepository(repo *Repository, email string) error {
+func (db *Database) CreateRepository(repo *Repository, email string) error {
 	session := db.driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	defer session.Close(context.Background())
 
@@ -119,14 +120,14 @@ func (db *database) CreateRepository(repo *Repository, email string) error {
 	return nil
 }
 
-func (db *database) UpdateCrontab(hour int, email string) error {
+func (db *Database) UpdateCrontab(hour int, email string) error {
 	session := db.driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	defer session.Close(context.Background())
 
 	records, err := session.ExecuteWrite(context.Background(), func(tx neo4j.ManagedTransaction) (any, error) {
-		result, _ := tx.Run(context.Background(), `
+		result, err := tx.Run(context.Background(), `
 			MATCH (u:User {email: $email})
-			OPTIONAL MATCH (u)-[h:HAS_CRONTAB]-(c:Crontab)
+			MERGE (u)-[h:HAS_CRONTAB]-(c:Crontab)
 			SET c = {
 				hour: $hour,
 				updated_at: datetime(),
@@ -135,8 +136,18 @@ func (db *database) UpdateCrontab(hour int, email string) error {
 			RETURN c.updated_at AS updated_at;
             `, map[string]any{
 			"email": email,
+			"hour":  hour,
 		})
+
+		if err != nil {
+			return nil, err
+		}
+
 		records, _ := result.Collect(context.Background())
+		if err != nil {
+			return nil, err
+		}
+
 		return records, nil
 	})
 
@@ -154,7 +165,7 @@ func (db *database) UpdateCrontab(hour int, email string) error {
 	}
 
 	record := users[0].AsMap()
-	_, ok = record["updated_at"].(neo4j.Time)
+	_, ok = record["updated_at"].(time.Time)
 
 	if !ok {
 		return fmt.Errorf("error at convert update time from record: %v", record)

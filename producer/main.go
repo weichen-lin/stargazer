@@ -20,6 +20,9 @@ func main() {
 		},
 	)
 
+	c := controller.NewController(service.DB, service.Producer)
+	
+
 	port := os.Getenv("PRODUCER_PORT")
 
 	r := gin.Default()
@@ -38,11 +41,11 @@ func main() {
 		})
 	})
 
-	r.GET("/get_user_stars", m.JWTAuth(), m.Producer(service.Producer), controller.GetUserStars)
+	r.GET("/get_user_stars", m.JWTAuth(), c.GetUserStars)
 
-	r.GET("/sync_user_stars", cors.New(cors_config), m.JWTAuth(), m.DatabaseDriver(service.DB), controller.HandleConnections)
+	r.GET("/sync_user_stars", cors.New(cors_config), m.JWTAuth(), c.HandleConnections)
 
-	r.PATCH("/update_cron_tab_setting", m.JWTAuth(), m.DatabaseDriver(service.DB), controller.UpdateCronTabSetting)
+	r.PATCH("/update_cron_tab_setting", m.JWTAuth(), c.UpdateCronTabSetting)
 
 	r.Run(port)
 }

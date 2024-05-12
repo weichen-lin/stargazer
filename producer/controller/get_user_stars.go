@@ -12,11 +12,11 @@ import (
 
 var getUserStarsLimiter = cache.New(20*time.Minute, 10*time.Minute)
 
-func GetUserStars(c *gin.Context) {
+func (c *Controller) GetUserStars(ctx *gin.Context) {
 
-	email, ok := c.Value("email").(string)
+	email, ok := ctx.Value("email").(string)
 	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 		return
 	}
 
@@ -25,7 +25,7 @@ func GetUserStars(c *gin.Context) {
 		remain := time.Until(expired)
 		mins := int(remain.Minutes())
 
-		c.JSON(http.StatusConflict, gin.H{
+		ctx.JSON(http.StatusConflict, gin.H{
 			"message": "This user is already being processed. Please try again later.",
 			"expires": fmt.Sprintf("%d minutes", mins),
 		})
@@ -34,22 +34,16 @@ func GetUserStars(c *gin.Context) {
 
 	getUserStarsLimiter.Set(email, true, time.Minute*30)
 
-	producer, exists := c.Get("producer")
-	if !exists {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Kafka producer not found"})
-		return
-	}
-
-	_, _, err := producer.(sarama.SyncProducer).SendMessage(&sarama.ProducerMessage{
+	_, _, err := c.producer.SendMessage(&sarama.ProducerMessage{
 		Topic: "get_user_stars",
 		Value: sarama.StringEncoder(`{"email":"` + email + `","page":1}`),
 	})
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
 
-	c.JSON(200, gin.H{
+	ctx.JSON(200, gin.H{
 		"message": "OK",
 	})
 }

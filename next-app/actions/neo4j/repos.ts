@@ -164,23 +164,33 @@ export interface IRepoAtDashboard {
   last_updated_at: string
 }
 
-export const getReposByKey = async (name: string, key: string): Promise<IRepoAtDashboard[]> => {
+export type ISearchKey = 'last_synced_at' | 'created_at' | 'open_issues_count' | 'last_updated_at'
+
+const SearchQuery: { [key in ISearchKey]: string } = {
+  last_synced_at: 's.last_synced_at',
+  created_at: 's.created_at',
+  open_issues_count: 'r.open_issues_count',
+  last_updated_at: 'r.last_updated_at',
+}
+
+export const getReposByKey = async (email: string, key: ISearchKey): Promise<IRepoAtDashboard[]> => {
   const q = `
-  MATCH (u: User {name: $name})-[:STARS {is_delete: false}]-(r:Repository)
-  RETURN 
-  r.repo_id as repo_id, 
-  r.full_name as full_name, 
-  r.avatar_url as avatar_url, 
+  MATCH (u:User {email: $email})-[s:STARS {is_delete: false}]-(r:Repository)
+  RETURN
+  r.repo_id as repo_id,
+  r.full_name as full_name,
+  r.avatar_url as avatar_url,
   r.html_url as html_url,
   r.open_issues_count as open_issues_count,
-  r.created_at as created_at, 
-  r.last_updated_at as last_updated_at
-  ORDER BY r.${key} DESC
+  s.created_at as created_at,
+  r.last_updated_at as last_updated_at,
+  s.last_synced_at as last_synced_at
+  ORDER BY ${SearchQuery[key]} DESC
   LIMIT 5;
   `
 
   try {
-    const data = await fetcher(q, { name })
+    const data = await fetcher(q, { email })
     if (data && data?.length > 0) {
       return data.map((e: any) => ({
         repo_id: e?.repo_id?.low,

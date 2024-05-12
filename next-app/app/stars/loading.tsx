@@ -1,11 +1,10 @@
-import clsx from 'clsx'
-import { TotalRepositoriesLoading, ReposLoading } from './components'
+import { TotalLoading, ReposLoading } from './components'
 
-export default async function Loading({ type, title }: { type: string; title: string }) {
+export default async function Loading({ type }: { type: string }) {
   switch (type) {
     case 'total':
-      return <TotalRepositoriesLoading />
+      return <TotalLoading />
     default:
-      return <ReposLoading title={title} />
+      return <ReposLoading />
   }
 }

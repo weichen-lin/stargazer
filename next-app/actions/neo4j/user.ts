@@ -75,25 +75,31 @@ export const updateInfo = async (params: IUserConfig & { email: string }): Promi
   }
 }
 
-interface IUserCrontab {
-  status: boolean
-  lastTriggerTime: string
-  time: number
+export interface IUserCrontab {
+  status: string
+  lastTriggerTime: Date | null
+  hour: number | null
 }
 
-export const getCrontabInfo = async (name: string): Promise<undefined> => {
+export const getCrontabInfo = async (email: string): Promise<IUserCrontab | null> => {
   const q = `
-  MATCH (u:User { name: $name })-[:HAS_CRONTAB]->(c:Crontab)
-  RETURN c{.*}, 
+  MATCH (u:User { email: $email })-[:HAS_CRONTAB]->(c:Crontab)
+  RETURN c{.*};
   `
-  const session = conn.session()
 
   try {
-    const data = await fetcher(q, { name })
-    return undefined
+    const data = await fetcher(q, { email })
+    if (!data || data.length === 0) return null
+
+    const target = Array.isArray(data) ? data[0] : data
+
+    return {
+      status: target.c?.status,
+      lastTriggerTime: target.c?.last_trigger_time?.toString() ?? null,
+      hour: target.c?.hour?.low ?? null,
+    }
   } catch (error) {
     console.error({ error })
-  } finally {
-    await session.close()
+    return null
   }
 }

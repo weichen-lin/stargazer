@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 
-const TotalRepositoriesLoading = () => {
+const TotalLoading = () => {
   return (
     <div
       className={clsx(
@@ -14,7 +14,7 @@ const TotalRepositoriesLoading = () => {
   )
 }
 
-const ReposLoading = ({ title }: { title: string }) => {
+const ReposLoading = () => {
   return (
     <div
       className={clsx(
@@ -23,15 +23,14 @@ const ReposLoading = ({ title }: { title: string }) => {
         'w-[380px] h-[380px]',
       )}
     >
-      <div className='w-full text-left px-4 py-3 text-xl text-slate-500'>{title}</div>
+      <div className='w-full text-left px-4 py-3 text-xl text-slate-500'>
+        <div className='w-[90%] mx-auto h-12 animate-pulse bg-slate-300'></div>
+      </div>
       {Array.from({ length: 5 }).map((_, index) => (
-        <div
-          className='w-[90%] mx-auto h-12 animate-pulse bg-slate-300'
-          key={`loading-skeleton-${title}-${index}`}
-        ></div>
+        <div className='w-[90%] mx-auto h-12 animate-pulse bg-slate-300' key={`loading-skeleton-${index}`}></div>
       ))}
     </div>
   )
 }
 
-export { TotalRepositoriesLoading, ReposLoading }
+export { TotalLoading, ReposLoading }

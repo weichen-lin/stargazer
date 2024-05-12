@@ -4,17 +4,13 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/IBM/sarama"
 	"github.com/gin-gonic/gin"
-	"github.com/weichen-lin/kafka-service/db"
 	"github.com/weichen-lin/kafka-service/util"
 )
 
 type Middleware interface {
 	BasicAuth() gin.HandlerFunc
 	JWTAuth() gin.HandlerFunc
-	DatabaseDriver(db db.Database) gin.HandlerFunc
-	Producer(producer sarama.SyncProducer) gin.HandlerFunc
 }
 
 type middleware struct {
@@ -79,20 +75,6 @@ func (m *middleware) JWTAuth() gin.HandlerFunc {
 
 		c.Set("email", payload.Email)
 
-		c.Next()
-	}
-}
-
-func (m *middleware) DatabaseDriver(db db.Database) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		c.Set("db", db)
-		c.Next()
-	}
-}
-
-func (m *middleware) Producer(producer sarama.SyncProducer) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		c.Set("producer", producer)
 		c.Next()
 	}
 }

@@ -9,7 +9,7 @@ import (
 )
 
 type Service struct {
-	DB       db.Database
+	DB       *db.Database
 	Producer sarama.SyncProducer
 }
 

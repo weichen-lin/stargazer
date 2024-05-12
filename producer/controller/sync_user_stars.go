@@ -22,29 +22,17 @@ type SyncUserStars struct {
 
 var clients = make(map[string]*Client)
 
-func HandleConnections(c *gin.Context) {
+func (c *Controller) HandleConnections(ctx *gin.Context) {
 
-	email, ok := c.Value("email").(string)
+	email, ok := ctx.Value("email").(string)
 	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 		return
 	}
 
-	driver, exists := c.Get("db")
-	if !exists {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "db not found"})
-		return
-	}
-
-	driver, ok = driver.(db.Database)
-	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve Neo4j driver"})
-		return
-	}
-
-	stars, err := driver.(db.Database).GetUserNotVectorize(email)
+	stars, err := c.db.GetUserNotVectorize(email)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve user stars"})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve user stars"})
 		return
 	}
 
@@ -56,16 +44,16 @@ func HandleConnections(c *gin.Context) {
 	clients[email] = client
 	defer delete(clients, email)
 
-	c.Stream(func(w io.Writer) bool {
+	ctx.Stream(func(w io.Writer) bool {
 		w.(http.ResponseWriter).Header().Set("Content-Type", "text/event-stream")
 		w.(http.ResponseWriter).Header().Set("Cache-Control", "no-cache")
 		w.(http.ResponseWriter).Header().Set("Connection", "keep-alive")
 		w.(http.ResponseWriter).Header().Set("Access-Control-Allow-Origin", "*")
 
-		c.SSEvent("message", map[string]interface{}{"total": len(stars)})
-		c.Writer.Flush()
+		ctx.SSEvent("message", map[string]interface{}{"total": len(stars)})
+		ctx.Writer.Flush()
 
-		go func(driver db.Database) {
+		go func(db *db.Database) {
 			defer close(client.StatusCode)
 			for i := 0; i < len(stars); i++ {
 
@@ -77,27 +65,27 @@ func HandleConnections(c *gin.Context) {
 				})
 
 				if err != nil {
-					c.SSEvent("message", map[string]interface{}{"error": err.Error()})
-					c.Writer.Flush()
-					c.AbortWithStatus(http.StatusInternalServerError)
+					ctx.SSEvent("message", map[string]interface{}{"error": err.Error()})
+					ctx.Writer.Flush()
+					ctx.AbortWithStatus(http.StatusInternalServerError)
 					return
 				}
 
 				client.StatusCode <- i
 
-				err = driver.(db.Database).ConfirmVectorize(&workflow.SyncUserStar{
+				err = db.ConfirmVectorize(&workflow.SyncUserStar{
 					Email:  email,
 					RepoId: id,
 				})
 
 				if err != nil {
-					c.SSEvent("message", map[string]interface{}{"error": err.Error()})
-					c.Writer.Flush()
-					c.AbortWithStatus(http.StatusInternalServerError)
+					ctx.SSEvent("message", map[string]interface{}{"error": err.Error()})
+					ctx.Writer.Flush()
+					ctx.AbortWithStatus(http.StatusInternalServerError)
 					return
 				}
 			}
-		}(driver.(db.Database))
+		}(c.db)
 
 		for {
 			select {
@@ -106,9 +94,9 @@ func HandleConnections(c *gin.Context) {
 				if !ok {
 					return false
 				}
-				c.SSEvent("message", map[string]interface{}{"current": msg, "total": len(stars)})
-				c.Writer.Flush()
-			case <-c.Request.Context().Done():
+				ctx.SSEvent("message", map[string]interface{}{"current": msg, "total": len(stars)})
+				ctx.Writer.Flush()
+			case <-ctx.Request.Context().Done():
 				fmt.Println("client closed")
 				return false
 			}

@@ -9,6 +9,8 @@ import (
 	"github.com/weichen-lin/kafka-service/db"
 )
 
+var ErrNoToken = fmt.Errorf("invalid github token")
+
 func GetUserStarredRepos(page int, token string) ([]db.Repository, error) {
 
 	url := fmt.Sprintf("https://api.github.com/user/starred?&page=%d", page)
@@ -27,8 +29,12 @@ func GetUserStarredRepos(page int, token string) ([]db.Repository, error) {
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode == http.StatusUnauthorized {
+		return nil, ErrNoToken
+	}
+
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("error code at get user stars: %d", resp.StatusCode)
+		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
 	}
 
 	var repos []db.Repository

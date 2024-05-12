@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"time"
 
@@ -20,10 +21,10 @@ type GetGithubReposInfo struct {
 
 type RegisterConsumer struct {
 	Topic       string
-	HandlerFunc func(db db.Database, msg *sarama.ConsumerMessage, producer sarama.SyncProducer) error
+	HandlerFunc func(db *db.Database, msg *sarama.ConsumerMessage, producer sarama.SyncProducer) error
 }
 
-func GetGithubRepos(db db.Database, msg *sarama.ConsumerMessage, producer sarama.SyncProducer) error {
+func GetGithubRepos(db *db.Database, msg *sarama.ConsumerMessage, producer sarama.SyncProducer) error {
 	fmt.Printf("Received message: Topic - %s, Key - %s, Value - %s\n",
 		msg.Topic, msg.Key, msg.Value)
 
@@ -52,6 +53,13 @@ func GetGithubRepos(db db.Database, msg *sarama.ConsumerMessage, producer sarama
 	}
 
 	stars, err := util.GetUserStarredRepos(info.Page, token)
+	if err != nil && errors.Is(err, util.ErrNoToken) {
+		err = db.WriteResultAtCrontab(info.Email, "invalid github token")
+		
+		if err != nil {
+			return fmt.Errorf("Error writing result at crontab: %s", err.Error())
+		}
+	}
 
 	if err != nil {
 		return fmt.Errorf("Error getting user stars: %s", err.Error())
@@ -74,9 +82,13 @@ func GetGithubRepos(db db.Database, msg *sarama.ConsumerMessage, producer sarama
 			return fmt.Errorf("Error sending message: %s", err.Error())
 		}
 	} else {
-		fmt.Printf("Finished getting all stars from user %s", info.Email)
-		user, err := db.GetUser(info.Email)
+		
+		err = db.WriteResultAtCrontab(info.Email, fmt.Sprintf("Successfully get %d starred repos", (info.Page-1)*30+len(stars)))
+		if err != nil {
+			return fmt.Errorf("Error writing result at crontab: %s", err.Error())
+		}
 
+		user, err := db.GetUser(info.Email)
 		if err != nil {
 			return fmt.Errorf("Error getting user: %s", err.Error())
 		}

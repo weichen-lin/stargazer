@@ -51,7 +51,7 @@ func (db *Database) WriteResultAtCrontab(email, status string) error {
 	records, err := session.ExecuteWrite(context.Background(), func(tx neo4j.ManagedTransaction) (any, error) {
 		result, err := tx.Run(context.Background(), `
 			MATCH (u:User {email: $email})
-			MATCH (u)-[h:HAS_CRONTAB]-(c:Crontab)
+			MERGE (u)-[h:HAS_CRONTAB]-(c:Crontab)
 			SET c += {
 				created_at: COALESCE(c.created_at, datetime()),
 				last_trigger_time: datetime(),
@@ -59,8 +59,8 @@ func (db *Database) WriteResultAtCrontab(email, status string) error {
 			}
 			RETURN c.last_trigger_time AS last_trigger_time;
             `, map[string]any{
-			"email": email,
-			"status":  status,
+			"email":  email,
+			"status": status,
 		})
 
 		if err != nil {

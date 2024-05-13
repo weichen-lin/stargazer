@@ -21,7 +21,6 @@ func main() {
 	)
 
 	c := controller.NewController(service.DB, service.Producer)
-	
 
 	port := os.Getenv("PRODUCER_PORT")
 

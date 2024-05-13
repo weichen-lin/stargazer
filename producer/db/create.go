@@ -128,7 +128,7 @@ func (db *Database) UpdateCrontab(hour int, email string) error {
 		result, err := tx.Run(context.Background(), `
 			MATCH (u:User {email: $email})
 			MERGE (u)-[h:HAS_CRONTAB]-(c:Crontab)
-			SET c = {
+			SET c += {
 				hour: $hour,
 				updated_at: datetime(),
 				created_at: COALESCE(c.created_at, datetime())

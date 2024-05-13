@@ -3,7 +3,6 @@ package db
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 )
@@ -17,10 +16,7 @@ type Config struct {
 
 type Crontab struct {
 	Email    string    `json:"email"`
-	Note     string    `json:"note"`
 	Hour     int64     `json:"hour"`
-	Status   string    `json:"status"`
-	UpdateAt time.Time `json:"update_at"`
 }
 
 func (db *Database) GetUser(email string) (*User, error) {

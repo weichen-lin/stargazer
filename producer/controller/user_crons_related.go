@@ -29,5 +29,16 @@ func (c *Controller) UpdateCronTabSetting(ctx *gin.Context) {
 		return
 	}
 
+	err = c.scheduler.Update(email, cronTabSetting.Hour)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update crontab"})
+		return
+	}
+
 	ctx.JSON(http.StatusOK, gin.H{"message": "Crontab updated successfully"})
 }
+
+// func (c *Controller) GetAllCronJobs(ctx *gin.Context) {
+// 	jobs := c.scheduler.GetAll()
+// 	ctx.JSON(http.StatusOK, gin.H{"jobs": jobs})
+// }

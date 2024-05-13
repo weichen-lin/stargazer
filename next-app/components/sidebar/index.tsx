@@ -3,35 +3,28 @@
 import { motion } from 'framer-motion'
 import clsx from 'clsx'
 import Link from 'next/link'
-import { StarIcon, ChatBubbleIcon, ExitIcon } from '@radix-ui/react-icons'
-import MobileBar from './mobile'
-import DesktopBar from './desktop'
+import { StarIcon, ChatBubbleIcon, ExitIcon, DashboardIcon } from '@radix-ui/react-icons'
 import { Button } from '@/components/ui/button'
 import { signOut } from 'next-auth/react'
 import { useUser } from '@/context/user'
+import { usePathname } from 'next/navigation'
 
 const Bars = [
-  { name: 'My Stars', icon: <StarIcon />, path: 'stars', needPath: true },
-  { name: 'Start Chat', icon: <ChatBubbleIcon />, path: 'chats', needPath: false },
+  { name: 'Dashboard', icon: <DashboardIcon />, path: 'dashboard' },
+  { name: 'My Stars', icon: <StarIcon />, path: 'stars' },
+  { name: 'Start Chat', icon: <ChatBubbleIcon />, path: 'chats' },
 ]
 
-interface SidebarProps {
-  path: string
-}
-
-export { MobileBar, DesktopBar }
-
-export default function Sidebar(props: SidebarProps) {
-  const { path } = props
-
+export default function Sidebar() {
   const { name, image } = useUser()
+  const pathname = usePathname()
 
   return (
     <div className='flex flex-col h-full justify-between w-[260px]'>
       <div className='flex flex-col gap-y-4 justify-between h-full pb-6'>
         <div className='flex flex-col gap-y-4'>
           {Bars.map((e, i) => {
-            const isCurrent = path === e.path
+            const isCurrent = pathname.includes(e.path)
             return (
               <motion.div whileTap={{ scale: 0.9 }} key={i}>
                 <Link

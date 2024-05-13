@@ -2,19 +2,13 @@
 
 import { ModeToggle } from '@/components/provider'
 import { motion } from 'framer-motion'
-import type { Arrangements } from '@/hooks/stars'
 import clsx from 'clsx'
 import { ChatSettingDialog } from '@/components/util/chatSetting'
 import { Search } from '@/components/search'
-
-interface SheetBarProps {
-  total: number
-  arrangement: string
-  toggleArrangement: (arr: Arrangements) => void
-}
+import { useMenuName } from './util'
 
 const DesktopBar = () => {
-  // const { total, arrangement, toggleArrangement } = props
+  const { menuName } = useMenuName()
 
   return (
     <motion.div
@@ -27,11 +21,10 @@ const DesktopBar = () => {
       )}
     >
       <div className='flex justify-between w-full items-center'>
-        <div className='text-xl lg:text-3xl font-semibold w-[200px] pl-3'>My Stars</div>
+        <div className='text-xl lg:text-3xl font-semibold w-[200px] pl-3'>{menuName}</div>
         <div className='flex items-center gap-x-4'>
           <Search />
           <ChatSettingDialog />
-          {/* <SyncStars /> */}
           <ModeToggle />
         </div>
       </div>

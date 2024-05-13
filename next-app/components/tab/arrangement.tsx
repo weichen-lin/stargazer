@@ -2,7 +2,7 @@
 
 import { GridIcon, ListBulletIcon } from '@radix-ui/react-icons'
 import { motion } from 'framer-motion'
-import { Arrangements } from '@/hooks/stars'
+import { Arrangements } from '@/hooks/dashboard'
 import clsx from 'clsx'
 
 interface ArrangeMentsProps {

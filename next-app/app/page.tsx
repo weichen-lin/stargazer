@@ -42,7 +42,7 @@ export default function Home() {
   const { data: session } = useSession()
 
   const handleSignIn = async () => {
-    const result = await signIn('github', { callbackUrl: '/stars' })
+    const result = await signIn('github', { callbackUrl: '/dashboard' })
     if (result?.error) {
       console.error('Sign in failed:', result.error)
     }

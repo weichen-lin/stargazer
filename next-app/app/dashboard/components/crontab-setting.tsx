@@ -84,9 +84,7 @@ export default function HourSetting(props: ICrontabSetting) {
         </Button>
         <Popover>
           <PopoverTrigger>
-            <Button className='' variant='outline'>
-              Setting
-            </Button>
+            <div className='px-2 py-[6px] border-slate-700 border-[1px] rounded-md'>Setting</div>
           </PopoverTrigger>
           <PopoverContent className='w-[250px]'>
             <div className='flex flex-col gap-y-4'>

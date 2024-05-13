@@ -1,8 +1,4 @@
-import { LanguagePie } from '@/components/charts'
-import { TotalRepositories, Crontab, RepoSearch } from './components'
 import clsx from 'clsx'
-import { Suspense } from 'react'
-import Loading from './loading'
 
 export const dynamic = 'force-dynamic'
 
@@ -21,25 +17,7 @@ export default async function Dashboard() {
           'flex flex-col justify-between items-center backdrop-blur-md backdrop-opacity-60',
           'w-[380px] h-[380px] xl:w-[330px] 2xl:w-[380px] xl:h-[330px] 2xl:h-[380px]',
         )}
-      >
-        <Suspense fallback={<Loading type='total' />}>
-          <TotalRepositories />
-        </Suspense>
-        <Crontab />
-      </div>
-      <LanguagePie />
-      <Suspense fallback={<Loading type='' />}>
-        <RepoSearch searchKey='created_at' title='Recently Added' />
-      </Suspense>
-      <Suspense fallback={<Loading type='' />}>
-        <RepoSearch searchKey='open_issues_count' title='Repository with the most issues open' />
-      </Suspense>
-      <Suspense fallback={<Loading type='' />}>
-        <RepoSearch searchKey='last_updated_at' title='Most recently active' />
-      </Suspense>
-      <Suspense fallback={<Loading type='' />}>
-        <RepoSearch searchKey='last_updated_at' title='Recently manually updated' />
-      </Suspense>
+      ></div>
     </div>
   )
 }

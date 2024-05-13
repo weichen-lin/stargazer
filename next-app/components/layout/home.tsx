@@ -1,11 +1,11 @@
 'use server'
 
-import Sidebar from '@/components/sidebar/star'
+import Sidebar from '@/components/sidebar'
 import Image from 'next/image'
 import Link from 'next/link'
 
 export default async function HomeLayout(props: { children: React.ReactNode; path: string }) {
-  const { path, children } = props
+  const { children } = props
 
   return (
     <div className='h-screen w-screen flex'>
@@ -20,7 +20,7 @@ export default async function HomeLayout(props: { children: React.ReactNode; pat
           />
         </Link>
         <div className='w-full h-[1px] border-b-[1px] border-slate-700/10 mb-8'></div>
-        <Sidebar path={path} />
+        <Sidebar />
       </div>
       <div className='flex-1 h-full overflow-y-auto'>{children}</div>
     </div>

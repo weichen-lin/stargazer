@@ -1,9 +1,9 @@
 'use client'
 
-import { useArrangement } from '@/hooks/stars'
+import { useArrangement } from '@/hooks/dashboard'
 import { GridRepo, ListRepo } from '@/components/repo'
 import clsx from 'clsx'
-import { MobileBar, DesktopBar } from '@/components/sidebar/star'
+import { MobileBar, DesktopBar } from '@/components/sidebar/dashboard'
 import type { Repository } from '@/actions/neo4j'
 import Image from 'next/image'
 import { SymbolIcon } from '@radix-ui/react-icons'

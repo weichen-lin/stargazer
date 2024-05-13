@@ -197,7 +197,7 @@ export const getReposByKey = async (email: string, key: ISearchKey): Promise<IRe
         full_name: e?.full_name,
         open_issues_count: e?.open_issues_count?.low,
         avatar_url: e?.avatar_url,
-        created_at: e?.created_at.toString(),
+        created_at: e?.created_at?.toString(),
         html_url: e?.html_url,
         last_updated_at: e?.last_updated_at,
       }))

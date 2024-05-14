@@ -4,14 +4,15 @@ import MultipleSelector, { Option } from '@/components/ui/multiple-selector'
 import { getLanguageDistribution, ILanguageDistribution } from '@/actions/neo4j'
 import { useState, useEffect } from 'react'
 import { useUser } from '@/context'
-import { useSelect } from '@/hooks/stars'
+import { useStars } from '@/hooks/stars'
 import { Button } from '@/components/ui/button'
+import { FixPagination } from '@/components/tab'
 
 const SelectLanguage = () => {
   const { name } = useUser()
   const [isLoaded, setIsLoaded] = useState(true)
   const [data, setData] = useState<Option[]>([])
-  const { selected, setSelected } = useSelect()
+  const { selected, setSelected, search, count } = useStars()
 
   useEffect(() => {
     const fetchData = async () => {
@@ -30,7 +31,7 @@ const SelectLanguage = () => {
   }, [])
 
   return (
-    <div className='flex gap-x-8 px-10 items-end'>
+    <div className='flex gap-x-8 items-end'>
       <div className='flex flex-col gap-y-4'>
         <div>Language</div>
         {isLoaded ? (
@@ -49,9 +50,15 @@ const SelectLanguage = () => {
           />
         )}
       </div>
-      <Button onClick={() => console.log(selected)} className='w-20 h-10 mb-2'>
+      <Button
+        onClick={() => {
+          search(1)
+        }}
+        className='w-20 h-10 mb-2'
+      >
         Search
       </Button>
+      {count > 0 && <FixPagination total={count} />}
     </div>
   )
 }

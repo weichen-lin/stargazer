@@ -1,3 +1,3 @@
-import useSelect from './useSelect'
+import useStars from './useStars'
 
-export { useSelect }
+export { useStars }

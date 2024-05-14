@@ -1,65 +1,103 @@
 'use server'
 
 import fetcher from './fetcher'
-import { Integer, DateTime } from 'neo4j-driver'
-
-interface UserReposParams {
-  username: string
-  page: Integer
-  limit: Integer
-}
+import { z } from 'zod'
+import { int } from 'neo4j-driver'
 
 export type Repository = {
-  id: string
+  repo_id: number
+  owner_url: string
+  owner_name: string
+  open_issues_count: number
   full_name: string
-  owner: {
-    avatar_url: string
-  }
+  avatar_url: string
   html_url: string
   description: string
   homepage: string
   stargazers_count: number
   language: string
+  last_updated_at: string
 }
 
-export const getUserRepos = async (params: UserReposParams): Promise<{ total: number; stars: Repository[] }> => {
+const UserReposParamsSchema = z.object({
+  email: z.string(),
+  languages: z.array(z.string()),
+  page: z.number(),
+  limit: z.number(),
+})
+
+type UserReposParams = z.infer<typeof UserReposParamsSchema>
+
+export const getUserRepos = async (params: UserReposParams): Promise<{ total: number; repos: Repository[] }> => {
   const q = `
-  MATCH (n:User {name: $username})-[:STARS]->(r:Repository)
-  WITH count(r) as total
-  MATCH (n:User {name: $username})-[:STARS]->(r:Repository)
-  WITH total, r
-  ORDER BY r.created_at DESC
+  MATCH (u:User {email: $email})-[s:STARS]-(r:Repository)
+  WHERE r.language IN $languages
+  WITH u, COUNT(r) as total
+  MATCH (u)-[s:STARS]-(r:Repository)
+  WHERE r.language IN $languages
+  WITH total, s, r
+  ORDER BY s.created_at DESC
   SKIP $limit * ($page - 1)
   LIMIT $limit
-  WITH total, collect(r) as l
-  RETURN total, l;
+  RETURN total, collect(r) as data
   `
 
-  const data = await fetcher(q, params)
+  try {
+    const p = UserReposParamsSchema.parse(params)
 
-  const target = Array.isArray(data) ? data[0] : data
-  const total = target?.total?.low ?? 0
+    const data = await fetcher(q, {
+      email: p.email,
+      languages: p.languages,
+      page: int(p.page),
+      limit: int(p.limit),
+    })
 
-  const stars = target?.l
-    ? target?.l.map((e: any) => {
+    const target = Array.isArray(data) ? data[0] : data
+    const total = target?.total?.low ?? 0
+
+    const repos =
+      target?.data?.map((e: any) => {
+        const {
+          repo_id,
+          owner_url,
+          owner_name,
+          open_issues_count,
+          full_name,
+          avatar_url,
+          html_url,
+          description,
+          homepage,
+          stargazers_count,
+          language,
+          last_updated_at,
+        } = e.properties
+
         return {
-          id: e.properties.id,
-          full_name: e.properties.full_name,
-          owner: {
-            avatar_url: e.properties.avatar_url,
-          },
-          html_url: e.properties.html_url,
-          description: e.properties.description,
-          homepage: e.properties.homepage ?? '',
-          stargazers_count: e.properties.stargazers_count.low,
-          language: e.properties.language,
+          repo_id: repo_id.low,
+          owner_url,
+          owner_name,
+          open_issues_count: open_issues_count.low,
+          full_name,
+          avatar_url,
+          html_url,
+          description,
+          homepage,
+          stargazers_count: stargazers_count.low,
+          language,
+          last_updated_at: last_updated_at.toString(),
         }
-      })
-    : []
+      }) ?? []
 
-  return {
-    total,
-    stars,
+    return {
+      total,
+      repos,
+    }
+  } catch (error) {
+    console.error(error)
+    return {
+      total: 0,
+      repos: [],
+    }
   }
 }
 

@@ -1,12 +1,15 @@
 'use server'
 
-import { SelectLanguage } from './components'
+import { SelectLanguage, Results } from './components'
 
 export default async function Stars() {
   return (
-    <div className='py-6'>
-      <div className='max-w-[400px]'>
+    <div className='p-6 w-full flex flex-col h-full overflow-hidden'>
+      <div className='w-full'>
         <SelectLanguage />
+      </div>
+      <div className='w-full flex items-center justify-center flex-1 overflow-y-auto'>
+        <Results />
       </div>
     </div>
   )

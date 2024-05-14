@@ -7,29 +7,28 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@/components/ui/pagination'
-import { useSearchParams } from 'next/navigation'
+import { useStars } from '@/hooks/stars'
 
 export default function FixPagination(props: { total: number }) {
   const { total } = props
-  const searchParams = useSearchParams()
-  const current = parseInt(searchParams.get('p') ?? '1')
+  const { page, search } = useStars()
 
-  return <Pagination>{renderPagination(total, current)}</Pagination>
+  return <Pagination>{renderPagination(total, page, search)}</Pagination>
 }
 
-const renderPagination = (total: number, current: number) => {
+const renderPagination = (total: number, current: number, search: (page: number) => void) => {
   const totalPage = Math.ceil(total / 20)
 
   return (
     <PaginationContent>
       {current > 1 && (
         <PaginationItem>
-          <PaginationPrevious href={`/stars?p=${current - 1}`} />
+          <PaginationPrevious onClick={() => search(current - 1)} />
         </PaginationItem>
       )}
       {current - 2 > 0 && (
         <PaginationItem>
-          <PaginationLink href={`/stars?p=1`}>1</PaginationLink>
+          <PaginationLink onClick={() => search(1)}>1</PaginationLink>
         </PaginationItem>
       )}
       {current - 2 > 1 && (
@@ -39,7 +38,7 @@ const renderPagination = (total: number, current: number) => {
       )}
       {current - 1 > 0 && (
         <PaginationItem>
-          <PaginationLink href={`/stars?p=${current - 1}`}>{current - 1}</PaginationLink>
+          <PaginationLink onClick={() => search(current - 1)}>{current - 1}</PaginationLink>
         </PaginationItem>
       )}
       <PaginationItem>
@@ -47,7 +46,7 @@ const renderPagination = (total: number, current: number) => {
       </PaginationItem>
       {current + 1 < totalPage && (
         <PaginationItem>
-          <PaginationLink href={`/stars?p=${current + 1}`}>{current + 1}</PaginationLink>
+          <PaginationLink onClick={() => search(current + 1)}>{current + 1}</PaginationLink>
         </PaginationItem>
       )}
       {current + 2 < totalPage && (
@@ -57,17 +56,17 @@ const renderPagination = (total: number, current: number) => {
       )}
       {current + 1 == totalPage && (
         <PaginationItem>
-          <PaginationLink href={`/stars?p=${totalPage}`}>{totalPage}</PaginationLink>
+          <PaginationLink onClick={() => search(totalPage)}>{totalPage}</PaginationLink>
         </PaginationItem>
       )}
       {current + 2 <= totalPage && (
         <PaginationItem>
-          <PaginationLink href={`/stars?p=${totalPage}`}>{totalPage}</PaginationLink>
+          <PaginationLink onClick={() => search(totalPage)}>{totalPage}</PaginationLink>
         </PaginationItem>
       )}
       {current < totalPage && (
         <PaginationItem>
-          <PaginationNext href={`/stars?p=${current + 1}`} />
+          <PaginationNext onClick={() => search(current + 1)} />
         </PaginationItem>
       )}
     </PaginationContent>

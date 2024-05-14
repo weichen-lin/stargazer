@@ -6,7 +6,6 @@ import { HamburgerMenuIcon } from '@radix-ui/react-icons'
 import Sidebar from '@/components/sidebar'
 import { ModeToggle } from '@/components/provider'
 import clsx from 'clsx'
-import { SyncStars } from '@/components/repo'
 import { ChatSettingDialog } from '@/components/util/chatSetting'
 import { useMenuName } from './util'
 
@@ -34,7 +33,6 @@ const MobileBar = () => {
         </Sheet>
         <div className='text-xl lg:text-3xl font-semibold w-[200px] pl-3'>{menuName}</div>
         <div className='flex items-center gap-x-2'>
-          <SyncStars />
           <ModeToggle />
           <ChatSettingDialog />
         </div>

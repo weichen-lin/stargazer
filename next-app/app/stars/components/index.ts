@@ -1,3 +1,4 @@
 import SelectLanguage from './select-languages'
+import Results from './results'
 
-export { SelectLanguage }
+export { SelectLanguage, Results }

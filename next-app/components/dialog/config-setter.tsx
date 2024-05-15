@@ -18,7 +18,7 @@ import { Slider } from '@/components/ui/slider'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { useConfig } from '@/hooks/setting'
 
-export function ChatSettingDialog() {
+export default function ConfigSetter() {
   return (
     <Dialog>
       <DialogTrigger asChild>

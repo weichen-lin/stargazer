@@ -1,14 +1,15 @@
 'use client'
 
 import { getUserStarsRelation } from '@/actions/neo4j'
-import { useSession } from 'next-auth/react'
 import { useEffect, useState } from 'react'
 import { AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { useChatAlert } from '@/hooks/chat'
+import { useUser } from '@/context'
 
 export default function VectorizeInfo() {
-  const { data: session } = useSession()
+  const { email } = useUser()
+
   const [isLoading, setIsLoading] = useState(true)
   const [isVectorized, setIsVectorized] = useState(false)
   const [total, setTotal] = useState(0)
@@ -17,10 +18,10 @@ export default function VectorizeInfo() {
 
   useEffect(() => {
     const getCounts = async () => {
-      if (session?.user?.email) {
+      if (email) {
         try {
           setIsLoading(true)
-          const { total, vectorized } = await getUserStarsRelation(session?.user?.email)
+          const { total, vectorized } = await getUserStarsRelation(email)
           setTotal(total)
           setVectorized(vectorized)
         } catch (error) {
@@ -31,7 +32,7 @@ export default function VectorizeInfo() {
       }
     }
     getCounts()
-  }, [session?.user?.email])
+  }, [email])
 
   const handleVectorize = () => {
     setIsVectorized(true)

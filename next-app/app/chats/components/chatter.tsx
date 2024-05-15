@@ -7,9 +7,9 @@ import clsx from 'clsx'
 import { useChat, useChatAlert } from '@/hooks/chat'
 import { useRef, useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useSession } from 'next-auth/react'
-import ChatAlert from '@/components/util/chatAlert'
+import ChatAlert from './chatAlert'
 import { ISuggestion } from '@/actions'
+import { useUser } from '@/context'
 
 export default function Chatter() {
   const {
@@ -24,6 +24,7 @@ export default function Chatter() {
     handleKeyDown,
     handleTextValue,
   } = useChat()
+  const { email } = useUser()
 
   const { presence } = useChatAlert()
 
@@ -103,9 +104,7 @@ const StarGazerResponse = (props: { suggestions: ISuggestion[] }) => {
 }
 
 const UserRequest = ({ message }: { message: string }) => {
-  const { data } = useSession()
-
-  const image = data?.user?.image ?? '/icon.png'
+  const { image } = useUser()
 
   return (
     <div className='flex justify-end w-full lg:w-2/3 lg:mx-auto'>

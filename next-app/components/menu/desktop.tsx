@@ -3,7 +3,7 @@
 import { ModeToggle } from '@/components/provider'
 import { motion } from 'framer-motion'
 import clsx from 'clsx'
-import { ChatSettingDialog } from '@/components/util/chatSetting'
+import { ConfigSetter } from '@/components/dialog'
 import { Search } from '@/components/search'
 import { useMenuName } from './util'
 
@@ -24,7 +24,7 @@ const DesktopBar = () => {
         <div className='text-xl lg:text-3xl font-semibold w-[200px] pl-3'>{menuName}</div>
         <div className='flex items-center gap-x-4'>
           <Search />
-          <ChatSettingDialog />
+          <ConfigSetter />
           <ModeToggle />
         </div>
       </div>

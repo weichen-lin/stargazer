@@ -5,8 +5,8 @@ import { Progress } from '@/components/ui/progress'
 import { useEffect, useState } from 'react'
 import { useChatAlert } from '@/hooks/chat'
 import { EventSourcePolyfill } from 'event-source-polyfill'
-import { useSession } from 'next-auth/react'
 import { generateAccessToken } from '@/actions/util'
+import { useUser } from '@/context'
 
 const PushUp = dynamic(() => import('@/components/fancyicon/push-up'), { ssr: false })
 const Check = dynamic(() => import('@/components/fancyicon/check'), { ssr: false })
@@ -19,15 +19,14 @@ export default function ProgressInfo() {
   const [current, setCurrent] = useState(0)
   const [total, setTotal] = useState(0)
   const { startEvent, setCantClose } = useChatAlert()
-  const { data: session } = useSession()
+  const { email } = useUser()
 
   useEffect(() => {
     let eventSource: EventSourcePolyfill | null = null
-    
+
     const startSyncStars = async () => {
       try {
-        const user = session?.user?.name ?? ''
-        const token = await generateAccessToken(user)
+        const token = await generateAccessToken(email)
         eventSource = new EventSourcePolyfill(`/producer/sync_user_stars`, {
           headers: {
             Authorization: token,
@@ -79,7 +78,7 @@ export default function ProgressInfo() {
     }
 
     startSyncStars()
-    
+
     return () => {
       eventSource?.close()
     }

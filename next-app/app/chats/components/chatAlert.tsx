@@ -31,9 +31,6 @@ export default function ChatAlert() {
         <GearIcon className='w-5 h-5 inline-block mx-1 mb-1' />
         to provide your API Key.
       </AlertDescription>
-      <AlertDescription className='text-gray-700 underline my-1 dark:text-gray-100'>
-        The search results include all the data provided by users.
-      </AlertDescription>
       <AlertDescription className='flex gap-x-2 items-center my-3'>
         <InfoCircledIcon className='w-4 h-4 mb-[2px]' />
         Your current progress in vectorization

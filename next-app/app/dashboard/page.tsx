@@ -11,8 +11,8 @@ export default async function Dashboard() {
     <div
       className={clsx(
         'bg-blue-50/70 dark:bg-slate-900 flex flex-col items-center',
-        'w-full lg:h-full md:flex-row md:flex-wrap md:items-center md:justify-center',
-        'lg:py-0 lg:p-2 lg:gap-1 xl:gap-3 2xl:gap-x-12 2xl:gap-y-1',
+        'w-full lg:h-full md:flex-row md:flex-wrap md:items-center md:justify-center flex-1 overflow-y-auto',
+        'py-8 lg:py-1 gap-3 lg:gap-1 xl:gap-3 2xl:gap-x-12 2xl:gap-y-1',
         'from-blue-100/40 to-blue-200/60 bg-gradient-to-br dark:from-slate-500 dark:to-slate-100',
       )}
     >

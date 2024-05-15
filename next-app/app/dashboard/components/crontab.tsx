@@ -38,7 +38,7 @@ export default function Crontab() {
       className={clsx(
         'border-[2px] border-slate-300/70 rounded-lg flex flex-col items-center justify-center gap-y-4',
         'bg-white drop-shadow-lg dark:bg-slate-300 dark:border-slate-800 dark:text-white px-8',
-        'w-full h-[170px] md:h-[200px]',
+        'w-full h-[185px] md:h-[200px]',
       )}
     >
       <div className='flex gap-x-4 items-center w-full'>

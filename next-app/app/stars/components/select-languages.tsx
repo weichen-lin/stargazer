@@ -31,9 +31,9 @@ const SelectLanguage = () => {
   }, [])
 
   return (
-    <div className='flex flex-col gap-2 items-center lg:items-start w-[95%] lg:w-full lg:px-4'>
+    <div className='flex flex-col gap-2 items-center lg:items-start w-[95%] lg:w-full lg:px-4 mx-auto'>
       <div className='flex flex-col gap-y-2 lg:w-[380px]'>
-        <div>Language</div>
+        <div className=''>Language</div>
         {isLoaded ? (
           <div className='w-[380px] h-10 bg-slate-300 rounded-lg animate-pulse'></div>
         ) : (

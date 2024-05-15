@@ -8,26 +8,16 @@ import (
 	"os"
 )
 
-type TransFormerParam struct {
+type SyncUserStar struct {
 	RepoId int64  `json:"repo_id"`
-	Name   string `json:"name"`
+	Email  string `json:"email"`
 }
 
-type SyncUserStarMsg struct {
-	RepoId   int64  `json:"repo_id"`
-	UserName string `json:"username"`
-}
-
-func VectorizeStar(payload *SyncUserStarMsg) (int, error) {
+func VectorizeStar(payload *SyncUserStar) (int, error) {
 	token := os.Getenv("AUTHENTICATION_TOKEN")
 	url := os.Getenv("TRANSFORMER_URL")
 
-	params := TransFormerParam{
-		RepoId: payload.RepoId,
-		Name:   payload.UserName,
-	}
-
-	jsonstring, err := json.Marshal(params)
+	jsonstring, err := json.Marshal(payload)
 	if err != nil {
 		return 400, err
 	}

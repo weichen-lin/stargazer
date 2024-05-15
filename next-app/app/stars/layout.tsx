@@ -1,11 +1,11 @@
 'use server'
 
-import { HomeLayout } from '@/components/layout'
+import { AuthLayout } from '@/components/layout'
 
 interface LayoutProps {
   children: React.ReactNode
 }
 
-export default async function Layout(props: Readonly<LayoutProps>) {
-  return <HomeLayout path='stars'>{props.children}</HomeLayout>
+export default async function Layout({ children }: Readonly<LayoutProps>) {
+  return <AuthLayout>{children}</AuthLayout>
 }

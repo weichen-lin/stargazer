@@ -1,3 +1,3 @@
-import useUserSetting, { useSetting } from './useUserSetting'
+import useConfig, { useConfigState } from './useUserSetting'
 
-export { useSetting, useUserSetting }
+export { useConfig, useConfigState }

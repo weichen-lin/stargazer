@@ -1,5 +1,3 @@
-import useArrangement, { Arrangements } from './useArrangement'
-import useSearch from './useSearch'
+import useStars from './useStars'
 
-export { useArrangement, useSearch }
-export type { Arrangements }
+export { useStars }

@@ -17,7 +17,7 @@ type JWTMaker struct {
 }
 
 type Payload struct {
-	UserName string    `json:"user_name"`
+	Email    string    `json:"email"`
 	CreateAt time.Time `json:"create_at"`
 	ExpireAt time.Time `json:"expire_at"`
 }
@@ -27,9 +27,9 @@ var (
 	ErrExpiredToken = fmt.Errorf("token has expired")
 )
 
-func MakeJWTPayload(userId string, duration time.Time) (*Payload, error) {
+func MakeJWTPayload(email string, duration time.Time) (*Payload, error) {
 	return &Payload{
-		UserName: userId,
+		Email:    email,
 		CreateAt: time.Now(),
 		ExpireAt: duration,
 	}, nil

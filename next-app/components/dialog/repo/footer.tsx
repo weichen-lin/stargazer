@@ -31,19 +31,19 @@ export default function Footer() {
   }
 
   return (
-    <DialogFooter className='flex gap-x-4'>
+    <DialogFooter className='flex gap-x-4 flex-row justify-end items-end w-full'>
       <Button
         variant='secondary'
         onClick={() => setOpen(false)}
         disabled={isLoaded}
-        className='border-slate-300 border-[1px]'
+        className='border-slate-300 border-[1px] w-20'
       >
         Close
       </Button>
-      <Button variant='destructive' onClick={deleteRepo} disabled={isLoaded} loading={isLoaded}>
+      <Button className='w-20' variant='destructive' onClick={deleteRepo} disabled={isLoaded} loading={isLoaded}>
         Delete
       </Button>
-      <Button onClick={() => setOpen(false)} disabled={isLoaded}>
+      <Button className='w-20' onClick={() => setOpen(false)} disabled={isLoaded}>
         Save
       </Button>
     </DialogFooter>

@@ -40,7 +40,7 @@ export default function Detail() {
         setRepoID(0)
       }}
     >
-      <DialogContent className='w-[400px] md:w-[90%] lg:max-w-[768px] h-[800px] flex flex-col justify-between'>
+      <DialogContent className='w-[380px] md:w-[90%] lg:max-w-[768px] h-[800px] flex flex-col justify-between'>
         {isLoaded && (
           <div className='flex items-center justify-center h-full'>
             <div className='loader w-20 h-20'></div>
@@ -51,7 +51,7 @@ export default function Detail() {
             <DialogHeader className='flex flex-col gap-y-4'>
               <Title {...detail} />
               <Info {...detail} />
-              <DialogDescription>{detail?.description}</DialogDescription>
+              <DialogDescription className='w-full text-start'>{detail?.description}</DialogDescription>
             </DialogHeader>
             <Body {...detail} />
             <Footer />

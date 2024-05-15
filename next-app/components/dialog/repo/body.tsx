@@ -6,7 +6,7 @@ import { IRepoDetail } from '@/actions/neo4j'
 export default function Body(props: IRepoDetail) {
   const { full_name, summary } = props
   return (
-    <div className='flex-1 overflow-y-auto px-4'>
+    <div className='flex-1 overflow-y-auto'>
       <img
         src={`https://api.star-history.com/svg?repos=${full_name}&type=Date&theme=light`}
         className='max-h-[350px] mx-auto'

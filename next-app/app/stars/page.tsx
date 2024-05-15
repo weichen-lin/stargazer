@@ -8,7 +8,7 @@ export default async function Stars() {
       <div className='w-full'>
         <SelectLanguage />
       </div>
-      <div className='w-full flex items-center justify-center flex-1 overflow-y-auto'>
+      <div className='w-full flex flex-col items-center justify-center flex-1 overflow-y-auto'>
         <Results />
       </div>
     </div>

@@ -13,7 +13,7 @@ export default function Title(props: IRepoDetail) {
   return (
     <DialogTitle className='flex gap-x-2 items-center'>
       <Image src={avatar_url} alt='avatar' width={48} height={48} className='rounded-full' />
-      <span className='ml-2 text-2xl'>{full_name}</span>
+      <span className='ml-2 lg:text-2xl text-normal max-w-[220px] truncate'>{full_name}</span>
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>

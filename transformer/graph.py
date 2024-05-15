@@ -6,7 +6,7 @@ from typing import Optional
 @dataclass
 class UserInfo:
     limit: int
-    openAIKey: Optional[str]
+    openai_key: Optional[str]
     cosine: float
 
 
@@ -50,7 +50,7 @@ class Neo4jOperations:
             info = records[0]
 
             return UserInfo(
-                limit=info["limit"], openAIKey=info["openAIKey"], cosine=info["cosine"]
+                limit=info["limit"], openai_key=info["openai_key"], cosine=info["cosine"]
             )
 
     def get_repo_info(self, repo_id: int) -> Optional[RepoInfo]:
@@ -117,21 +117,28 @@ class Neo4jOperations:
                 for info in records
             ]
 
-    @staticmethod
     def _make_index(tx):
         # full-text index for searching repositories
         tx.run(
             """
             CREATE FULLTEXT INDEX REPOSITORY_FULL_TEXT_SEARCH IF NOT EXISTS
-            FOR (r:Repository) ON EACH [r.full_name, r.description, r.readme_summary]
+            FOR (r:Repository) ON EACH [r.full_name, r.description]
+        """
+        )
+
+        # full-text index for searching summary
+        tx.run(
+            """
+            CREATE FULLTEXT INDEX STARS_SUMMARY_FULL_TEXT_SEARCH IF NOT EXISTS
+            FOR ()-[s:STARS]-() ON EACH [s.gpt_summary]
         """
         )
 
         # vector index for semantic searching repositories
         tx.run(
             """
-            CREATE VECTOR INDEX `REPOSITORY_VECTOR_INDEX` IF NOT EXISTS
-            FOR (n: Repository) ON (n.repo_vector)
+            CREATE VECTOR INDEX `STARS_SUMMARY_VECTOR_INDEX` IF NOT EXISTS
+            FOR ()-[s:STARS]-() ON (s.summary_vector)
             OPTIONS {indexConfig: {
                 `vector.dimensions`: 384,
                 `vector.similarity_function`: 'cosine'
@@ -139,21 +146,30 @@ class Neo4jOperations:
         """
         )
 
-    @staticmethod
-    def _get_user_info(tx, name):
-        result = tx.run("MATCH (u:User { name: $name }) RETURN u", name=name)
-
-        return result.single()
-
-    @staticmethod
-    def _get_repo_info(tx, repo_id: int):
+    def _get_user_info(tx, email):
         result = tx.run(
-            "MATCH (r:Repository { repo_id: $repo_id }) RETURN r", repo_id=repo_id
+            """
+            MATCH (u:User {email: $email})-[:HAS_CONFIG]-(c:Config)
+            RETURN c
+            """, 
+            email=email
         )
 
         return result.single()
 
-    @staticmethod
+    def _get_repo_info(tx, email: str, repo_id: int):
+        result = tx.run(
+            """
+            MATCH (u:User {email: $email})-[s:STARS]-(r:Repository {repo_id: $repo_id})
+            RETURN s.gpt_summary as gpt_summary, s.summary_vector as summary_vector, r.html_url as html_url
+            """, 
+            repo_id=repo_id,
+            email=email
+            
+        )
+
+        return result.single()
+
     def _save_repo_info(
         tx, repo_id: int, readme_summary: str, repo_vector: list[float]
     ):
@@ -164,7 +180,6 @@ class Neo4jOperations:
             repo_vector=repo_vector,
         )
 
-    @staticmethod
     def _get_suggestion_repos(
         tx, name: str, limit: int, similarity: float, vector: list[float]
     ):
@@ -191,7 +206,6 @@ class Neo4jOperations:
 
         return data
 
-    @staticmethod
     def _get_full_text_repos(tx, message: str, name: str):
         result = tx.run(
             """

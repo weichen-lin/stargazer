@@ -31,11 +31,11 @@ const SelectLanguage = () => {
   }, [])
 
   return (
-    <div className='flex gap-x-8 items-end'>
-      <div className='flex flex-col gap-y-4'>
+    <div className='flex flex-col gap-2 items-center lg:items-start w-[95%] lg:w-full lg:px-4'>
+      <div className='flex flex-col gap-y-2 lg:w-[380px]'>
         <div>Language</div>
         {isLoaded ? (
-          <div className='w-[400px] h-10 bg-slate-300 rounded-lg animate-pulse'></div>
+          <div className='w-[380px] h-10 bg-slate-300 rounded-lg animate-pulse'></div>
         ) : (
           <MultipleSelector
             value={selected}
@@ -45,7 +45,7 @@ const SelectLanguage = () => {
             emptyIndicator={
               <p className='text-center text-lg leading-10 text-gray-600 dark:text-gray-400'>no results found.</p>
             }
-            className='border-slate-900 w-[400px]'
+            className='border-slate-900 w-[380px]'
             disabled={isLoaded}
           />
         )}

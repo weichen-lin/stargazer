@@ -14,4 +14,16 @@ const fetcher = async <T>(q: string, params: T) => {
   }
 }
 
-export default fetcher
+const writer = async <T>(q: string, params: T) => {
+  const session = conn.session()
+  try {
+    const res = await session.executeWrite(tx => tx.run(q, params))
+    return res.records.map(r => r.toObject())
+  } catch (error) {
+    console.error('error', error)
+  } finally {
+    await session.close()
+  }
+}
+
+export { fetcher, writer }

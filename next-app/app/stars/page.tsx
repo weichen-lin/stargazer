@@ -4,7 +4,7 @@ import { SelectLanguage, Results } from './components'
 
 export default async function Stars() {
   return (
-    <div className='p-6 w-full flex flex-col h-full overflow-hidden'>
+    <div className='p-3 lg:p-6 w-full flex flex-col h-full overflow-hidden'>
       <div className='w-full'>
         <SelectLanguage />
       </div>

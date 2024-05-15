@@ -1,6 +1,6 @@
 'use server'
 
-import fetcher from './fetcher'
+import { fetcher, writer } from './fetcher'
 import { z } from 'zod'
 import { int } from 'neo4j-driver'
 
@@ -30,7 +30,7 @@ type UserReposParams = z.infer<typeof UserReposParamsSchema>
 
 export const getUserRepos = async (params: UserReposParams): Promise<{ total: number; repos: Repository[] }> => {
   const q = `
-  MATCH (u:User {email: $email})-[s:STARS]-(r:Repository)
+  MATCH (u:User {email: $email})-[s:STARS {is_delete: false}]-(r:Repository)
   WHERE r.language IN $languages
   WITH u, COUNT(r) as total
   MATCH (u)-[s:STARS]-(r:Repository)
@@ -244,5 +244,92 @@ export const getReposByKey = async (email: string, key: ISearchKey): Promise<IRe
   } catch (error) {
     console.error(error)
     return []
+  }
+}
+
+const GetRepoDetailSchema = z.object({
+  email: z.string(),
+  repo_id: z.number(),
+})
+
+const RepoDetailSchema = z.object({
+  is_vectorized: z.boolean(),
+  summary: z.string(),
+  repo_id: z.number(),
+  full_name: z.string(),
+  avatar_url: z.string(),
+  html_url: z.string(),
+  description: z.string(),
+  homepage: z.string(),
+  stargazers_count: z.number(),
+  language: z.string(),
+  last_updated_at: z.string(),
+  default_branch: z.string(),
+  owner_url: z.string(),
+  owner_name: z.string(),
+  open_issues_count: z.number(),
+})
+
+export type IRepoDetail = z.infer<typeof RepoDetailSchema>
+
+export const getRepoDetail = async (email: string, repo_id: string): Promise<IRepoDetail | null> => {
+  const q = `
+  MATCH (u:User {email: $email})-[s:STARS]->(r:Repository {repo_id: $repo_id}) 
+  RETURN s.is_vectorized as is_vectorized, s.summary as summary, r{.*}
+  `
+
+  try {
+    const schema = GetRepoDetailSchema.parse({ email, repo_id: parseInt(repo_id) })
+
+    const data = await fetcher(q, schema)
+
+    if (data && data?.length > 0) {
+      const e = data[0]
+
+      const detail = RepoDetailSchema.parse({
+        is_vectorized: e?.is_vectorized ?? false,
+        summary: e?.summary ?? '',
+        repo_id: e?.r.repo_id?.low,
+        full_name: e?.r.full_name,
+        avatar_url: e?.r.avatar_url,
+        html_url: e?.r.html_url,
+        description: e?.r.description ?? '',
+        homepage: e?.r.homepage ?? '',
+        stargazers_count: e?.r.stargazers_count?.low,
+        language: e?.r.language,
+        last_updated_at: e?.r.last_updated_at,
+        default_branch: e?.r.default_branch,
+        owner_url: e?.r.owner_url,
+        owner_name: e?.r.owner_name,
+        open_issues_count: e?.r.open_issues_count?.low,
+      })
+
+      return detail
+    }
+
+    return null
+  } catch (error) {
+    console.error(error)
+    return null
+  }
+}
+
+export const deleteRepo = async (email: string, repo_id: string): Promise<boolean> => {
+  const q = `
+  MATCH (u:User {email: $email})-[s:STARS]->(r:Repository {repo_id: $repo_id})
+  SET s.is_delete = true
+  RETURN s.is_delete as is_delete
+  `
+
+  try {
+    const schema = GetRepoDetailSchema.parse({ email, repo_id: parseInt(repo_id) })
+
+    const data = await writer(q, schema)
+    const isDelete = data && data?.length > 0 && data[0]?.is_delete
+
+    return isDelete
+  } catch (error) {
+    console.error(error)
+    return false
   }
 }

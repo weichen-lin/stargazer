@@ -1,6 +1,6 @@
-import type { Repository, ILanguageDistribution, IRepoAtDashboard, ISearchKey } from './repos'
+import type { Repository, ILanguageDistribution, IRepoAtDashboard, ISearchKey, IRepoDetail } from './repos'
 import type { IUserConfig, IUserCrontab } from './user'
-import fetcher from './fetcher'
+import { fetcher } from './fetcher'
 import {
   getUserRepos,
   getUserStarsRelation,
@@ -8,10 +8,12 @@ import {
   getLanguageDistribution,
   getRepositoriesCount,
   getReposByKey,
+  getRepoDetail,
+  deleteRepo,
 } from './repos'
 import { getUserInfo, updateInfo, getCrontabInfo } from './user'
 
-export { Repository, IUserConfig, ILanguageDistribution, IRepoAtDashboard, ISearchKey, IUserCrontab }
+export { Repository, IUserConfig, ILanguageDistribution, IRepoAtDashboard, ISearchKey, IUserCrontab, IRepoDetail }
 export { fetcher }
 export {
   getUserRepos,
@@ -20,5 +22,7 @@ export {
   getLanguageDistribution,
   getRepositoriesCount,
   getReposByKey,
+  getRepoDetail,
+  deleteRepo,
 }
 export { getUserInfo, updateInfo, getCrontabInfo }

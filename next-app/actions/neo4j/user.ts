@@ -1,7 +1,7 @@
 'use server'
 
 import { conn } from '@/actions/adapter'
-import fetcher from './fetcher'
+import { fetcher } from './fetcher'
 
 export const getUserInfo = async (email: string): Promise<IUserConfig> => {
   const q = `

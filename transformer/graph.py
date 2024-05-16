@@ -16,6 +16,7 @@ class RepoInfo:
     full_name: str
     description: Optional[str]
     html_url: str
+    repo_id: int
 
 
 @dataclass
@@ -103,6 +104,7 @@ class Neo4jOperations:
                     full_name=info["full_name"],
                     description=info["description"],
                     html_url=info["html_url"],
+                    repo_id=info["repo_id"],
                 )
                 for info in records
             ]
@@ -235,7 +237,7 @@ class Neo4jOperations:
             """
             CALL db.index.fulltext.queryNodes("REPOSITORY_FULL_TEXT_SEARCH", $search_query) YIELD node, score
             MATCH (User {email: $email})-[:STARS]-(node)
-            RETURN node.avatar_url as avatar_url, node.full_name as full_name, node.description as description, node.html_url as html_url
+            RETURN node.repo_id as repo_id ,node.avatar_url as avatar_url, node.full_name as full_name, node.description as description, node.html_url as html_url
             LIMIT 5
             """,
             email=email,

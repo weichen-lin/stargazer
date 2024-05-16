@@ -1,4 +1,3 @@
-import { getServerSession } from 'next-auth'
 import { getUserRepos } from '@/actions/neo4j'
 import { GetUser } from '@/actions'
 

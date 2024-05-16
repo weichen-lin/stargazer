@@ -32,8 +32,8 @@ export const getUserRepos = async (params: UserReposParams): Promise<{ total: nu
   const q = `
   MATCH (u:User {email: $email})-[s:STARS {is_delete: false}]-(r:Repository)
   WHERE r.language IN $languages
-  WITH u, COUNT(r) as total
-  MATCH (u)-[s:STARS]-(r:Repository)
+  WITH u, r, COUNT(r) as total
+  MATCH (u)-[s:STARS]-(r)
   WHERE r.language IN $languages
   WITH total, s, r
   ORDER BY s.created_at DESC

@@ -6,9 +6,12 @@ import clsx from 'clsx'
 import { ConfigSetter } from '@/components/dialog'
 import { Search } from '@/components/search'
 import { useMenuName } from './util'
+import { Detail } from '@/components/dialog'
+import { useRepoDetail } from '@/hooks/util'
 
 const DesktopBar = () => {
   const { menuName } = useMenuName()
+  const { open } = useRepoDetail()
 
   return (
     <motion.div
@@ -26,6 +29,7 @@ const DesktopBar = () => {
           <Search />
           <ConfigSetter />
           <ModeToggle />
+          {open && <Detail />}
         </div>
       </div>
     </motion.div>

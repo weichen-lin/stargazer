@@ -3,12 +3,9 @@
 import { useStars } from '@/hooks/stars'
 import { Loading, Empty } from './status'
 import Repo from './repo'
-import { Detail } from '@/components/dialog'
-import { useRepoDetail } from '@/hooks/util'
 
 export default function Results() {
   const { isSearching, results } = useStars()
-  const { open } = useRepoDetail()
 
   if (isSearching) {
     return <Loading />
@@ -19,11 +16,10 @@ export default function Results() {
   }
 
   return (
-    <div className={`w-full h-full md:grid md:grid-cols-2 lg:grid-cols-4 gap-4 py-4 flex flex-col`}>
+    <div className={`w-full h-full md:grid md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4 py-4 flex flex-col`}>
       {results.map((item, index) => (
         <Repo key={item.repo_id} {...item} index={index} />
       ))}
-      {open && <Detail />}
     </div>
   )
 }

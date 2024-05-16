@@ -7,4 +7,4 @@ NEO4J_PASSWORD = os.environ.get("NEO4J_PASSWORD")
 TRANSFORMER_PORT = os.environ.get("TRANSFORMER_PORT")
 IS_PRODUCTION = os.environ.get("IS_PRODUCTION", True)
 
-NEO4J_CLIENT = Neo4jOperations(NEO4J_URI, "neo4j", NEO4J_PASSWORD)
+db = Neo4jOperations(NEO4J_URI, "neo4j", NEO4J_PASSWORD)

@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify
-from crawler import Crawler, Responser
+from controller import Crawler, FullTextSearcher, VectorSearcher
 from model import RepoEmbeddingInfoSchema, MessageSchema
 from pydantic import ValidationError
 from functools import wraps
@@ -32,12 +32,15 @@ def vectorize():
         data = request.get_json()
         try:
             model = RepoEmbeddingInfoSchema(**data)
-            result, status = Crawler(model.repo_id, model.name)
+            result, status = Crawler(model.repo_id, model.email)
 
             return jsonify({"message": result}), status
 
         except ValidationError as e:
-            return jsonify({"error": str(e)}), 400
+            return jsonify({"error": e}), 400
+
+        except ValueError as e:
+            return jsonify({"error": str(e)}), 404
 
         except AuthenticationError:
             return jsonify({"error": "Invalid OpenAI Key"}), 401
@@ -57,7 +60,7 @@ def get_suggestions():
 
         try:
             model = MessageSchema(**data)
-            result, status = Responser(name=model.name, text=model.message)
+            result, status = VectorSearcher(email=model.email, query=model.query)
 
             return jsonify({"items": result}), status
 
@@ -66,9 +69,6 @@ def get_suggestions():
 
         except ValueError as e:
             return jsonify({"error": str(e)}), 404
-
-        except AuthenticationError:
-            return jsonify({"error": "Invalid OpenAI Key "}), 401
 
         except Exception as e:
             return jsonify({"error": str(e)}), 404
@@ -79,13 +79,13 @@ def get_suggestions():
 
 @app.route("/full_text_search", methods=["POST"])
 @requires_auth
-def get_full_text_search():
+def full_text_search():
     if request.is_json:
         data = request.get_json()
 
         try:
             model = MessageSchema(**data)
-            result, status = Responser(name=model.name, text=model.message)
+            result, status = FullTextSearcher(email=model.email, query=model.query)
 
             return jsonify({"items": result}), status
 

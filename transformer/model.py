@@ -3,9 +3,9 @@ from pydantic import BaseModel
 
 class RepoEmbeddingInfoSchema(BaseModel):
     repo_id: int
-    name: str
+    email: str
 
 
 class MessageSchema(BaseModel):
-    message: str
-    name: str
+    query: str
+    email: str

@@ -1,23 +1,24 @@
 from playwright.sync_api import sync_playwright
 from openai import OpenAI
-from config import NEO4J_CLIENT
+from config import db
 from helper import get_token_length, get_embedding, get_formatted_text
+from openai import AuthenticationError, APIConnectionError
 
 
-def Crawler(id: int, name: str) -> tuple[str, int]:
+def Crawler(id: int, email: str) -> tuple[str, int]:
 
-    info = NEO4J_CLIENT.get_user_info(name)
+    info = db.get_user_info(email)
     if info is None:
-        raise ValueError(f"User {name} not found")
+        raise ValueError(f"{email} not found")
 
-    if info.openAIKey is None:
-        raise ValueError(f"User {name} does not have an openAIKey")
+    if info.openai_key is None or info.openai_key == "":
+        raise ValueError(f"{email} does not have an valid openAIKey")
 
     client = OpenAI(
-        api_key=info.openAIKey,
+        api_key=info.openai_key,
     )
 
-    repo = NEO4J_CLIENT.get_repo_info(id)
+    repo = db.get_repo_info(email, id)
 
     if repo is None:
         raise ValueError(f"Repo with id {id} not found")
@@ -25,10 +26,10 @@ def Crawler(id: int, name: str) -> tuple[str, int]:
     if repo.html_url is None:
         raise ValueError(f"Repo with id {id} does not have an html_url")
 
-    if repo.repo_vector is not None:
+    if repo.summary_vector is not None:
         return f"already generate embedding on repo: {id}", 201
 
-    if repo.readme_summary is None or repo.readme_summary == "":
+    if repo.gpt_summary is None or repo.gpt_summary == "":
         with sync_playwright() as p:
             try:
                 browser = p.chromium.launch(headless=True)
@@ -38,7 +39,6 @@ def Crawler(id: int, name: str) -> tuple[str, int]:
                 selectors = ["article.markdown-body", ".plain"]
 
                 article = page.wait_for_selector(f'{", ".join(selectors)}')
-
                 content = f"The following is a repository from github. After reading the material, can you give me a summary? Reply in English\n{article.text_content()}"
 
                 tokens = get_token_length(content)
@@ -55,59 +55,59 @@ def Crawler(id: int, name: str) -> tuple[str, int]:
 
                 summary = chat_completion.choices[0].message.content
 
-                repo.readme_summary = summary
+                repo.gpt_summary = summary or ""
 
                 summary = summary.replace("\n", " ")
                 vector = get_embedding(summary)
-                repo.repo_vector = vector
+                repo.summary_vector = vector
 
                 try:
-                    NEO4J_CLIENT.save_repo_info(
+                    db.save_repo_info(
+                        email=email,
                         repo_id=id,
-                        readme_summary=repo.readme_summary,
-                        repo_vector=repo.repo_vector,
+                        gpt_summary=repo.gpt_summary,
+                        summary_vector=repo.summary_vector,
                     )
+
+                    return f"success generate embedding on repo: {id}", 200
+
                 except Exception as e:
                     raise ValueError(
                         f"Error while inserting to neo4j: {str(id)}, {str(e)}"
                     )
 
-                return f"success generate embedding on repo: {id}", 200
+            except AuthenticationError:
+                raise ValueError("Invalid OpenAI Key")
+
+            except APIConnectionError:
+                raise ValueError("API Connection Error")
 
             except Exception as e:
+                db.save_failed_vectorize_result(email, id, str(e))
                 raise ValueError(f"Error while crawling: {str(e)}")
 
-    else:
-        summary = repo.readme_summary
-        summary = summary.replace("\n", " ")
 
-        vector = get_embedding(summary)
-
-        repo.elk_vector = vector
-
-        try:
-            NEO4J_CLIENT.save_repo_info(
-                repo_id=id,
-                readme_summary=repo.readme_summary,
-                repo_vector=repo.repo_vector,
-            )
-
-        except Exception as e:
-            raise ValueError(f"Error while inserting to elastic: {str(id)}, {str(e)}")
-
-        return f"success generate embedding on repo: {id}", 200
-
-
-def Responser(name: str, text: str) -> list[dict]:
-
-    info = NEO4J_CLIENT.get_user_info(name)
+def VectorSearcher(email: str, query: str) -> list[dict]:
+    info = db.get_user_info(email)
     if info is None:
-        raise ValueError(f"User {name} not found")
+        raise ValueError(f"User {email} not found")
 
-    q = get_formatted_text(text)
-    q = text.replace("\n", " ")
+    get_formatted_question = get_formatted_text(query)
+    print(get_formatted_question)
 
-    vector = get_embedding(q)
-    repos = NEO4J_CLIENT.get_suggestion_repos(name, info.limit, info.cosine, vector)
+    vector = get_embedding(get_formatted_question)
+
+    repos = db.get_suggestion_repos(email, info.limit, info.cosine, vector)
+
+    return repos, 200
+
+
+def FullTextSearcher(email: str, query: str) -> list[dict]:
+
+    info = db.get_user_info(email)
+    if info is None:
+        raise ValueError(f"User {email} not found")
+
+    repos = db.get_full_text_repos(email, query)
 
     return repos, 200

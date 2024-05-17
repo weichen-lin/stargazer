@@ -10,11 +10,11 @@ export interface ISuggestion {
   html_url: string
 }
 
-export const GetSuggesions = async (query: string): Promise<ISuggestion[]> => {
+export const GetSuggesions = async (query: string): Promise<ISuggestion[] | boolean> => {
   const { email } = await GetUser()
 
   try {
-    const res = await fetch(`${process.env.TRANSFORMER_URL}/get_suggestions`, {
+    const res = await fetch(`http://127.0.0.1:5000/get_suggestions`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -34,7 +34,7 @@ export const GetSuggesions = async (query: string): Promise<ISuggestion[]> => {
     return []
   } catch (error) {
     console.error('Error fetching suggestions: ', error)
-    return []
+    return false
   }
 }
 
@@ -42,7 +42,7 @@ export const GetFullTextSearch = async (query: string): Promise<ISuggestion[]> =
   const { email } = await GetUser()
 
   try {
-    const res = await fetch(`http://127.0.0.1:5000/full_text_search`, {
+    const res = await fetch(`${process.env.TRANSFORMER_URL}/full_text_search`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

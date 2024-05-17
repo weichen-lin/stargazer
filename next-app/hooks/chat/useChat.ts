@@ -1,25 +1,24 @@
 import { useState, useRef, KeyboardEvent } from 'react'
-import { GetSuggesions, ISuggestion } from '@/actions'
+import { create } from 'zustand'
 
-type MessageKeyType = 'question' | 'suggest' | 'error'
-
-interface MessageValueType {
-  question: string
-  suggest: ISuggestion[]
-  error: string
+interface IChatStore {
+  isLoading: boolean
+  isDisabled: boolean
+  setIsLoading: (isLoading: boolean) => void
+  setIsDisabled: (isDisabled: boolean) => void
 }
 
-type IMassages = {
-  [K in MessageKeyType]: {
-    type: K
-    value: MessageValueType[K]
-  }
-}[MessageKeyType]
+export const useChatStore = create<IChatStore>(set => ({
+  isLoading: false,
+  isDisabled: false,
+  setIsLoading: (isLoading: boolean) => set({ isLoading }),
+  setIsDisabled: (isDisabled: boolean) => set({ isDisabled }),
+}))
 
 export default function useChat() {
-  const [messages, setMessages] = useState<IMassages[]>([])
-  const [isLoading, setIsloading] = useState<boolean>(false)
-  const [isDisabled, setIsDisabled] = useState<boolean>(false)
+  const { isLoading, isDisabled, setIsLoading, setIsDisabled } = useChatStore()
+
+  const [messages, setMessages] = useState<string[]>([])
   const [text, setText] = useState<string>('')
 
   const ref = useRef<HTMLTextAreaElement>(null)
@@ -36,23 +35,10 @@ export default function useChat() {
     setText(event.target.value)
   }
 
-  const sendMessage = async (text: string) => {
+  const sendMessage = () => {
     setText('')
-    addMessage(text)
-    setIsloading(true)
-    const res = await GetSuggesions(text)
-    setIsloading(false)
-    return res
-  }
-
-  const handleButtonOnClick = async () => {
-    const res = await sendMessage(text)
-
-    if (res.length === 0) {
-      setMessages(prev => [...prev, { type: 'error', value: '没有找到相关的项目' }])
-    } else {
-      setMessages(prev => [...prev, { type: 'suggest', value: res }])
-    }
+    setMessages(prev => [...prev, text.trim()])
+    setIsLoading(true)
   }
 
   const handleKeyDown = async (event: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -60,28 +46,17 @@ export default function useChat() {
       return
     } else if (event.key === 'Enter') {
       event.preventDefault()
-      const res = await sendMessage(text)
-
-      if (res.length === 0) {
-        setMessages(prev => [...prev, { type: 'error', value: '没有找到相关的项目' }])
-      } else {
-        setMessages(prev => [...prev, { type: 'suggest', value: res }])
-      }
+      sendMessage()
     }
-  }
-
-  const addMessage = (message: string) => {
-    setMessages(prev => [...prev, { type: 'question', value: message }])
   }
 
   return {
     messages,
-    addMessage,
-    handleButtonOnClick,
     isLoading,
     isDisabled,
     ref,
     text,
+    sendMessage,
     onFoucs,
     onBlur,
     handleKeyDown,

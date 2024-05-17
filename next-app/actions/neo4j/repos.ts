@@ -103,7 +103,7 @@ export const getUserRepos = async (params: UserReposParams): Promise<{ total: nu
 
 export const getUserStarsRelation = async (email: string) => {
   const q = `
-  MATCH (u:User { email: $email })-[s:STARS]->(r:Repository)
+  MATCH (u:User { email: $email })-[s:STARS { is_delete: false }]->(r:Repository)
   RETURN s{.*}
   `
 
@@ -254,7 +254,7 @@ const GetRepoDetailSchema = z.object({
 
 const RepoDetailSchema = z.object({
   is_vectorized: z.boolean(),
-  summary: z.string(),
+  gpt_summary: z.string(),
   repo_id: z.number(),
   full_name: z.string(),
   avatar_url: z.string(),
@@ -275,7 +275,7 @@ export type IRepoDetail = z.infer<typeof RepoDetailSchema>
 export const getRepoDetail = async (email: string, repo_id: string): Promise<IRepoDetail | null> => {
   const q = `
   MATCH (u:User {email: $email})-[s:STARS]->(r:Repository {repo_id: $repo_id}) 
-  RETURN s.is_vectorized as is_vectorized, s.summary as summary, r{.*}
+  RETURN s.is_vectorized as is_vectorized, s.gpt_summary as gpt_summary, r{.*}
   `
 
   try {
@@ -288,7 +288,7 @@ export const getRepoDetail = async (email: string, repo_id: string): Promise<IRe
 
       const detail = RepoDetailSchema.parse({
         is_vectorized: e?.is_vectorized ?? false,
-        summary: e?.summary ?? '',
+        gpt_summary: e?.gpt_summary ?? '',
         repo_id: e?.r.repo_id?.low,
         full_name: e?.r.full_name,
         avatar_url: e?.r.avatar_url,

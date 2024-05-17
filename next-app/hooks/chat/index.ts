@@ -1,4 +1,4 @@
-import useChat from './useChat'
+import useChat, { useChatStore } from './useChat'
 import useChatAlert from './useChatAlert'
 
-export { useChat, useChatAlert }
+export { useChat, useChatStore, useChatAlert }

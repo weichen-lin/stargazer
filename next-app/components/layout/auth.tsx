@@ -17,7 +17,7 @@ export default async function AuthLayout(props: { children: React.ReactNode }) {
         <div className='pl-4 lg:flex flex-col w-[260px] hidden items-center'>
           <Link href='/' className='py-8'>
             <Image
-              src='/icon.png'
+              src='/icon.jpeg'
               alt='Logo'
               width={50}
               height={50}

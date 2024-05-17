@@ -67,7 +67,7 @@ func (db *Database) CreateRepository(repo *Repository, email string) error {
 			WITH u, r
 			MERGE (u)-[s:STARS]->(r)
 			MERGE (r)-[sb:STARRED_BY]->(u)
-			SET s = {
+			SET s += {
 				is_delete: COALESCE(s.is_delete, false),
 				created_at: COALESCE(r.created_at, datetime()),
 				last_synced_at: datetime()

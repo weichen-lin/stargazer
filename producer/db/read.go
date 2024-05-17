@@ -15,8 +15,8 @@ type Config struct {
 }
 
 type Crontab struct {
-	Email    string    `json:"email"`
-	Hour     int64     `json:"hour"`
+	Email string `json:"email"`
+	Hour  int64  `json:"hour"`
 }
 
 func (db *Database) GetUser(email string) (*User, error) {
@@ -140,18 +140,18 @@ func (db *Database) GetUserConfig(email string) (*Config, error) {
 	}, nil
 }
 
-func (db *Database) GetUserNotVectorize(userName string) ([]int64, error) {
+func (db *Database) GetUserNotVectorize(email string) ([]int64, error) {
 	session := db.driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
 	defer session.Close(context.Background())
 
 	records, err := session.ExecuteRead(context.Background(), func(transaction neo4j.ManagedTransaction) (interface{}, error) {
 		result, err := transaction.Run(context.Background(), `
-				MATCH (u:User {name: $name})-[s:STARS]-(r:Repository)
+				MATCH (u:User {email: $email})-[s:STARS { is_delete: false }]-(r:Repository)
 				WHERE s.is_vectorized = FALSE or s.is_vectorized IS NULL
 				RETURN r.repo_id as repo_id
             `,
 			map[string]interface{}{
-				"name": userName,
+				"email": email,
 			})
 
 		if err != nil {

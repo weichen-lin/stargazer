@@ -1,6 +1,9 @@
+'use client'
+
 import { ISuggestion } from '@/actions'
 import { motion } from 'framer-motion'
 import clsx from 'clsx'
+import { useRepoDetail } from '@/hooks/util'
 
 function FullTextIndex(text: string, target: string): number[] | null {
   let left = 0
@@ -20,12 +23,12 @@ function FullTextIndex(text: string, target: string): number[] | null {
   return result.length === q.length ? result : null
 }
 
-const FullTextSearchResult = (props: ISuggestion & { query: string }) => {
-  const { avatar_url, full_name, description, readme_summary, query } = props
+const FullTextSearchResult = (props: ISuggestion & { query: string; close: () => void }) => {
+  const { repo_id, avatar_url, full_name, description, query, close } = props
+  const { setRepoID, setOpen } = useRepoDetail()
 
   const full_name_index = FullTextIndex(full_name, query)
   const description_index = FullTextIndex(description ?? '', query)
-  const summary_index = FullTextIndex(readme_summary, query)
 
   return (
     <motion.div
@@ -35,10 +38,15 @@ const FullTextSearchResult = (props: ISuggestion & { query: string }) => {
         'hover:border-[1px] hover:border-slate-300 hover:shadow-md',
         'p-4 bg-white rounded-lg transition-colors w-[95%] mx-auto cursor-pointer',
       )}
+      onClick={() => {
+        setRepoID(repo_id)
+        setOpen(true)
+        close()
+      }}
     >
       <div className='flex gap-x-2 items-center'>
         <img src={avatar_url} alt={full_name} className='w-6 h-6 rounded-md' />
-        <div className='font-semibold text-blue-700 line-clamp-1'>
+        <div className='font-semibold text-blue-700 line-clamp-2'>
           {full_name_index ? (
             <>
               {full_name.split('').map((char, i) => {
@@ -57,43 +65,23 @@ const FullTextSearchResult = (props: ISuggestion & { query: string }) => {
           )}
         </div>
       </div>
-      <div className='flex flex-col gap-y-2'>
-        <div className='text-slate-400 text-sm line-clamp-2'>
-          {description_index && description ? (
-            <>
-              {description.split('').map((char, i) => {
-                if (description_index.includes(i)) {
-                  return (
-                    <span className='bg-yellow-100' key={`char_description_${i}`}>
-                      {char}
-                    </span>
-                  )
-                }
-                return char
-              })}
-            </>
-          ) : (
-            description ?? ''
-          )}
-        </div>
-        <div className='text-slate-700 text-sm line-clamp-2'>
-          {summary_index ? (
-            <>
-              {readme_summary.split('').map((char, i) => {
-                if (summary_index.includes(i)) {
-                  return (
-                    <span className='bg-yellow-100' key={`char_readme_summary_${i}`}>
-                      {char}
-                    </span>
-                  )
-                }
-                return char
-              })}
-            </>
-          ) : (
-            readme_summary
-          )}
-        </div>
+      <div className='w-full text-ellipsis text-slate-400 text-sm break-words'>
+        {description_index && description ? (
+          <>
+            {description.split('').map((char, i) => {
+              if (description_index.includes(i)) {
+                return (
+                  <span className='bg-yellow-100' key={`char_description_${i}`}>
+                    {char}
+                  </span>
+                )
+              }
+              return char
+            })}
+          </>
+        ) : (
+          description ?? ''
+        )}
       </div>
     </motion.div>
   )

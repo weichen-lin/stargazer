@@ -7,17 +7,28 @@ import { useChatAlert } from '@/hooks/chat'
 import { EventSourcePolyfill } from 'event-source-polyfill'
 import { generateAccessToken } from '@/actions/util'
 import { useUser } from '@/context'
+import { z } from 'zod'
 
 const PushUp = dynamic(() => import('@/components/fancyicon/push-up'), { ssr: false })
 const Check = dynamic(() => import('@/components/fancyicon/check'), { ssr: false })
 const Error = dynamic(() => import('@/components/fancyicon/error'), { ssr: false })
 
+const schema = z.object({
+  total: z.number().default(0),
+  current: z.number().default(0),
+})
+
+type ISchema = z.infer<typeof schema>
+
+const parseEventData = (data: string): ISchema => {
+  const o = JSON.parse(data)
+  return schema.parse(o)
+}
+
 export default function ProgressInfo() {
   const [isEstablish, setIsEstablish] = useState(true)
   const [isFinished, setIsFinished] = useState(false)
-  const [errorCode, setErrorCode] = useState<number>(200)
-  const [current, setCurrent] = useState(0)
-  const [total, setTotal] = useState(0)
+  const [status, setStatus] = useState<ISchema>({ total: 0, current: 0 })
   const { startEvent, setCantClose } = useChatAlert()
   const { email } = useUser()
 
@@ -27,50 +38,28 @@ export default function ProgressInfo() {
     const startSyncStars = async () => {
       try {
         const token = await generateAccessToken(email)
-        eventSource = new EventSourcePolyfill(`/producer/sync_user_stars`, {
+        eventSource = new EventSourcePolyfill(`${process.env.NEXT_PUBLIC_PRODUCER_URL}/sync_user_stars`, {
           headers: {
             Authorization: token,
           },
         })
 
+        setIsEstablish(false)
+        setCantClose(false)
+
         eventSource.onmessage = event => {
-          setIsEstablish(false)
-
-          const msg = JSON.parse(event.data)
-
-          switch (true) {
-            case msg.error:
-              setErrorCode(400)
-              setCantClose(false)
-              eventSource?.close()
-              setTimeout(() => {
-                startEvent(false)
-              }, 3500)
-              break
-
-            case msg.current === msg.total:
-              setIsFinished(true)
-              setCantClose(false)
-              setTimeout(() => {
-                startEvent(false)
-              }, 3500)
-              eventSource?.close()
-              break
-
-            default:
-              setCantClose(true)
-              setCurrent(msg.current + 1)
-              setTotal(msg.total)
-          }
+          const o = parseEventData(event.data)
+          setStatus(prev => ({ ...prev, ...o }))
         }
 
-        eventSource.onerror = () => {
-          setCantClose(false)
-          setIsFinished(true)
+        eventSource.onerror = e => {
           eventSource?.close()
+          setIsFinished(true)
+          setCantClose(true)
+
           setTimeout(() => {
             startEvent(false)
-          }, 2000)
+          }, 1500)
         }
       } catch (e) {
         return null
@@ -80,16 +69,15 @@ export default function ProgressInfo() {
     startSyncStars()
 
     return () => {
-      eventSource?.close()
+      eventSource && eventSource?.close()
     }
   }, [])
 
   return (
     <div className='w-full max-w-[450px]'>
       {isEstablish && <Confirming />}
-      {!isEstablish && !isFinished && errorCode < 203 && <Progressing current={current} total={total} />}
+      {!isEstablish && !isFinished && <Progressing {...status} />}
       {isFinished && <CheckMark />}
-      {errorCode > 202 && <ErrorMsg status={errorCode} />}
     </div>
   )
 }
@@ -127,9 +115,9 @@ const ErrorMsg = ({ status }: { status: number }) => {
   )
 }
 
-const Progressing = (props: { current: number; total: number }) => {
+const Progressing = (props: ISchema) => {
   const { current, total } = props
-
+  console.log({ current, total })
   const value = total === 0 ? 0 : (current / total) * 100
   return (
     <div className='w-full flex justify-center gap-x-2 items-center'>

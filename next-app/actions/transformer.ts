@@ -1,32 +1,28 @@
 'use server'
 
-import { getServerSession } from 'next-auth'
+import { GetUser } from './user'
 
 export interface ISuggestion {
+  repo_id: number
   avatar_url: string
   description: string | null
   full_name: string
   html_url: string
-  readme_summary: string
 }
 
-export const GetSuggesions = async (query: string): Promise<ISuggestion[]> => {
-  const session = await getServerSession()
-  const user = session?.user
-  if (!user) {
-    return []
-  }
+export const GetSuggesions = async (query: string): Promise<ISuggestion[] | boolean> => {
+  const { email } = await GetUser()
 
   try {
-    const res = await fetch(`${process.env.TRANSFORMER_URL}/get_suggestions`, {
+    const res = await fetch(`http://127.0.0.1:5000/get_suggestions`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${process.env.AUTHENTICATION_TOKEN}`,
       },
       body: JSON.stringify({
-        message: query,
-        name: user.name,
+        query,
+        email,
       }),
     })
 
@@ -38,16 +34,12 @@ export const GetSuggesions = async (query: string): Promise<ISuggestion[]> => {
     return []
   } catch (error) {
     console.error('Error fetching suggestions: ', error)
-    return []
+    return false
   }
 }
 
 export const GetFullTextSearch = async (query: string): Promise<ISuggestion[]> => {
-  const session = await getServerSession()
-  const user = session?.user
-  if (!user) {
-    return []
-  }
+  const { email } = await GetUser()
 
   try {
     const res = await fetch(`${process.env.TRANSFORMER_URL}/full_text_search`, {
@@ -57,8 +49,8 @@ export const GetFullTextSearch = async (query: string): Promise<ISuggestion[]> =
         Authorization: `Bearer ${process.env.AUTHENTICATION_TOKEN}`,
       },
       body: JSON.stringify({
-        message: query,
-        name: user.name,
+        email,
+        query,
       }),
     })
 

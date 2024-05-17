@@ -1,12 +1,12 @@
 from neo4j import GraphDatabase
 from dataclasses import dataclass
 from typing import Optional
-
+from helper import summarize
 
 @dataclass
 class UserInfo:
-    limit: int
-    openAIKey: Optional[str]
+    limit: float
+    openai_key: Optional[str]
     cosine: float
 
 
@@ -15,15 +15,15 @@ class RepoInfo:
     avatar_url: str
     full_name: str
     description: Optional[str]
-    readme_summary: Optional[str]
     html_url: str
+    repo_id: int
 
 
 @dataclass
-class RepoVectorInfo:
+class RepoVectorizeInfo:
     repo_id: int
-    repo_vector: list[float]
-    readme_summary: Optional[str]
+    gpt_summary: Optional[str]
+    summary_vector: list[float]
     html_url: str
 
 
@@ -40,79 +40,90 @@ class Neo4jOperations:
     def close(self):
         self.driver.close()
 
-    def get_user_info(self, name) -> Optional[UserInfo]:
+    def get_user_info(self, email) -> Optional[UserInfo]:
         with self.driver.session() as session:
-            records = session.execute_read(self._get_user_info, name)
+            record = session.execute_read(self._get_user_info, email)
 
-            if records is None:
+            if record is None:
                 return None
 
-            info = records[0]
+            info = record.data()
 
             return UserInfo(
-                limit=info["limit"], openAIKey=info["openAIKey"], cosine=info["cosine"]
+                limit=info["limit"],
+                openai_key=info["openai_key"],
+                cosine=info["cosine"],
             )
 
-    def get_repo_info(self, repo_id: int) -> Optional[RepoInfo]:
+    def get_repo_info(self, email: str, repo_id: int) -> Optional[RepoVectorizeInfo]:
         """
         Get the repository information from the graph database
         """
         with self.driver.session() as session:
-            records = session.execute_read(self._get_repo_info, repo_id)
+            record = session.execute_read(self._get_repo_info, email, repo_id)
 
-            if records is None:
+            if record is None:
                 return None
 
-            info = records[0]
+            info = record.data()
 
-            return RepoVectorInfo(
+            return RepoVectorizeInfo(
                 repo_id=info["repo_id"],
-                readme_summary=info["readme_summary"],
-                repo_vector=info["repo_vector"],
+                gpt_summary=info["gpt_summary"],
+                summary_vector=info["summary_vector"],
                 html_url=info["html_url"],
             )
 
+    def save_failed_vectorize_result(self, email: str, repo_id: int, message: str):
+        """
+        Save the repository information to the graph database
+        """
+        with self.driver.session() as session:
+            session.execute_write(
+                self._save_failed_vectorize_result, email, repo_id, message
+            )
+
     def save_repo_info(
-        self, repo_id: int, readme_summary: str, repo_vector: list[float]
+        self, email: str, repo_id: int, gpt_summary: str, summary_vector: list[float]
     ):
         """
         Save the repository information to the graph database
         """
         with self.driver.session() as session:
             session.execute_write(
-                self._save_repo_info, repo_id, readme_summary, repo_vector
+                self._save_repo_info, email, repo_id, gpt_summary, summary_vector
             )
 
-    def get_suggestion_repos(
-        self, name: str, limit: int, similarity: float, vector: list[float]
-    ):
+    def get_full_text_repos(self, email: str, query: str):
         with self.driver.session() as session:
-            records = session.execute_read(
-                self._get_suggestion_repos, name, limit, similarity, vector
-            )
+            records = session.execute_read(self._get_full_text_repos, email, query)
 
             return [
                 RepoInfo(
                     avatar_url=info["avatar_url"],
                     full_name=info["full_name"],
                     description=info["description"],
-                    readme_summary=info["readme_summary"],
                     html_url=info["html_url"],
+                    repo_id=info["repo_id"],
                 )
                 for info in records
             ]
 
-    def get_full_text_repos(self, name: str, limit: int):
+    def get_suggestion_repos(
+        self, email: str, limit: int, similarity: float, vector: list[float]
+    ):
         with self.driver.session() as session:
-            records = session.execute_read(self._get_full_text_repos, name, limit)
+            records = session.execute_read(
+                self._get_suggestion_repos, email, limit, similarity, vector
+            )
 
             return [
                 RepoInfo(
                     avatar_url=info["avatar_url"],
                     full_name=info["full_name"],
                     description=info["description"],
-                    readme_summary=info["readme_summary"],
                     html_url=info["html_url"],
+                    repo_id=info["repo_id"],
                 )
                 for info in records
             ]
@@ -123,67 +134,97 @@ class Neo4jOperations:
         tx.run(
             """
             CREATE FULLTEXT INDEX REPOSITORY_FULL_TEXT_SEARCH IF NOT EXISTS
-            FOR (r:Repository) ON EACH [r.full_name, r.description, r.readme_summary]
-        """
+            FOR (r:Repository) ON EACH [r.full_name, r.description]
+            """
         )
 
         # vector index for semantic searching repositories
         tx.run(
             """
-            CREATE VECTOR INDEX `REPOSITORY_VECTOR_INDEX` IF NOT EXISTS
-            FOR (n: Repository) ON (n.repo_vector)
+            CREATE VECTOR INDEX `STARS_SUMMARY_VECTOR_INDEX` IF NOT EXISTS
+            FOR ()-[s:STARS]-() ON (s.summary_vector)
             OPTIONS {indexConfig: {
                 `vector.dimensions`: 384,
                 `vector.similarity_function`: 'cosine'
             }};
-        """
+            """
         )
 
     @staticmethod
-    def _get_user_info(tx, name):
-        result = tx.run("MATCH (u:User { name: $name }) RETURN u", name=name)
+    def _get_user_info(tx, email: str):
+        result = tx.run(
+            """
+            MATCH (u:User {email: $email})-[:HAS_CONFIG]-(c:Config)
+            RETURN c.limit as limit, c.openai_key as openai_key, c.cosine as cosine
+            """,
+            email=email,
+        )
 
         return result.single()
 
     @staticmethod
-    def _get_repo_info(tx, repo_id: int):
+    def _get_repo_info(tx, email: str, repo_id: int):
         result = tx.run(
-            "MATCH (r:Repository { repo_id: $repo_id }) RETURN r", repo_id=repo_id
+            """
+            MATCH (u:User {email: $email})-[s:STARS]-(r:Repository {repo_id: $repo_id})
+            RETURN r.repo_id as repo_id, s.gpt_summary as gpt_summary, s.summary_vector as summary_vector, r.html_url as html_url
+            """,
+            repo_id=repo_id,
+            email=email,
         )
 
         return result.single()
 
     @staticmethod
     def _save_repo_info(
-        tx, repo_id: int, readme_summary: str, repo_vector: list[float]
+        tx, email: str, repo_id: int, gpt_summary: str, summary_vector: list[float]
     ):
         tx.run(
-            "MATCH (r:Repository { repo_id: $repo_id }) SET r.readme_summary = $readme_summary, r.repo_vector = $repo_vector",
+            """
+            MATCH (u:User {email: $email})-[s:STARS]-(r:Repository {repo_id: $repo_id})
+            SET s += {
+                is_vectorized: true,
+                gpt_summary: $gpt_summary,
+                summary_vector: $summary_vector,
+                last_vectorized_at: datetime()
+            }
+            """,
+            email=email,
             repo_id=repo_id,
-            readme_summary=readme_summary,
-            repo_vector=repo_vector,
+            gpt_summary=gpt_summary,
+            summary_vector=summary_vector,
+        )
+
+    @staticmethod
+    def _save_failed_vectorize_result(tx, email: str, repo_id: int, reason: str):
+        tx.run(
+            """
+            MATCH (u:User {email: $email})-[s:STARS]-(r:Repository {repo_id: $repo_id})
+            SET s += {
+                is_vectorized: false,
+                reason: $reason,
+                last_vectorized_at: datetime()
+            }
+            """,
+            email=email,
+            repo_id=repo_id,
+            reason=reason,
         )
 
     @staticmethod
     def _get_suggestion_repos(
-        tx, name: str, limit: int, similarity: float, vector: list[float]
+        tx, email: str, limit: int, similarity: float, vector: list[float]
     ):
         result = tx.run(
             """
-            CALL db.index.vector.queryNodes("REPOSITORY_VECTOR_INDEX", 5, $vector)
-            YIELD node, score
-            MATCH (User {name: $name})-[:STARS]-(node)
+            CALL db.index.vector.queryRelationships("STARS_SUMMARY_VECTOR_INDEX", 5, $vector) YIELD relationship, score
+            MATCH (User {email: $email})-[relationship]-(r:Repository)
             WHERE score > $similarity
-            RETURN 
-            node.avatar_url as avatar_url,
-            node.full_name as full_name, 
-            node.description as description, 
-            node.readme_summary as readme_summary, 
-            node.html_url as html_url
+            RETURN r.repo_id as repo_id, r.avatar_url as avatar_url, r.full_name as full_name, r.html_url as html_url, relationship.gpt_summary as description
             """,
             limit=limit,
             vector=vector,
-            name=name,
+            email=email,
             similarity=similarity,
         )
 
@@ -192,16 +233,16 @@ class Neo4jOperations:
         return data
 
     @staticmethod
-    def _get_full_text_repos(tx, message: str, name: str):
+    def _get_full_text_repos(tx, email: str, search_query: str):
         result = tx.run(
             """
-            CALL db.index.fulltext.queryNodes("REPOSITORY_FULL_TEXT_SEARCH", $message) YIELD node, score
-            MATCH (User {name: $name})-[:STARS]-(node)
-            RETURN node.avatar_url as avatar_url, node.full_name as full_name, node.description as description, node.readme_summary as readme_summary
+            CALL db.index.fulltext.queryNodes("REPOSITORY_FULL_TEXT_SEARCH", $search_query) YIELD node, score
+            MATCH (User {email: $email})-[:STARS]-(node)
+            RETURN node.repo_id as repo_id ,node.avatar_url as avatar_url, node.full_name as full_name, node.description as description, node.html_url as html_url
             LIMIT 5
             """,
-            massage=message,
-            name=name,
+            email=email,
+            search_query=search_query,
         )
 
         data = list(result.data())

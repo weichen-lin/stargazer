@@ -53,7 +53,7 @@ export default function Home() {
       <div className={clsx('w-full max-w-[1024px] mx-auto h-full', 'flex flex-col justify-between')}>
         <div className='flex items-center justify-between'>
           <div className='flex gap-x-8 items-center'>
-            <Image src='/icon.png' width={60} height={60} className='rounded-full' alt='stargazer logo' />
+            <Image src='/icon.jpeg' width={60} height={60} className='rounded-full' alt='stargazer logo' />
             <div className='text-4xl'>StarGazer</div>
           </div>
           <ModeToggle />

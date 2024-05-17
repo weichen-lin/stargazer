@@ -64,14 +64,12 @@ func (c *Controller) HandleConnections(ctx *gin.Context) {
 					RepoId: id,
 				})
 
+				client.StatusCode <- i
+
 				if err != nil {
-					ctx.SSEvent("message", map[string]interface{}{"error": err.Error()})
-					ctx.Writer.Flush()
-					ctx.AbortWithStatus(http.StatusInternalServerError)
+					fmt.Println("Error vectorize:", err)
 					return
 				}
-
-				client.StatusCode <- i
 
 				err = db.ConfirmVectorize(&workflow.SyncUserStar{
 					Email:  email,
@@ -79,9 +77,7 @@ func (c *Controller) HandleConnections(ctx *gin.Context) {
 				})
 
 				if err != nil {
-					ctx.SSEvent("message", map[string]interface{}{"error": err.Error()})
-					ctx.Writer.Flush()
-					ctx.AbortWithStatus(http.StatusInternalServerError)
+					fmt.Println("Error confirm vectorize:", err)
 					return
 				}
 			}
@@ -94,7 +90,7 @@ func (c *Controller) HandleConnections(ctx *gin.Context) {
 				if !ok {
 					return false
 				}
-				ctx.SSEvent("message", map[string]interface{}{"current": msg, "total": len(stars)})
+				ctx.SSEvent("message", map[string]interface{}{"current": msg + 1, "total": len(stars)})
 				ctx.Writer.Flush()
 			case <-ctx.Request.Context().Done():
 				fmt.Println("client closed")

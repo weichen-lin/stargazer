@@ -1,7 +1,7 @@
 from neo4j import GraphDatabase
 from dataclasses import dataclass
 from typing import Optional
-
+from helper import summarize
 
 @dataclass
 class UserInfo:
@@ -123,6 +123,7 @@ class Neo4jOperations:
                     full_name=info["full_name"],
                     description=info["description"],
                     html_url=info["html_url"],
+                    repo_id=info["repo_id"],
                 )
                 for info in records
             ]
@@ -219,7 +220,7 @@ class Neo4jOperations:
             CALL db.index.vector.queryRelationships("STARS_SUMMARY_VECTOR_INDEX", 5, $vector) YIELD relationship, score
             MATCH (User {email: $email})-[relationship]-(r:Repository)
             WHERE score > $similarity
-            RETURN r.avatar_url as avatar_url, r.full_name as full_name, r.description as description, r.html_url as html_url
+            RETURN r.repo_id as repo_id, r.avatar_url as avatar_url, r.full_name as full_name, r.html_url as html_url, relationship.gpt_summary as description
             """,
             limit=limit,
             vector=vector,

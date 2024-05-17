@@ -4,7 +4,6 @@ from config import db
 from helper import get_token_length, get_embedding, get_formatted_text
 from openai import AuthenticationError, APIConnectionError
 
-
 def Crawler(id: int, email: str) -> tuple[str, int]:
 
     info = db.get_user_info(email)

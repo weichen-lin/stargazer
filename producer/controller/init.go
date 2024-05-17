@@ -7,15 +7,15 @@ import (
 )
 
 type Controller struct {
-	db       *db.Database
-	producer sarama.SyncProducer
+	db        *db.Database
+	producer  sarama.SyncProducer
 	scheduler *scheduler.Scheduler
 }
 
 func NewController(db *db.Database, producer sarama.SyncProducer) *Controller {
 	return &Controller{
-		db:       db,
-		producer: producer,
+		db:        db,
+		producer:  producer,
 		scheduler: scheduler.NewScheduler(db, producer),
 	}
 }

@@ -12,8 +12,8 @@ import (
 type Scheduler struct {
 	sync.Mutex
 	centraller gocron.Scheduler
-	jobs map[string]uuid.UUID
-	producer sarama.SyncProducer
+	jobs       map[string]uuid.UUID
+	producer   sarama.SyncProducer
 }
 
 func NewScheduler(db *db.Database, producer sarama.SyncProducer) *Scheduler {
@@ -25,10 +25,10 @@ func NewScheduler(db *db.Database, producer sarama.SyncProducer) *Scheduler {
 
 	s := &Scheduler{
 		centraller: c,
-		jobs: make(map[string]uuid.UUID),
-		producer: producer,
+		jobs:       make(map[string]uuid.UUID),
+		producer:   producer,
 	}
-		
+
 	crontabs, err := db.GetAllUserCrontab()
 	if err != nil {
 		panic(err)
@@ -73,7 +73,7 @@ func (s *Scheduler) Update(email string, hour int) error {
 	defer s.Unlock()
 
 	id, exists := s.jobs[email]
-	
+
 	if exists {
 		s.centraller.RemoveJob(id)
 	}

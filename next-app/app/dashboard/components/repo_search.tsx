@@ -19,7 +19,7 @@ export default async function RepoSearch({ searchKey, title }: { searchKey: ISea
       )}
     >
       <div className='w-full text-left px-4 py-3 text-xl xl:text-lg text-slate-500'>{title}</div>
-      <div className='flex flex-col space-y-[2px] w-full px-3'>
+      <div className='w-full px-3 grid grid-rows-5 flex-1'>
         {repos.map(e => (
           <Repo {...e} key={`${searchKey}-repo-${e.full_name}`} searchKey={searchKey} />
         ))}

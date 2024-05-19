@@ -32,7 +32,7 @@ export const getUserRepos = async (params: UserReposParams): Promise<{ total: nu
   const q = `
   MATCH (u:User {email: $email})-[s:STARS {is_delete: false}]-(r:Repository)
   WHERE r.language IN $languages
-  WITH u, r, COUNT(r) as total
+  WITH u, COUNT(r) as total
   MATCH (u)-[s:STARS]-(r)
   WHERE r.language IN $languages
   WITH total, s, r
@@ -202,13 +202,14 @@ export interface IRepoAtDashboard {
   last_updated_at: string
 }
 
-export type ISearchKey = 'last_synced_at' | 'created_at' | 'open_issues_count' | 'last_updated_at'
+export type ISearchKey = 'last_synced_at' | 'created_at' | 'open_issues_count' | 'last_updated_at' | 'last_modified_at'
 
 const SearchQuery: { [key in ISearchKey]: string } = {
-  last_synced_at: 's.last_synced_at',
-  created_at: 's.created_at',
-  open_issues_count: 'r.open_issues_count',
-  last_updated_at: 'r.last_updated_at',
+  last_synced_at: 's.last_synced_at DESC',
+  created_at: 's.created_at DESC',
+  open_issues_count: 'r.open_issues_count DESC',
+  last_updated_at: 'r.last_updated_at DESC',
+  last_modified_at: 's.last_modified_at ASC',
 }
 
 export const getReposByKey = async (email: string, key: ISearchKey): Promise<IRepoAtDashboard[]> => {
@@ -222,8 +223,9 @@ export const getReposByKey = async (email: string, key: ISearchKey): Promise<IRe
   r.open_issues_count as open_issues_count,
   s.created_at as created_at,
   r.last_updated_at as last_updated_at,
-  s.last_synced_at as last_synced_at
-  ORDER BY ${SearchQuery[key]} DESC
+  s.last_synced_at as last_synced_at,
+  s.last_modified_at as last_modified_at
+  ORDER BY ${SearchQuery[key]}
   LIMIT 5;
   `
 
@@ -238,6 +240,7 @@ export const getReposByKey = async (email: string, key: ISearchKey): Promise<IRe
         created_at: e?.created_at?.toString(),
         html_url: e?.html_url,
         last_updated_at: e?.last_updated_at,
+        last_modified_at: e?.last_modified_at ?? null,
       }))
     }
     return []

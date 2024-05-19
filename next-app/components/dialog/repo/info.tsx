@@ -1,17 +1,16 @@
 'use client'
 
 import { IRepoDetail } from '@/actions/neo4j'
-import { StarIcon, EyeOpenIcon, CalendarIcon } from '@radix-ui/react-icons'
+import { StarIcon, EyeOpenIcon, CalendarIcon, GitHubLogoIcon } from '@radix-ui/react-icons'
 
 export default function Info(props: IRepoDetail) {
-  const { stargazers_count, open_issues_count, last_updated_at } = props
+  const { stargazers_count, open_issues_count, last_updated_at, html_url } = props
 
   return (
     <div className='grid grid-cols-2 lg:grid-cols-4'>
-      <div className='flex gap-x-2 items-center'>
-        <StarIcon className='w-4 h-4' />
-        <span>{stargazers_count}</span>
-      </div>
+      <a className='m-1' href={html_url} target='_blank'>
+        <GitHubLogoIcon />
+      </a>
       <div className='flex gap-x-2 items-center'>
         <EyeOpenIcon className='w-4 h-4' />
         <span>{open_issues_count}</span>

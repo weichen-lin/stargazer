@@ -12,6 +12,7 @@ import {
   deleteRepo,
 } from './repos'
 import { getUserInfo, updateInfo, getCrontabInfo } from './user'
+import { getTags, getTagsByRepo, createTag, deleteTagByRepo } from './tags'
 
 export { Repository, IUserConfig, ILanguageDistribution, IRepoAtDashboard, ISearchKey, IUserCrontab, IRepoDetail }
 export { fetcher }
@@ -25,4 +26,5 @@ export {
   getRepoDetail,
   deleteRepo,
 }
+export { getTags, getTagsByRepo, createTag, deleteTagByRepo }
 export { getUserInfo, updateInfo, getCrontabInfo }

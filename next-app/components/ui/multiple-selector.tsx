@@ -270,7 +270,7 @@ const MultipleSelector = React.forwardRef<MultipleSelectorRef, MultipleSelectorP
       if (!creatable) return undefined
       if (
         isOptionsExist(options, [{ value: inputValue, label: inputValue }]) ||
-        selected.find(s => s.value === inputValue)
+        selected.find(s => s.value === inputValue || s.label === inputValue)
       ) {
         return undefined
       }

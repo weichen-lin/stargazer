@@ -1,7 +1,6 @@
 from neo4j import GraphDatabase
 from dataclasses import dataclass
 from typing import Optional
-from helper import summarize
 
 @dataclass
 class UserInfo:

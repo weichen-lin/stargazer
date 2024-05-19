@@ -38,7 +38,7 @@ export default async function Dashboard() {
         <RepoSearch searchKey='last_updated_at' title='Most recently active' />
       </Suspense>
       <Suspense fallback={<Loading type='' />}>
-        <RepoSearch searchKey='last_updated_at' title='Recently manually updated' />
+        <RepoSearch searchKey='last_modified_at' title='Recently manually updated' />
       </Suspense>
     </div>
   )

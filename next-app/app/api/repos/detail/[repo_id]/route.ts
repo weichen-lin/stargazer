@@ -1,9 +1,8 @@
-import { getRepoDetail, deleteRepo } from '@/actions/neo4j'
+import { getRepoDetail, deleteRepo, getTagsByRepo } from '@/actions/neo4j'
 import { NextRequest } from 'next/server'
 import { GetUser } from '@/actions'
 
-export const dynamic = 'force-dynamic' // defaults to auto
-
+export const dynamic = 'force-dynamic'
 export async function GET(request: NextRequest, { params }: { params: { repo_id: string } }) {
   const { email } = await GetUser()
   const { repo_id } = params

@@ -48,7 +48,7 @@ export default function Detail() {
         )}
         {!isLoaded && detail && (
           <>
-            <DialogHeader className='flex flex-col gap-y-4'>
+            <DialogHeader className='flex flex-col gap-y-4 px-3'>
               <Title {...detail} />
               <Info {...detail} />
               <DialogDescription className='w-full text-start'>{detail?.description}</DialogDescription>

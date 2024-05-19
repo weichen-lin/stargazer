@@ -16,7 +16,7 @@ export default function Results() {
   }
 
   return (
-    <div className={`w-full h-full md:grid md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4 py-4 flex flex-col`}>
+    <div className={`w-full h-full md:grid md:grid-cols-2 2xl:grid-cols-3 3xl:grid-cols-4 gap-4 py-4 flex flex-col`}>
       {results.map((item, index) => (
         <Repo key={item.repo_id} {...item} index={index} />
       ))}

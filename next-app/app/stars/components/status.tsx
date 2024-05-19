@@ -13,7 +13,7 @@ export function Empty() {
 
 export function Loading() {
   return (
-    <div className={`h-full md:grid md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4 pt-4 flex flex-col`}>
+    <div className={`h-full md:grid md:grid-cols-2 2xl:grid-cols-3 3xl:grid-cols-4 gap-4 pt-4 flex flex-col mx-auto`}>
       {Array.from({ length: 10 }).map((_, index) => (
         <div className='w-[380px] mx-auto h-[170px] animate-pulse bg-slate-200' key={`loading-skeleton-${index}`}></div>
       ))}

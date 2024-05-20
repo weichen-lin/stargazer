@@ -36,7 +36,7 @@ export default function Chatter() {
           </motion.div>
         )}
       </AnimatePresence>
-      <div className='flex-1 py-2 overflow-y-auto gap-y-6 flex flex-col'>
+      <div className='flex-1 py-4 overflow-y-auto gap-y-6 flex flex-col'>
         {messages.map((message, i) => (
           <div key={`chat-message-group-${i}`} className='flex flex-col gap-y-8'>
             <UserRequest key={`user-request-msg-${i}`} message={message} />
@@ -74,7 +74,7 @@ const UserRequest = ({ message }: { message: string }) => {
   const { image } = useUser()
 
   return (
-    <div className='flex flex-col gap-y-2 items-end w-full'>
+    <div className='flex flex-col gap-y-2 items-end w-full lg:w-2/3 mx-auto'>
       <div className='flex gap-x-3 items-center justify-end md:w-2/3'>
         <div className='text-slate-500'>You</div>
         <img src={image} alt='stargazer' className='rounded-full w-7 h-7' />

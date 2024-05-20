@@ -13,7 +13,7 @@ import { useRepoDetail } from '@/hooks/util'
 
 export const Empty = () => {
   return (
-    <div className='py-3 flex flex-col lg:flex-row gap-y-1 flex-wrap w-full gap-4 bg-slate-300/30 p-3'>
+    <div className='py-3 flex flex-col lg:flex-row gap-y-1 flex-wrap w-full gap-4 bg-slate-300/30 p-3 lg:w-2/3'>
       <div className='flex items-center gap-x-4'>
         <ExclamationTriangleIcon className='w-5 h-5 text-yellow-500' />
         <p className='text-slate-700'>No data found</p>
@@ -29,7 +29,7 @@ export const Empty = () => {
 
 export const Error = () => {
   return (
-    <div className='py-3 flex flex-col lg:flex-row gap-y-1 flex-wrap w-full gap-4 bg-slate-300/30 p-3'>
+    <div className='py-3 flex flex-col lg:flex-row gap-y-1 flex-wrap w-full gap-4 bg-slate-300/30 p-3 lg:w-2/3'>
       <div className='flex items-center gap-x-4'>
         <CrossCircledIcon className='w-5 h-5 text-red-500' />
         <p className='text-slate-700'>Service not available now</p>

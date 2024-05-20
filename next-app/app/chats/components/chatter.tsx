@@ -28,7 +28,7 @@ export default function Chatter() {
   }, [messages.length])
 
   return (
-    <div className='h-full flex flex-col justify-between p-4 w-full'>
+    <div className='h-full flex flex-col justify-between p-4 w-full lg:w-2/3 lg:mx-auto'>
       <AnimatePresence>
         {presence && (
           <motion.div initial={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 100, transition: { duration: 0.5 } }}>
@@ -36,16 +36,16 @@ export default function Chatter() {
           </motion.div>
         )}
       </AnimatePresence>
-      <div className='flex-1 py-2 overflow-y-auto gap-y-6 flex flex-col'>
+      <div className='flex-1 py-2 overflow-y-auto gap-y-6 flex flex-col w-full'>
         {messages.map((message, i) => (
-          <div key={`chat-message-group-${i}`} className='flex flex-col gap-y-8'>
+          <div key={`chat-message-group-${i}`} className='flex flex-col gap-y-8 w-full'>
             <UserRequest key={`user-request-msg-${i}`} message={message} />
             <Responser key={`stargazer-response-msg-${i}`} query={message} />
           </div>
         ))}
         <div ref={messagesEndRef}></div>
       </div>
-      <div className='relative lg:w-2/3 lg:mx-auto'>
+      <div className='relative'>
         <Textarea
           placeholder='Message to StarGazer'
           className='pr-20 lg:text-base'
@@ -74,19 +74,21 @@ const UserRequest = ({ message }: { message: string }) => {
   const { image } = useUser()
 
   return (
-    <div className='flex flex-col gap-y-2 items-end w-full'>
-      <div className='flex gap-x-3 items-center justify-end md:w-2/3'>
-        <div className='text-slate-500'>You</div>
-        <img src={image} alt='stargazer' className='rounded-full w-7 h-7' />
-      </div>
-      <div
-        className={clsx(
-          'rounded-lg shadow-md w-full flex gap-x-3 md:w-2/3',
-          'border-[1px] border-slate-100/40 p-3 text-wrap',
-          'text-slate-700 border-[1px] border-slate-300',
-        )}
-      >
-        {message}
+    <div className='w-full flex justify-end items-end'>
+      <div className='w-full lg:w-2/3 flex flex-col gap-y-2'>
+        <div className='flex gap-x-3 items-center justify-end'>
+          <div className='text-slate-500'>You</div>
+          <img src={image} alt='stargazer' className='rounded-full w-7 h-7' />
+        </div>
+        <div
+          className={clsx(
+            'rounded-lg shadow-md w-full flex gap-x-3 items-center',
+            'border-[1px] border-slate-100/40 p-3 text-wrap',
+            'text-slate-700 border-[1px] border-slate-300',
+          )}
+        >
+          {message}
+        </div>
       </div>
     </div>
   )

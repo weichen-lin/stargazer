@@ -18,7 +18,7 @@ export const useChatStore = create<IChatStore>(set => ({
 export default function useChat() {
   const { isLoading, isDisabled, setIsLoading, setIsDisabled } = useChatStore()
 
-  const [messages, setMessages] = useState<string[]>([])
+  const [messages, setMessages] = useState<string[]>(['test'])
   const [text, setText] = useState<string>('')
 
   const ref = useRef<HTMLTextAreaElement>(null)

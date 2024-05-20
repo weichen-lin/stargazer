@@ -2,7 +2,6 @@
 
 import { DialogTitle } from '@/components/ui/dialog'
 import { IRepoDetail } from '@/actions/neo4j'
-import Image from 'next/image'
 import { CheckCheck, XCircle } from 'lucide-react'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
@@ -12,7 +11,7 @@ export default function Title(props: IRepoDetail) {
 
   return (
     <DialogTitle className='flex gap-x-2 items-center'>
-      <Image src={avatar_url} alt='avatar' width={48} height={48} className='rounded-full' />
+      <img width={48} height={48} src={avatar_url} alt={full_name} />
       <span className='ml-2 lg:text-2xl text-normal max-w-[220px] truncate'>{full_name}</span>
       <TooltipProvider>
         <Tooltip>

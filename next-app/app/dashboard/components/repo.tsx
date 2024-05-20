@@ -1,5 +1,3 @@
-import clsx from 'clsx'
-import Image from 'next/image'
 import { GitHubLogoIcon, LightningBoltIcon } from '@radix-ui/react-icons'
 import { IRepoAtDashboard } from '@/actions/neo4j'
 import moment from 'moment'
@@ -13,7 +11,7 @@ export default function Repo(props: IRepoAtDashboard & { searchKey: string }) {
   return (
     <div className='w-full flex justify-between py-2'>
       <div className='flex gap-x-2 items-center'>
-        <Image width={32} height={32} src={avatar_url} alt={full_name}></Image>
+        <img width={32} height={32} src={avatar_url} alt={full_name} />
         <div className='text-slate-700 max-w-[200px] xl:max-w-[140px] 2xl:max-w-[200px] truncate'>{full_name}</div>
       </div>
       <div className='flex gap-x-2 items-center justify-center'>

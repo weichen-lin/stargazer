@@ -62,7 +62,7 @@ const Responser = ({ query }: { query: string }) => {
   }, [])
 
   return (
-    <div className='w-full lg:w-2/3 lg:mx-auto flex flex-col gap-y-2'>
+    <div className='w-full flex flex-col gap-y-2'>
       <div className='flex gap-x-3 items-center'>
         <img src='/icon.jpeg' alt='stargazer' className='rounded-full w-7 h-7' />
         <div className='text-slate-500'>StarGazer</div>

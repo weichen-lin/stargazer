@@ -25,6 +25,8 @@ const parseEventData = (data: string): ISchema => {
   return schema.parse(o)
 }
 
+const producer_url = process.env.NEXT_PUBLIC_PRODUCER_URL ?? '/producer'
+
 export default function ProgressInfo() {
   const [isEstablish, setIsEstablish] = useState(true)
   const [isFinished, setIsFinished] = useState(false)
@@ -38,7 +40,7 @@ export default function ProgressInfo() {
     const startSyncStars = async () => {
       try {
         const token = await generateAccessToken(email)
-        eventSource = new EventSourcePolyfill(`${process.env.NEXT_PUBLIC_PRODUCER_URL}/sync_user_stars`, {
+        eventSource = new EventSourcePolyfill(`${producer_url}/sync_user_stars`, {
           headers: {
             Authorization: token,
           },

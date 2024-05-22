@@ -42,7 +42,7 @@ export const HaveSuggestions = (props: { suggestions: ISuggestion[] }) => {
   const { suggestions } = props
 
   return suggestions.length > 0 ? (
-    <div className='w-full lg:w-2/3 lg:mx-auto flex flex-col gap-y-2 rounded-md bg-slate-300/30'>
+    <div className='w-full xl:w-3/4 flex flex-col gap-y-2 rounded-md bg-slate-300/30'>
       <p className='text-slate-700 p-3 px-5'>Stargazer found {suggestions.length} results for you</p>
       <div className='py-3 flex flex-col md:grid md:grid-cols-2 gap-y-5 flex-wrap w-full gap-4 p-3'>
         {suggestions.map((e, i) => (
@@ -70,7 +70,7 @@ const Suggestion = (props: ISuggestion & { index: number }) => {
           <div className='w-10 h-10'>
             <img src={avatar_url} alt='stargazer' className='rounded-full w-full h-full' />
           </div>
-          <div className='max-w-[220px] truncate'>{full_name}</div>
+          <div className='max-w-[220px] lg:max-w-[100px] xl:max-w-[140px] truncate'>{full_name}</div>
         </div>
         <div className='flex gap-x-2 items-center'>
           <OpenInNewWindowIcon

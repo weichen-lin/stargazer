@@ -2,6 +2,7 @@ from neo4j import GraphDatabase
 from dataclasses import dataclass
 from typing import Optional
 
+
 @dataclass
 class UserInfo:
     limit: float

@@ -3,7 +3,8 @@ from openai import OpenAI
 from config import db
 from helper import get_token_length, get_embedding, get_formatted_text
 from openai import AuthenticationError, APIConnectionError
-
+from plan import Planner
+from pprint import pprint
 def Crawler(id: int, email: str) -> tuple[str, int]:
 
     info = db.get_user_info(email)
@@ -91,14 +92,17 @@ def VectorSearcher(email: str, query: str) -> list[dict]:
     if info is None:
         raise ValueError(f"User {email} not found")
 
-    get_formatted_question = get_formatted_text(query)
-    print(get_formatted_question)
+    plans = Planner(query, info.openai_key)
 
-    vector = get_embedding(get_formatted_question)
+    vectors = [get_embedding(get_formatted_text(q.question)) for q in plans.query_graph]
+    repos  = [db.get_suggestion_repos(email, info.limit, info.cosine, vector) for vector in vectors]
+    pprint(repos)
 
-    repos = db.get_suggestion_repos(email, info.limit, info.cosine, vector)
+    # vector = get_embedding(get_formatted_question)
 
-    return repos, 200
+    # repos = db.get_suggestion_repos(email, info.limit, info.cosine, vector)
+
+    return [], 200
 
 
 def FullTextSearcher(email: str, query: str) -> list[dict]:

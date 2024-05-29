@@ -16,4 +16,4 @@ export TRANSFORMER_URL=http://localhost:5000
 export APP_PASSWORD=testapppassword
 export KAFKA_URL=localhost:9092
 export GIN_MODE=debug
-export PRODUCER_PORT=8080
+export PRODUCER_PORT=:8080

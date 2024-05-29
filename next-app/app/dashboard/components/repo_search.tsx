@@ -4,7 +4,6 @@ import clsx from 'clsx'
 import { GetUser } from '@/actions'
 import { getReposByKey, ISearchKey } from '@/actions/neo4j'
 import Repo from './repo'
-import { Suspense } from 'react'
 
 export default async function RepoSearch({ searchKey, title }: { searchKey: ISearchKey; title: string }) {
   const user = await GetUser()

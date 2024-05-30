@@ -4,7 +4,8 @@ from config import db
 from helper import get_token_length, get_embedding, get_formatted_text
 from openai import AuthenticationError, APIConnectionError
 from plan import Planner
-from pprint import pprint
+from cleaner import flatten_and_deduplicate
+
 def Crawler(id: int, email: str) -> tuple[str, int]:
 
     info = db.get_user_info(email)
@@ -96,13 +97,8 @@ def VectorSearcher(email: str, query: str) -> list[dict]:
 
     vectors = [get_embedding(get_formatted_text(q.question)) for q in plans.query_graph]
     repos  = [db.get_suggestion_repos(email, info.limit, info.cosine, vector) for vector in vectors]
-    pprint(repos)
-
-    # vector = get_embedding(get_formatted_question)
-
-    # repos = db.get_suggestion_repos(email, info.limit, info.cosine, vector)
-
-    return [], 200
+    
+    return flatten_and_deduplicate(repos), 200
 
 
 def FullTextSearcher(email: str, query: str) -> list[dict]:

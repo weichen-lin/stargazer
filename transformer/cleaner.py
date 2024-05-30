@@ -2,6 +2,7 @@ import re
 from nltk.stem.porter import PorterStemmer
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
+from model import RepoInfo
 
 ps = PorterStemmer()
 
@@ -27,3 +28,20 @@ def get_tokens(text):
     tokens = [ps.stem(word) for word in tokens]
 
     return tokens
+
+
+def flatten_and_deduplicate(nested_list):
+    flat_list = []
+    seen = set()
+
+    def flatten(lst: list[RepoInfo]):
+        for item in lst:
+            if isinstance(item, list):
+                flatten(item)
+            else:
+                if item.repo_id not in seen:
+                    flat_list.append(item)
+                    seen.add(item.repo_id)
+
+    flatten(nested_list)
+    return flat_list

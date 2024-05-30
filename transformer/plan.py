@@ -1,17 +1,8 @@
 import instructor
 from openai import OpenAI
 
-import enum
 from typing import List
 from pydantic import Field, BaseModel
-from pprint import pprint
-
-
-class QueryType(str, enum.Enum):
-    """Enumeration representing the types of queries that can be asked to a question answer system."""
-
-    SINGLE_QUESTION = "SINGLE"
-    MERGE_MULTIPLE_RESPONSES = "MERGE_MULTIPLE_RESPONSES"
 
 
 class Query(BaseModel):
@@ -25,10 +16,6 @@ class Query(BaseModel):
     dependencies: List[int] = Field(
         default_factory=list,
         description="List of sub questions that need to be answered before asking this question",
-    )
-    node_type: QueryType = Field(
-        default=QueryType.SINGLE_QUESTION,
-        description="Type of question, either a single question or a multi-question merge",
     )
 
 

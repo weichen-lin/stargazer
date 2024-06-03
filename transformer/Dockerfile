@@ -6,7 +6,7 @@ COPY . .
 
 RUN pip install poetry \
     && poetry config virtualenvs.create false \
-    && poetry install --no-dev \
+    && poetry install --only main \
     && poetry run playwright install chromium \
     && poetry run python pre_install.py
 

@@ -67,10 +67,11 @@ def get_suggestions():
         except ValidationError as e:
             return jsonify({"error": str(e)}), 400
 
-        except ValueError as e:
-            return jsonify({"error": str(e)}), 404
+        except AuthenticationError:
+            return jsonify({"error": "Invalid OpenAI Key"}), 403
 
         except Exception as e:
+            print(e)
             return jsonify({"error": str(e)}), 404
 
     else:

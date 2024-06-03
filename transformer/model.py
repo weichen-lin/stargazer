@@ -18,6 +18,7 @@ class RepoInfo:
     html_url: str
     repo_id: int
 
+
 class RepoEmbeddingInfoSchema(BaseModel):
     repo_id: int
     email: str

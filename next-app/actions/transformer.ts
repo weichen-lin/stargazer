@@ -10,7 +10,12 @@ export interface ISuggestion {
   html_url: string
 }
 
-export const GetSuggesions = async (query: string): Promise<ISuggestion[] | boolean> => {
+export const GetSuggesions = async (
+  query: string,
+): Promise<{
+  status: number
+  items: ISuggestion[]
+}> => {
   const { email } = await GetUser()
 
   try {
@@ -28,13 +33,22 @@ export const GetSuggesions = async (query: string): Promise<ISuggestion[] | bool
 
     if (res.ok) {
       const data = await res.json()
-      return data.items
+      return {
+        status: res.status,
+        items: data.items,
+      }
     }
 
-    return []
+    return {
+      status: res.status,
+      items: [],
+    }
   } catch (error) {
     console.error('Error fetching suggestions: ', error)
-    return false
+    return {
+      status: 500,
+      items: [],
+    }
   }
 }
 

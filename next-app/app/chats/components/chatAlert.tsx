@@ -10,7 +10,7 @@ export default function ChatAlert() {
   const { isStartEvent, cantClose, close } = useChatAlert()
 
   return (
-    <Alert className='lg:w-2/3 lg:mx-auto drop-shadow-md dark:border-slate-100'>
+    <Alert className=' w-full lg:w-3/4 xl:2/3 lg:mx-auto drop-shadow-md dark:border-slate-100 mb-8'>
       <div className='flex justify-between items-center'>
         <AlertTitle className='text-lg'>Welcome to StarGazer!</AlertTitle>
         {!cantClose && <Cross1Icon className='w-4 h-4 cursor-pointer' onClick={close} />}

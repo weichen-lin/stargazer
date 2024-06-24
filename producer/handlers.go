@@ -38,12 +38,12 @@ func GetGithubRepos(db *db.Database, msg kafka.Message, producer *kafka.Writer) 
 	var token string
 
 	if tokenFormCache, found := tokenCache.Get(info.Email); !found {
-		tokenValue, err := db.GetUserConfig(info.Email)
+		tokenValue, err := db.GetUserToken(info.Email)
 		if err != nil {
 			return fmt.Errorf("error getting user token %s", err.Error())
 		}
-		token = tokenValue.GithubToken
-		tokenCache.Set(info.Email, tokenValue.GithubToken, cache.DefaultExpiration)
+		tokenCache.Set(info.Email, tokenValue, cache.DefaultExpiration)
+		token = tokenValue
 	} else {
 		tokenValue, ok := tokenFormCache.(string)
 		if !ok {
@@ -67,6 +67,8 @@ func GetGithubRepos(db *db.Database, msg kafka.Message, producer *kafka.Writer) 
 	if err != nil {
 		return fmt.Errorf("error getting user stars: %s", err.Error())
 	}
+
+
 
 	if len(stars) == 30 {
 		info.Page++

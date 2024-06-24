@@ -5,22 +5,30 @@ import (
 	"os"
 
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 	"github.com/weichen-lin/kafka-service/controller"
 )
 
 func main() {
+	err := godotenv.Load()
+	if err != nil {
+		panic(err)
+	}
+
+	topic := os.Getenv("GET_USER_STAR_TOPIC")
+	if topic == "" {
+		panic("Kafka topic variables not set")
+	}
 
 	m := NewMiddleware()
 	service := NewService(
 		RegisterConsumer{
-			Topic:       "get_user_stars",
+			Topic:       topic,
 			HandlerFunc: GetGithubRepos,
 		},
 	)
 
 	c := controller.NewController(service.DB, service.Producer)
-
-	port := os.Getenv("PRODUCER_PORT")
 
 	r := gin.Default()
 
@@ -37,5 +45,5 @@ func main() {
 
 	r.PATCH("/update_cron_tab_setting", m.Cors(), m.JWTAuth(), c.UpdateCronTabSetting)
 
-	r.Run(port)
+	r.Run(":8080")
 }

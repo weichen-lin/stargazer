@@ -1,57 +1,69 @@
 package main
 
 import (
+	"context"
+	"crypto/tls"
 	"fmt"
 	"os"
 
-	"github.com/IBM/sarama"
+	"github.com/segmentio/kafka-go"
+	"github.com/segmentio/kafka-go/sasl/scram"
 	db "github.com/weichen-lin/kafka-service/db"
 )
 
 type Service struct {
 	DB       *db.Database
-	Producer sarama.SyncProducer
+	Producer *kafka.Writer
 }
 
 func NewService(registries ...RegisterConsumer) *Service {
 	database := db.NewDatabase()
 
-	kafka_url := os.Getenv("KAFKA_URL")
-	brokers := []string{kafka_url}
+	endpoint := os.Getenv("KAFKA_ENDPOINT")
+	user_name := os.Getenv("KAFKA_USER_NAME")
+	password := os.Getenv("KAFKA_USER_PASSWORD")
+	topic := os.Getenv("GET_USER_STAR_TOPIC")
 
-	config := sarama.NewConfig()
-	config.Producer.Return.Successes = true
-	config.Producer.Return.Errors = true
-	config.Consumer.Return.Errors = true
+	if endpoint == "" || user_name == "" || password == "" || topic == "" {
+		panic("Kafka environment variables not set")
+	}
 
-	producer, err := sarama.NewSyncProducer(brokers, config)
-	if err != nil {
-		panic(err)
+	mechanism, _ := scram.Mechanism(scram.SHA256, user_name, password)
+
+	producer := &kafka.Writer{
+		Addr:  kafka.TCP(endpoint),
+		Topic: topic,
+		Transport: &kafka.Transport{
+			SASL: mechanism,
+			TLS:  &tls.Config{},
+		},
 	}
 
 	for _, registry := range registries {
 
-		consumer, err := sarama.NewConsumer(brokers, config)
-		if err != nil {
-			panic(err)
-		}
-
-		consumerPartitionConsumer, err := consumer.ConsumePartition(registry.Topic, 0, sarama.OffsetNewest)
-		if err != nil {
-			panic(err)
-		}
-
 		go func(registry RegisterConsumer) {
+
+			consumer := kafka.NewReader(kafka.ReaderConfig{
+				Brokers: []string{endpoint},
+				GroupID: "1",
+				Topic:   registry.Topic,
+				Dialer: &kafka.Dialer{
+					SASLMechanism: mechanism,
+					TLS:           &tls.Config{},
+				},
+			})
+
 			for {
-				select {
-				case err := <-consumerPartitionConsumer.Errors():
+				message, err := consumer.ReadMessage(context.Background())
+				if err != nil {
 					panic(err)
-				case message := <-consumerPartitionConsumer.Messages():
-					err := registry.HandlerFunc(database, message, producer)
-					if err != nil {
-						fmt.Println(err)
-					}
 				}
+
+				err = registry.HandlerFunc(database, message, producer)
+				if err != nil {
+					fmt.Println(err)
+				}
+
 			}
 		}(registry)
 

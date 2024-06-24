@@ -1,46 +1,13 @@
 'use client'
 
-import { Textarea } from '@/components/ui/textarea'
-import { Button } from '@/components/ui/button'
-import { PaperPlaneIcon, GitHubLogoIcon } from '@radix-ui/react-icons'
-import clsx from 'clsx'
-import { useChat, useChatAlert } from '@/hooks/chat'
-import { useRef, useEffect, useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import ChatAlert from './chatAlert'
+import { useEffect, useState } from 'react'
 import { ISuggestion, GetSuggesions } from '@/actions'
-import { useUser } from '@/context'
-import { Empty, Error, HaveSuggestions } from './message'
+import { Error, HaveSuggestions } from './message'
 import { useChatStore } from '@/hooks/chat'
-import { memo } from 'react'
-
-const useSuggestions = (query: string) => {
-  const [answers, setAnswers] = useState<ISuggestion[] | boolean>(false)
-  const [isLoading, setResponserLoading] = useState<boolean>(true)
-  const { setIsLoading } = useChatStore()
-
-  useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true)
-      try {
-        const res = await GetSuggesions(query)
-        setAnswers(res)
-      } catch (error) {
-        console.log(error)
-      } finally {
-        setIsLoading(false)
-        setResponserLoading(false)
-      }
-    }
-
-    fetchData()
-  }, [])
-
-  return { answers, isLoading }
-}
 
 const Responser = ({ query }: { query: string }) => {
-  const [answers, setAnswers] = useState<ISuggestion[] | boolean>(false)
+  const [answers, setAnswers] = useState<ISuggestion[]>([])
+  const [status, setStatus] = useState<number>(200)
   const [isLoading, setResponserLoading] = useState<boolean>(true)
   const { setIsLoading } = useChatStore()
 
@@ -49,9 +16,13 @@ const Responser = ({ query }: { query: string }) => {
       setIsLoading(true)
       try {
         const res = await GetSuggesions(query)
-        setAnswers(res)
+        if (res.status === 200) {
+          setAnswers(res.items)
+        }
+        setStatus(res.status)
       } catch (error) {
-        console.log(error)
+        console.error('Error fetching suggestions: ', error)
+        setStatus(500)
       } finally {
         setIsLoading(false)
         setResponserLoading(false)
@@ -62,16 +33,16 @@ const Responser = ({ query }: { query: string }) => {
   }, [])
 
   return (
-    <div className='w-full flex flex-col gap-y-2'>
+    <div className='w-full flex flex-col gap-y-4'>
       <div className='flex gap-x-3 items-center'>
         <img src='/icon.jpeg' alt='stargazer' className='rounded-full w-7 h-7' />
         <div className='text-slate-500'>StarGazer</div>
       </div>
       {isLoading && <div className='loader m-4'></div>}
-      {!isLoading && Array.isArray(answers) && <HaveSuggestions suggestions={answers} />}
-      {!isLoading && !Array.isArray(answers) && <Error />}
+      {!isLoading && answers.length > 0 && <HaveSuggestions suggestions={answers} />}
+      {!isLoading && answers.length === 0 && <Error status={status} />}
     </div>
   )
 }
 
-export default memo(Responser)
+export default Responser

@@ -1,8 +1,10 @@
 from playwright.sync_api import sync_playwright
-from openai import OpenAI
 from config import db
 from helper import get_token_length, get_embedding, get_formatted_text
-from openai import AuthenticationError, APIConnectionError
+from openai import OpenAI, AuthenticationError, APIConnectionError
+from plan import Planner
+from cleaner import flatten_and_deduplicate
+
 
 def Crawler(id: int, email: str) -> tuple[str, int]:
 
@@ -91,14 +93,21 @@ def VectorSearcher(email: str, query: str) -> list[dict]:
     if info is None:
         raise ValueError(f"User {email} not found")
 
-    get_formatted_question = get_formatted_text(query)
-    print(get_formatted_question)
+    if info.openai_key is None or info.openai_key == "":
+        raise ValueError(f"User {email} does not have a valid openAIKey")
 
-    vector = get_embedding(get_formatted_question)
+    client = OpenAI(api_key=info.openai_key)
+    client.models.list()
 
-    repos = db.get_suggestion_repos(email, info.limit, info.cosine, vector)
+    plans = Planner(query, info.openai_key)
 
-    return repos, 200
+    vectors = [get_embedding(get_formatted_text(q.question)) for q in plans.query_graph]
+    repos = [
+        db.get_suggestion_repos(email, info.limit, info.cosine, vector)
+        for vector in vectors
+    ]
+
+    return flatten_and_deduplicate(repos), 200
 
 
 def FullTextSearcher(email: str, query: str) -> list[dict]:

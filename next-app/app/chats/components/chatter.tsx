@@ -74,14 +74,14 @@ const UserRequest = ({ message }: { message: string }) => {
   const { image } = useUser()
 
   return (
-    <div className='flex flex-col gap-y-2 items-end w-full mx-auto'>
+    <div className='flex flex-col gap-y-4 items-end w-full'>
       <div className='flex gap-x-3 items-center justify-end'>
         <div className='text-slate-500'>You</div>
         <img src={image} alt='stargazer' className='rounded-full w-7 h-7' />
       </div>
       <div
         className={clsx(
-          'rounded-lg shadow-md w-full flex gap-x-3 xl:w-2/3',
+          'rounded-lg shadow-md w-full flex gap-x-3 md:w-2/3',
           'border-[1px] border-slate-100/40 p-3 text-wrap',
           'text-slate-700 border-[1px] border-slate-300',
         )}

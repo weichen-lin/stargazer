@@ -27,12 +27,19 @@ export const Empty = () => {
   )
 }
 
-export const Error = () => {
+const StatusMap: {
+  [key: number]: string
+} = {
+  403: 'Invalid OpenAI API key',
+  500: 'Service not available now',
+}
+
+export const Error = ({ status }: { status: number }) => {
   return (
-    <div className='py-3 flex flex-col lg:flex-row gap-y-1 flex-wrap w-full gap-4 bg-slate-300/30 p-3 lg:w-2/3'>
+    <div className='py-3 flex flex-col lg:flex-row gap-y-1 flex-wrap w-full gap-4 bg-slate-300/30 p-3 md:w-2/3'>
       <div className='flex items-center gap-x-4'>
         <CrossCircledIcon className='w-5 h-5 text-red-500' />
-        <p className='text-slate-700'>Service not available now</p>
+        <p className='text-slate-700'>{StatusMap[status] ?? ''}</p>
       </div>
     </div>
   )
@@ -42,7 +49,7 @@ export const HaveSuggestions = (props: { suggestions: ISuggestion[] }) => {
   const { suggestions } = props
 
   return suggestions.length > 0 ? (
-    <div className='w-full xl:w-3/4 flex flex-col gap-y-2 rounded-md bg-slate-300/30'>
+    <div className='w-full md:w-2/3 xl:w-3/4 flex flex-col gap-y-2 rounded-md bg-slate-300/30'>
       <p className='text-slate-700 p-3 px-5'>Stargazer found {suggestions.length} results for you</p>
       <div className='py-3 flex flex-col md:grid md:grid-cols-2 gap-y-5 flex-wrap w-full gap-4 p-3'>
         {suggestions.map((e, i) => (

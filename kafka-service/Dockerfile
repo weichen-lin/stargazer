@@ -15,5 +15,6 @@ WORKDIR /app
 
 COPY templates /app/templates
 COPY --from=builder /app/main.exe .
+COPY .env ./.env
 
 CMD ["./main.exe"]

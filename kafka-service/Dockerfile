@@ -17,4 +17,6 @@ COPY templates /app/templates
 COPY --from=builder /app/main.exe .
 COPY .env ./.env
 
+ENV GIN_MODE=release
+
 CMD ["./main.exe"]

@@ -8,7 +8,7 @@ format:
 	find $(PWD) -name "*.go" -exec gofmt -w {} \;
 
 build-dev:
-	docker build -t $(IMAGE_BASE):latest .
+	docker build -t $(IMAGE_BASE)/kafka-service:latest .
 
 push-dev:
-	docker push $(IMAGE_BASE):latest
+	docker push $(IMAGE_BASE)/kafka-service:latest

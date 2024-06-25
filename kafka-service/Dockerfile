@@ -18,5 +18,6 @@ COPY --from=builder /app/main.exe .
 COPY .env ./.env
 
 ENV GIN_MODE=release
+ENV PORT=8080
 
 CMD ["./main.exe"]

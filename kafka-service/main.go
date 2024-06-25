@@ -28,6 +28,11 @@ func main() {
 		},
 	)
 
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
 	c := controller.NewController(service.DB, service.Producer)
 
 	r := gin.Default()
@@ -45,5 +50,5 @@ func main() {
 
 	r.PATCH("/update_cron_tab_setting", m.Cors(), m.JWTAuth(), c.UpdateCronTabSetting)
 
-	r.Run(":8080")
+	r.Run(":" + port)
 }

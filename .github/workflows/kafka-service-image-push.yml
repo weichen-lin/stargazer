@@ -29,6 +29,6 @@ jobs:
           echo ${{ secrets.KAFKA_SERVICE_ENV }} | base64 -d > .env &&
           make build-dev && make push-dev
 
-      # - name: 'Deploy Image on render'
-      #   run: |
-      #     curl ${{ secrets.DEV_RENDER_URL }}
+      - name: 'Deploy Image on render'
+        run: |
+          curl ${{ secrets.DEPLOY_WEBHOOK }}

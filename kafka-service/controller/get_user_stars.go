@@ -1,13 +1,14 @@
 package controller
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"time"
 
-	"github.com/IBM/sarama"
 	"github.com/gin-gonic/gin"
 	"github.com/patrickmn/go-cache"
+	"github.com/segmentio/kafka-go"
 )
 
 var getUserStarsLimiter = cache.New(20*time.Minute, 10*time.Minute)
@@ -34,9 +35,8 @@ func (c *Controller) GetUserStars(ctx *gin.Context) {
 
 	getUserStarsLimiter.Set(email, true, time.Minute*30)
 
-	_, _, err := c.producer.SendMessage(&sarama.ProducerMessage{
-		Topic: "get_user_stars",
-		Value: sarama.StringEncoder(`{"email":"` + email + `","page":1}`),
+	err := c.producer.WriteMessages(context.Background(), kafka.Message{
+		Value: []byte(`{"email":"` + email + `","page":1}`),
 	})
 
 	if err != nil {

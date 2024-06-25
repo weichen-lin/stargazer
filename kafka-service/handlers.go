@@ -1,13 +1,14 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
 
-	"github.com/IBM/sarama"
 	"github.com/patrickmn/go-cache"
+	"github.com/segmentio/kafka-go"
 	"github.com/weichen-lin/kafka-service/db"
 	"github.com/weichen-lin/kafka-service/util"
 )
@@ -21,28 +22,28 @@ type GetGithubReposInfo struct {
 
 type RegisterConsumer struct {
 	Topic       string
-	HandlerFunc func(db *db.Database, msg *sarama.ConsumerMessage, producer sarama.SyncProducer) error
+	HandlerFunc func(db *db.Database, msg kafka.Message, producer *kafka.Writer) error
 }
 
-func GetGithubRepos(db *db.Database, msg *sarama.ConsumerMessage, producer sarama.SyncProducer) error {
-	fmt.Printf("Received from Topic - %s, Value - %s\n", msg.Topic, msg.Value)
+func GetGithubRepos(db *db.Database, msg kafka.Message, producer *kafka.Writer) error {
+	fmt.Printf("Received from Topic %s - Offset %d - Value : %s\n", msg.Topic, msg.Offset, msg.Value)
 
 	var info GetGithubReposInfo
 
 	err := json.Unmarshal(msg.Value, &info)
 	if err != nil {
-		return err
+		return fmt.Errorf("error unmarshalling JSON: %s", err.Error())
 	}
 
 	var token string
 
 	if tokenFormCache, found := tokenCache.Get(info.Email); !found {
-		tokenValue, err := db.GetUserConfig(info.Email)
+		tokenValue, err := db.GetUserToken(info.Email)
 		if err != nil {
 			return fmt.Errorf("error getting user token %s", err.Error())
 		}
-		token = tokenValue.GithubToken
-		tokenCache.Set(info.Email, tokenValue.GithubToken, cache.DefaultExpiration)
+		tokenCache.Set(info.Email, tokenValue, cache.DefaultExpiration)
+		token = tokenValue
 	} else {
 		tokenValue, ok := tokenFormCache.(string)
 		if !ok {
@@ -67,6 +68,8 @@ func GetGithubRepos(db *db.Database, msg *sarama.ConsumerMessage, producer saram
 		return fmt.Errorf("error getting user stars: %s", err.Error())
 	}
 
+
+
 	if len(stars) == 30 {
 		info.Page++
 
@@ -75,9 +78,8 @@ func GetGithubRepos(db *db.Database, msg *sarama.ConsumerMessage, producer saram
 			return fmt.Errorf("error marshalling JSON: %s", err.Error())
 		}
 
-		_, _, err = producer.SendMessage(&sarama.ProducerMessage{
-			Topic: "get_user_stars",
-			Value: sarama.StringEncoder(jsonString),
+		err = producer.WriteMessages(context.Background(), kafka.Message{
+			Value: []byte(jsonString),
 		})
 
 		if err != nil {

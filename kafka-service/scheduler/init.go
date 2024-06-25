@@ -1,11 +1,12 @@
 package scheduler
 
 import (
+	"context"
 	"sync"
 
-	"github.com/IBM/sarama"
 	"github.com/go-co-op/gocron/v2"
 	"github.com/google/uuid"
+	"github.com/segmentio/kafka-go"
 	"github.com/weichen-lin/kafka-service/db"
 )
 
@@ -13,10 +14,10 @@ type Scheduler struct {
 	sync.Mutex
 	centraller gocron.Scheduler
 	jobs       map[string]uuid.UUID
-	producer   sarama.SyncProducer
+	producer   *kafka.Writer
 }
 
-func NewScheduler(db *db.Database, producer sarama.SyncProducer) *Scheduler {
+func NewScheduler(db *db.Database, producer *kafka.Writer) *Scheduler {
 
 	c, err := gocron.NewScheduler()
 	if err != nil {
@@ -43,9 +44,8 @@ func NewScheduler(db *db.Database, producer sarama.SyncProducer) *Scheduler {
 				),
 			),
 			gocron.NewTask(func() {
-				producer.SendMessage(&sarama.ProducerMessage{
-					Topic: "get_user_stars",
-					Value: sarama.StringEncoder(`{"email":"` + crontab.Email + `","page":1}`),
+				producer.WriteMessages(context.Background(), kafka.Message{
+					Value: []byte(`{"email":"` + crontab.Email + `","page":1}`),
 				})
 			}),
 		)
@@ -86,9 +86,8 @@ func (s *Scheduler) Update(email string, hour int) error {
 			),
 		),
 		gocron.NewTask(func() {
-			s.producer.SendMessage(&sarama.ProducerMessage{
-				Topic: "get_user_stars",
-				Value: sarama.StringEncoder(`{"email":"` + email + `","page":1}`),
+			s.producer.WriteMessages(context.Background(), kafka.Message{
+				Value: []byte(`{"email":"` + email + `","page":1}`),
 			})
 		}),
 	)

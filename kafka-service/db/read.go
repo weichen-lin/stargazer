@@ -75,6 +75,51 @@ func (db *Database) GetUser(email string) (*User, error) {
 	}, nil
 }
 
+func (db *Database) GetUserToken(email string) (string, error) {
+	session := db.driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
+	defer session.Close(context.Background())
+
+	records, err := session.ExecuteRead(context.Background(), func(tx neo4j.ManagedTransaction) (any, error) {
+		result, err := tx.Run(context.Background(), `
+            MATCH (u:User {email: $email})-[:HAS_ACCOUNT]->(a:Account)
+            RETURN a.access_token as access_token
+            `, map[string]any{
+			"email": email,
+		})
+
+		if err != nil {
+			return "", err
+		}
+
+		records, err := result.Collect(context.Background())
+		if err != nil {
+			return "", err
+		}
+		return records, nil
+	})
+
+	if err != nil {
+		return "", err
+	}
+
+	configs, ok := records.([]*neo4j.Record)
+	if !ok {
+		return "", fmt.Errorf("error at converting users records to []*neo4j.Record")
+	}
+
+	if len(configs) == 0 {
+		return "", fmt.Errorf("config not setting")
+	}
+
+	record := configs[0].AsMap()
+	access_token, ok := record["access_token"].(string)
+	if !ok {
+		return "", fmt.Errorf("error at convert openai_key from record: %v", record)
+	}
+
+	return access_token, nil
+}
+
 func (db *Database) GetUserConfig(email string) (*Config, error) {
 	session := db.driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	defer session.Close(context.Background())
@@ -200,6 +245,7 @@ func (db *Database) GetAllUserCrontab() ([]Crontab, error) {
 	records, err := session.ExecuteRead(context.Background(), func(transaction neo4j.ManagedTransaction) (interface{}, error) {
 		result, err := transaction.Run(context.Background(), `
 				MATCH (u:User)-[h:HAS_CRONTAB]-(c:Crontab)
+				WHERE c.hour IS NOT NULL
 				RETURN u.email as email, c.hour as hour            
 				`,
 			map[string]interface{}{})

@@ -1,7 +1,9 @@
 name: CI - Build Frontend
 
 on:
-  push
+  push:
+    paths:
+      - next-app/**
 
 jobs:
   build:

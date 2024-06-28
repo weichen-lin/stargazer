@@ -1,19 +1,32 @@
 package main
 
 import (
+	"context"
+	"fmt"
 	"net/http"
 	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"github.com/weichen-lin/kafka-service/controller"
+	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
+	"go.opentelemetry.io/otel"
 )
+
+var tracer = otel.Tracer("kafka-service")
 
 func main() {
 	err := godotenv.Load()
 	if err != nil {
 		panic(err)
 	}
+
+	tp := InitTracerHTTP()
+	defer func() {
+		if err := tp.Shutdown(context.Background()); err != nil {
+			fmt.Println("Error shutting down tracer provider: ", err)
+		}
+	}()
 
 	topic := os.Getenv("GET_USER_STAR_TOPIC")
 	if topic == "" {
@@ -37,7 +50,16 @@ func main() {
 
 	r := gin.Default()
 
+	r.Use(otelgin.Middleware(""))
+
 	r.HEAD("/health", func(c *gin.Context) {
+
+		ctx := c.Request.Context()
+
+		_, span := tracer.Start(ctx, "health")
+		defer span.End()
+	
+
 		c.JSON(http.StatusOK, gin.H{
 			"message": "OK",
 		})

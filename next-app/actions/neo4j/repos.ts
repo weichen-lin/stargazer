@@ -174,14 +174,14 @@ export const getLanguageDistribution = async (name: string): Promise<ILanguageDi
   }
 }
 
-export const getRepositoriesCount = async (name: string): Promise<number> => {
+export const getRepositoriesCount = async (email: string): Promise<number> => {
   const q = `
-  MATCH (u: User {name: $name})-[:STARS {is_delete: false}]-(r:Repository)
+  MATCH (u: User {email: $email})-[:STARS {is_delete: false}]-(r:Repository)
   RETURN COUNT(r) as count;
   `
 
   try {
-    const data = await fetcher(q, { name })
+    const data = await fetcher(q, { email })
     if (data && data?.length > 0) {
       return data[0]?.count?.low ?? 0
     }

@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"os"
 
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
@@ -23,7 +24,33 @@ func NewDatabase() *Database {
 		panic(err)
 	}
 
+	err = InitFullTextIndex(driver)
+	if err != nil {
+		panic(err)
+	}
+
 	return &Database{
 		driver: driver,
 	}
+}
+
+func InitFullTextIndex(driver neo4j.DriverWithContext) error {
+	session := driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
+	defer session.Close(context.Background())
+
+	_, err := session.ExecuteWrite(context.Background(), func(transaction neo4j.ManagedTransaction) (interface{}, error) {
+		_, err := transaction.Run(context.Background(),
+			"CREATE FULLTEXT INDEX REPOSITORY_FULL_TEXT_SEARCH IF NOT EXISTS " +
+			"FOR (r:Repository) ON EACH [r.full_name, r.description]",
+			map[string]interface{}{},
+		)
+
+		return nil, err
+	})
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

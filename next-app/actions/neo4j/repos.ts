@@ -336,3 +336,40 @@ export const deleteRepo = async (email: string, repo_id: string): Promise<boolea
     return false
   }
 }
+
+const getSuggestionSchema = z.object({
+  repo_id: z.number(),
+  avatar_url: z.string(),
+  description: z.string().nullable(),
+  full_name: z.string(),
+  html_url: z.string(),
+})
+
+export type ISuggestion = z.infer<typeof getSuggestionSchema>
+
+export const getFullTextSearch = async (email: string, query: string): Promise<ISuggestion[]> => {
+  const q = `
+  CALL db.index.fulltext.queryNodes("REPOSITORY_FULL_TEXT_SEARCH", $query) YIELD node, score
+  MATCH (User {email: $email})-[:STARS]-(node)
+  RETURN node.repo_id as repo_id ,node.avatar_url as avatar_url, node.full_name as full_name, node.description as description, node.html_url as html_url
+  LIMIT 5
+  `
+
+  try {
+    const data = await fetcher(q, { email, query })
+    return (
+      data?.map((e: any) =>
+        getSuggestionSchema.parse({
+          repo_id: e?.repo_id?.low,
+          avatar_url: e?.avatar_url,
+          description: e?.description,
+          full_name: e?.full_name,
+          html_url: e?.html_url,
+        }),
+      ) ?? []
+    )
+  } catch (error) {
+    console.error(error)
+    return []
+  }
+}

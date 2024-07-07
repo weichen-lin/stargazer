@@ -10,6 +10,7 @@ import {
   getReposByKey,
   getRepoDetail,
   deleteRepo,
+  getFullTextSearch,
 } from './repos'
 import { getUserInfo, updateInfo, getCrontabInfo } from './user'
 import { getTags, getTagsByRepo, createTag, deleteTagByRepo } from './tags'
@@ -25,6 +26,7 @@ export {
   getReposByKey,
   getRepoDetail,
   deleteRepo,
+  getFullTextSearch,
 }
 export { getTags, getTagsByRepo, createTag, deleteTagByRepo }
 export { getUserInfo, updateInfo, getCrontabInfo }

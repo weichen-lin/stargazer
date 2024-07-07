@@ -1,6 +1,8 @@
 import { create } from 'zustand'
 import { useState, useRef, useEffect } from 'react'
-import { GetFullTextSearch, ISuggestion } from '@/actions'
+import { ISuggestion } from '@/actions'
+import { getFullTextSearch } from '@/actions/neo4j'
+import { useUser } from '@/context'
 
 interface ISearch {
   query: string
@@ -26,6 +28,7 @@ export interface ISearchRepo {
 
 export default function useSearch() {
   const { query, open, setOpen, setQuery } = searchAtom()
+  const { email } = useUser()
   const [loading, setLoading] = useState(false)
   const [repos, setRepos] = useState<ISuggestion[]>([])
   const ref = useRef<HTMLInputElement>(null)
@@ -33,7 +36,7 @@ export default function useSearch() {
 
   const queryRepos = async (query: string) => {
     setLoading(true)
-    const repos = await GetFullTextSearch(query)
+    const repos = await getFullTextSearch(email, query)
     setRepos(repos)
     setLoading(false)
   }

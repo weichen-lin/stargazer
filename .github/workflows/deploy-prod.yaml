@@ -7,7 +7,7 @@ on:
     branches:
       - main
     paths:
-      - next-app/*
+      - next-app/**
 
 jobs:
   Deploy-Production:

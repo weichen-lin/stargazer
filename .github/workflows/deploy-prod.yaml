@@ -5,12 +5,9 @@ env:
 on:
   push:
     branches:
-      - main-dev
-    paths-ignore:
-      - kafka/*
-      - .github/**/*
-      - transformer/*
-      - migrate/*
+      - main
+    paths:
+      - next-app/*
 
 jobs:
   Deploy-Production:

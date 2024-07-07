@@ -1,22 +1,41 @@
-'use server'
+'use client'
 
 import clsx from 'clsx'
-import { GetUser } from '@/actions'
+import { useEffect, useState } from 'react'
 import { getRepositoriesCount } from '@/actions/neo4j'
+import { useUser } from '@/context'
 
-export default async function TotalRepositories() {
-  const user = await GetUser()
-  const count = await getRepositoriesCount(user.name)
+export default function TotalRepositories() {
+  const [isLoading, setIsLoading] = useState(true)
+  const [total, setTotal] = useState(0)
+  const { email } = useUser()
+  useEffect(() => {
+    const fetchTotal = async () => {
+      try {
+        const res = await getRepositoriesCount(email)
+        setTotal(res)
+      } catch (error) {
+        console.error(error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    fetchTotal()
+  }, [])
 
   return (
     <div
       className={clsx(
-        'border-[2px] border-slate-300/70 rounded-lg flex flex-col items-center justify-center gap-y-4',
+        'border-[2px] border-slate-300/70 rounded-lg flex flex-col items-center justify-center gap-y-1',
         'bg-white drop-shadow-lg dark:bg-slate-300 dark:border-slate-800 dark:text-white',
-        'w-full h-[148px] xl:h-[128px] 2xl:h-[168px]',
+        'w-full h-[35%]',
       )}
     >
-      <div className='w-full text-center text-6xl text-slate-500'>{count}</div>
+      {isLoading ? (
+        <div className='w-1/3 h-6 bg-slate-300/60 animate-pulse'></div>
+      ) : (
+        <div className='w-full text-center text-4xl text-slate-500'>{total}</div>
+      )}
       <div className='w-full text-center text-2xl text-slate-500'>Total Repositories</div>
     </div>
   )

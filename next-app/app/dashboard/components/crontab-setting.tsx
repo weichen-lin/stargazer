@@ -5,7 +5,7 @@ import { Clock } from 'lucide-react'
 import { TimePickerInput } from '@/components/ui/timepicker'
 import { useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { syncUserStars, updateCrontabHour } from '@/actions/producer'
+import { syncUserStars, updateCrontabHour } from '@/actions/kafka-service'
 import { useToast } from '@/components/ui/use-toast'
 import { useUser } from '@/context'
 

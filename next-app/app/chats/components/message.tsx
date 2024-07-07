@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { ISuggestion } from '@/actions'
+import { ISuggestion } from '@/actions/neo4j/repos'
 import {
   ExclamationTriangleIcon,
   GearIcon,

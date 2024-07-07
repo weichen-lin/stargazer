@@ -1,6 +1,6 @@
 'use client'
 
-import { ISuggestion } from '@/actions'
+import { ISuggestion } from '@/actions/neo4j/repos'
 import { motion } from 'framer-motion'
 import clsx from 'clsx'
 import { useRepoDetail } from '@/hooks/util'

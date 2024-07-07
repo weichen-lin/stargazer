@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { useState, useRef, useEffect } from 'react'
-import { ISuggestion } from '@/actions'
+import { ISuggestion } from '@/actions/neo4j/repos'
 import { getFullTextSearch } from '@/actions/neo4j'
 import { useUser } from '@/context'
 

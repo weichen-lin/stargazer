@@ -1,7 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { ISuggestion, GetSuggesions } from '@/actions'
+import { GetSuggesions } from '@/actions'
+import { ISuggestion } from '@/actions/neo4j/repos'
 import { Error, HaveSuggestions } from './message'
 import { useChatStore } from '@/hooks/chat'
 
@@ -11,26 +12,26 @@ const Responser = ({ query }: { query: string }) => {
   const [isLoading, setResponserLoading] = useState<boolean>(true)
   const { setIsLoading } = useChatStore()
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true)
-      try {
-        const res = await GetSuggesions(query)
-        if (res.status === 200) {
-          setAnswers(res.items)
-        }
-        setStatus(res.status)
-      } catch (error) {
-        console.error('Error fetching suggestions: ', error)
-        setStatus(500)
-      } finally {
-        setIsLoading(false)
-        setResponserLoading(false)
-      }
-    }
+  // useEffect(() => {
+  //   const fetchData = async () => {
+  //     setIsLoading(true)
+  //     try {
+  //       const res = await GetSuggesions(query)
+  //       if (res.status === 200) {
+  //         setAnswers(res.items)
+  //       }
+  //       setStatus(res.status)
+  //     } catch (error) {
+  //       console.error('Error fetching suggestions: ', error)
+  //       setStatus(500)
+  //     } finally {
+  //       setIsLoading(false)
+  //       setResponserLoading(false)
+  //     }
+  //   }
 
-    fetchData()
-  }, [])
+  //   fetchData()
+  // }, [])
 
   return (
     <div className='w-full flex flex-col gap-y-4'>

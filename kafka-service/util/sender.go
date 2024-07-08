@@ -3,9 +3,10 @@ package util
 import (
 	"bytes"
 	"fmt"
-	"net/smtp"
 	"os"
 	"text/template"
+
+	"github.com/resend/resend-go/v2"
 )
 
 type SendMailParams struct {
@@ -15,19 +16,13 @@ type SendMailParams struct {
 }
 
 func SendMail(params *SendMailParams) error {
-
-	smtpHost := "smtp.gmail.com"
-	smtpPort := 587
-	senderEmail := "gitstargazer@gmail.com"
-	senderPassword := os.Getenv("APP_PASSWORD")
+	apikey := os.Getenv("RESEND_API_KEY")
 
 	templateFile := "templates/stars_finish.html"
 	tmpl, err := template.ParseFiles(templateFile)
 	if err != nil {
 		return err
 	}
-
-	auth := smtp.PlainAuth("", senderEmail, senderPassword, smtpHost)
 
 	templateData := struct {
 		UserName   string
@@ -42,17 +37,21 @@ func SendMail(params *SendMailParams) error {
 		return err
 	}
 
-	msg := []byte(
-		"From: " + "StarGazer <gitstargazer@gmail.com>" + "\r\n" +
-			"To: " + params.Email + "\r\n" +
-			"Subject: Completion Procedure for StarGazer\r\n" +
-			"MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n\n" +
-			"\r\n" + body.String())
+	client := resend.NewClient(apikey)
 
-	err = smtp.SendMail(smtpHost+":"+fmt.Sprint(smtpPort), auth, senderEmail, []string{params.Email}, msg)
-	if err != nil {
-		return err
+
+	p := &resend.SendEmailRequest{
+		From:    "Stargazer <stargazer@wei-chen.dev>",
+		To:      []string{params.Email},
+		Subject: "Your stars are ready!",
+		Html:    body.String(),
 	}
 
+    sent, err := client.Emails.Send(p)
+    if err != nil {
+        fmt.Println(err.Error())
+        return nil
+    }
+    fmt.Println(sent.Id)
 	return nil
 }

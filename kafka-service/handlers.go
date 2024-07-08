@@ -86,8 +86,15 @@ func GetGithubRepos(db *db.Database, msg kafka.Message, producer *kafka.Writer) 
 			return fmt.Errorf("error sending message: %s", err.Error())
 		}
 	} else {
+		starsCount := (info.Page-1)*30 + len(stars)
+		
+		err := util.SendMail(&util.SendMailParams{
+			Email:   info.Email,
+			Name: "Stargazer user",
+			StarsCount: starsCount,
+		})
 
-		err = db.WriteResultAtCrontab(info.Email, fmt.Sprintf("Successfully get %d starred repos", (info.Page-1)*30+len(stars)))
+		err = db.WriteResultAtCrontab(info.Email, fmt.Sprintf("Successfully get %d starred repos", starsCount))
 		if err != nil {
 			return fmt.Errorf("error writing result at crontab: %s", err.Error())
 		}

@@ -10,6 +10,7 @@ require (
 	github.com/joho/godotenv v1.5.1
 	github.com/neo4j/neo4j-go-driver/v5 v5.17.0
 	github.com/patrickmn/go-cache v2.1.0+incompatible
+	github.com/resend/resend-go/v2 v2.10.0
 	github.com/segmentio/kafka-go v0.4.47
 	go.uber.org/zap v1.27.0
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1

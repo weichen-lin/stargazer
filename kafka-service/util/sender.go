@@ -52,6 +52,7 @@ func SendMail(params *SendMailParams) error {
         fmt.Println(err.Error())
         return nil
     }
+	
     fmt.Println(sent.Id)
 	return nil
 }

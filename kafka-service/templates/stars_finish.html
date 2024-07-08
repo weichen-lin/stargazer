@@ -12,8 +12,10 @@
       margin-bottom: auto;
       margin-left: auto;
       margin-right: auto;
-      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue',
-        Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+        'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif,
+        'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
+        'Noto Color Emoji';
       padding-left: 0.5rem;
       padding-right: 0.5rem;
     "
@@ -89,17 +91,46 @@
             >
               Finish your Github stars import
             </h1>
-            <p style="font-size: 14px; line-height: 24px; margin: 16px 0; color: rgb(0, 0, 0)">
-              Hello, <strong></strong>
+            <p
+              style="
+                font-size: 14px;
+                line-height: 24px;
+                margin: 16px 0;
+                color: rgb(0, 0, 0);
+              "
+            >
+              Hello, <strong>{{ .UserName }}</strong>
             </p>
-            <p style="font-size: 14px; line-height: 24px; margin: 16px 0; color: rgb(0, 0, 0)">
-              Stargazer has organized the 507 projects you have starred on GitHub!
+            <p
+              style="
+                font-size: 14px;
+                line-height: 24px;
+                margin: 16px 0;
+                color: rgb(0, 0, 0);
+              "
+            >
+              Stargazer has organized the {{ .StarsCount }} projects you have
+              starred on GitHub!
             </p>
-            <table align="center" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation">
+            <table
+              align="center"
+              width="100%"
+              border="0"
+              cellpadding="0"
+              cellspacing="0"
+              role="presentation"
+            >
               <tbody>
                 <tr>
                   <td>
-                    <table align="center" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation">
+                    <table
+                      align="center"
+                      width="100%"
+                      border="0"
+                      cellpadding="0"
+                      cellspacing="0"
+                      role="presentation"
+                    >
                       <tbody style="width: 100%">
                         <tr style="width: 100%">
                           <td align="right" data-id="__react-email-column">
@@ -120,13 +151,12 @@
                             <img
                               alt="finish"
                               height="18"
-                              src="https://drive.google.com/thumbnail?id=1t-dPdnfwGlpgk_QLcssQnBa6S4HYxEPl&amp;sz=w1366"
+                              src="https://drive.google.com/thumbnail?id=1pZZSyIUIKZzlGyGhuuLzcJtvV38cfr20&amp;sz=w1366"
                               style="
                                 display: block;
                                 outline: none;
                                 border: none;
                                 text-decoration: none;
-                                transform: translate(0, 0) rotate(90deg) skewX(0) skewY(0) scaleX(1) scaleY(1);
                               "
                               width="24"
                             />
@@ -187,7 +217,13 @@
                       target="_blank"
                       ><span
                         ><!--[if mso
-                          ]><i style="letter-spacing: 20px; mso-font-width: -100%; mso-text-raise: 18" hidden
+                          ]><i
+                            style="
+                              letter-spacing: 20px;
+                              mso-font-width: -100%;
+                              mso-text-raise: 18;
+                            "
+                            hidden
                             >&nbsp;</i
                           ><!
                         [endif]--></span
@@ -202,7 +238,11 @@
                         >Dashboard</span
                       ><span
                         ><!--[if mso
-                          ]><i style="letter-spacing: 20px; mso-font-width: -100%" hidden>&nbsp;</i><!
+                          ]><i
+                            style="letter-spacing: 20px; mso-font-width: -100%"
+                            hidden
+                            >&nbsp;</i
+                          ><!
                         [endif]--></span
                       ></a
                     >
@@ -234,7 +274,8 @@
                 text-align: center;
               "
             >
-              © 2024 WeiChen Lin <br />Contact: <strong>asdfg09487@gmail.com</strong> <br />
+              © 2024 WeiChen Lin <br />Contact:
+              <strong>asdfg09487@gmail.com</strong> <br />
             </p>
           </td>
         </tr>

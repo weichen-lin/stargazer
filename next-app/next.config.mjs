@@ -11,6 +11,9 @@ const nextConfig = {
     ],
   },
   reactStrictMode: false,
+  experimental: {
+    instrumentationHook: true,
+  },
 }
 
 export default nextConfig

@@ -1,19 +1,40 @@
 'use server'
+
+import logger from '@/utils/logger'
 import { generateAccessToken } from './util'
 
-const PRODUCER_URL = process.env.PRODUCER_URL
+const fetcher = async <T>(email: string, path: string, data: T | null) => {
+  const jwtToken = await generateAccessToken(email)
+  const now = Date.now()
+  try {
+    const res = fetch(`${process.env.KAFKA_SERVICE}/${path}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: jwtToken,
+      },
+      body: data ? JSON.stringify(data) : undefined,
+    })
+    return res
+  } catch (error) {
+    logger.error({ error, path, email, payload: data })
+  } finally {
+    logger.info({ path, email, duration: Date.now() - now, payload: data })
+  }
+}
 
 export async function syncUserStars(email: string): Promise<{ status: number; title: string; message: string }> {
-  const jwtToken = await generateAccessToken(email)
-  const response = await fetch(`${process.env.KAFKA_SERVICE}/get_user_stars`, {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: jwtToken,
-    },
-  })
+  const res = await fetcher(email, 'get_user_stars', null)
 
-  const status = response.status
+  if (!res) {
+    return {
+      status: 500,
+      title: 'An error occurred',
+      message: 'Please try again later.',
+    }
+  }
+
+  const status = res.status
 
   if (status === 200) {
     return {
@@ -22,7 +43,7 @@ export async function syncUserStars(email: string): Promise<{ status: number; ti
       message: "You will receive a confirmation email once it's completed.",
     }
   } else if (status === 409) {
-    const json = await response.json()
+    const json = await res.json()
     return {
       status,
       title: 'In Progress: Catch up',
@@ -38,17 +59,8 @@ export async function syncUserStars(email: string): Promise<{ status: number; ti
 }
 
 export async function updateCrontabHour(email: string, hour: number): Promise<boolean> {
-  const jwtToken = await generateAccessToken(email)
-  const response = await fetch(`${process.env.KAFKA_SERVICE}/update_cron_tab_setting?hour=${hour}`, {
-    method: 'PATCH',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: jwtToken,
-    },
-  })
-
-  const status = response.status
-  if (status !== 200) {
+  const res = await fetcher(email, `update_cron_tab_setting?hour=${hour}`, null)
+  if (!res || res.status !== 200) {
     return false
   }
 

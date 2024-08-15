@@ -13,22 +13,40 @@ type Owner struct {
 }
 
 type GithubRepository struct {
-	ID              int       `json:"id"`
-	Name            string    `json:"name"`
-	FullName        string    `json:"full_name"`
-	Owner           Owner     `json:"owner"`
-	HTMLURL         string    `json:"html_url"`
-	Description     string    `json:"description"`
-	CreatedAt       time.Time `json:"created_at"`
-	UpdatedAt       time.Time `json:"updated_at"`
-	Homepage        string    `json:"homepage"`
-	StargazersCount int       `json:"stargazers_count"`
-	WatchersCount   int       `json:"watchers_count"`
-	Language        string    `json:"language"`
-	Archived        bool      `json:"archived"`
-	OpenIssuesCount int       `json:"open_issues_count"`
-	Topics          []string  `json:"topics"`
-	DefaultBranch   string    `json:"default_branch"`
+	ID              int      `json:"id"`
+	Name            string   `json:"name"`
+	FullName        string   `json:"full_name"`
+	Owner           Owner    `json:"owner"`
+	HTMLURL         string   `json:"html_url"`
+	Description     string   `json:"description"`
+	CreatedAt       string   `json:"created_at"`
+	UpdatedAt       string   `json:"updated_at"`
+	Homepage        string   `json:"homepage"`
+	StargazersCount int      `json:"stargazers_count"`
+	WatchersCount   int      `json:"watchers_count"`
+	Language        string   `json:"language"`
+	Archived        bool     `json:"archived"`
+	OpenIssuesCount int      `json:"open_issues_count"`
+	Topics          []string `json:"topics"`
+	DefaultBranch   string   `json:"default_branch"`
+}
+
+type RepositoryEntity struct {
+	RepoID          int64  `json:"repo_id"`
+	RepoName        string `json:"repo_name"`
+	OwnerName       string `json:"owner_name"`
+	AvatarURL       string `json:"avatar_url"`
+	HtmlURL         string `json:"html_url"`
+	Homepage        string `json:"homepage"`
+	Description     string `json:"description"`
+	CreatedAt       string `json:"created_at"`
+	UpdatedAt       string `json:"updated_at"`
+	StargazersCount int    `json:"stargazers_count"`
+	Language        string `json:"language"`
+	WatchersCount   int    `json:"watchers_count"`
+	OpenIssuesCount int    `json:"open_issues_count"`
+	DefaultBranch   string `json:"default_branch"`
+	Archived        bool   `json:"archived"`
 }
 
 type Repository struct {
@@ -105,7 +123,7 @@ func (r *Repository) DefaultBranch() string {
 	return r.defaultBranch
 }
 
-func (r *Repository) IsArchived() bool {
+func (r *Repository) Archived() bool {
 	return r.archived
 }
 
@@ -114,6 +132,18 @@ func (r *Repository) checkUrl(url string) error {
 		return errors.New("URL must start with http:// or https://")
 	}
 	return nil
+}
+
+func (r *Repository) parseTime(t string) (time.Time, error) {
+	parsedTime, err := time.Parse(time.RFC3339, t)
+	if err != nil {
+		return time.Time{}, err
+	}
+
+	if parsedTime.Year() < 1970 {
+		return time.Time{}, errors.New("year cannot be less than 1970")
+	}
+	return parsedTime, nil
 }
 
 func (r *Repository) setRepoID(id int64) error {
@@ -171,24 +201,35 @@ func (r *Repository) setDescription(desc string) {
 	r.description = desc
 }
 
-func (r *Repository) setCreatedAt(t time.Time) error {
-	if t.IsZero() {
+func (r *Repository) setCreatedAt(t string) error {
+	if t == "" {
 		return errors.New("created time cannot be empty")
 	}
-	r.createdAt = t
+
+	parsedTime, err := r.parseTime(t)
+	if err != nil {
+		return err
+	}
+
+	r.createdAt = parsedTime
 	return nil
 }
 
-func (r *Repository) setUpdatedAt(t time.Time) error {
-	if t.IsZero() {
+func (r *Repository) setUpdatedAt(t string) error {
+	if t == "" {
 		return errors.New("updated time cannot be empty")
 	}
 
-	if t.Before(r.createdAt) {
+	parsedTime, err := r.parseTime(t)
+	if err != nil {
+		return err
+	}
+
+	if parsedTime.Before(r.createdAt) {
 		return errors.New("updated time cannot be before created time")
 	}
 
-	r.updatedAt = t
+	r.updatedAt = parsedTime
 	return nil
 }
 
@@ -234,6 +275,90 @@ func (r *Repository) setDefaultBranch(branch string) error {
 
 func (r *Repository) setArchived(archived bool) {
 	r.archived = archived
+}
+
+func (r *Repository) ToRepositoryEntity() *RepositoryEntity {
+	layout := "2006-01-02T15:04:05Z07:00"
+	parsedCreatedAt := r.createdAt.Format(layout)
+	parsedUpdatedAt := r.updatedAt.Format(layout)
+
+	return &RepositoryEntity{
+		RepoID:          r.repoID,
+		RepoName:        r.repoName,
+		OwnerName:       r.ownerName,
+		AvatarURL:       r.avatarURL,
+		HtmlURL:         r.htmlURL,
+		Homepage:        r.homepage,
+		Description:     r.description,
+		CreatedAt:       parsedCreatedAt,
+		UpdatedAt:       parsedUpdatedAt,
+		StargazersCount: r.stargazersCount,
+		WatchersCount:   r.watchersCount,
+		OpenIssuesCount: r.openIssuesCount,
+		Language:        r.language,
+		DefaultBranch:   r.defaultBranch,
+		Archived:        r.archived,
+	}
+}
+
+func FromRepositoryEntity(repositoryEntity *RepositoryEntity) (*Repository, error) {
+	r := &Repository{}
+
+	if err := r.setRepoID(int64(repositoryEntity.RepoID)); err != nil {
+		return nil, err
+	}
+
+	if err := r.setRepoName(repositoryEntity.RepoName); err != nil {
+		return nil, err
+	}
+
+	if err := r.setOwnerName(repositoryEntity.OwnerName); err != nil {
+		return nil, err
+	}
+
+	if err := r.setAvatarURL(repositoryEntity.AvatarURL); err != nil {
+		return nil, err
+	}
+
+	if err := r.setHTMLURL(repositoryEntity.HtmlURL); err != nil {
+		return nil, err
+	}
+
+	if err := r.setHomepage(repositoryEntity.Homepage); err != nil {
+		return nil, err
+	}
+
+	r.setDescription(repositoryEntity.Description)
+
+	if err := r.setCreatedAt(repositoryEntity.CreatedAt); err != nil {
+		return nil, err
+	}
+
+	if err := r.setUpdatedAt(repositoryEntity.UpdatedAt); err != nil {
+		return nil, err
+	}
+
+	if err := r.setStargazersCount(repositoryEntity.StargazersCount); err != nil {
+		return nil, err
+	}
+
+	if err := r.setWatchersCount(repositoryEntity.WatchersCount); err != nil {
+		return nil, err
+	}
+
+	if err := r.setOpenIssuesCount(repositoryEntity.OpenIssuesCount); err != nil {
+		return nil, err
+	}
+
+	r.setLanguage(repositoryEntity.Language)
+
+	if err := r.setDefaultBranch(repositoryEntity.DefaultBranch); err != nil {
+		return nil, err
+	}
+
+	r.setArchived(repositoryEntity.Archived)
+
+	return r, nil
 }
 
 func NewRepository(githubRepo *GithubRepository) (*Repository, error) {

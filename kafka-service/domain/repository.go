@@ -134,18 +134,6 @@ func (r *Repository) checkUrl(url string) error {
 	return nil
 }
 
-func (r *Repository) parseTime(t string) (time.Time, error) {
-	parsedTime, err := time.Parse(time.RFC3339, t)
-	if err != nil {
-		return time.Time{}, err
-	}
-
-	if parsedTime.Year() < 1970 {
-		return time.Time{}, errors.New("year cannot be less than 1970")
-	}
-	return parsedTime, nil
-}
-
 func (r *Repository) setRepoID(id int64) error {
 	if id <= 0 {
 		return errors.New("repository ID must be positive")
@@ -206,7 +194,7 @@ func (r *Repository) setCreatedAt(t string) error {
 		return errors.New("created time cannot be empty")
 	}
 
-	parsedTime, err := r.parseTime(t)
+	parsedTime, err := ParseTime(t)
 	if err != nil {
 		return err
 	}
@@ -220,7 +208,7 @@ func (r *Repository) setUpdatedAt(t string) error {
 		return errors.New("updated time cannot be empty")
 	}
 
-	parsedTime, err := r.parseTime(t)
+	parsedTime, err := ParseTime(t)
 	if err != nil {
 		return err
 	}

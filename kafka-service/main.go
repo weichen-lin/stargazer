@@ -15,15 +15,10 @@ func main() {
 		panic(err)
 	}
 
-	topic := os.Getenv("GET_USER_STAR_TOPIC")
-	if topic == "" {
-		panic("Kafka topic variables not set")
-	}
-
 	m := NewMiddleware()
 	service := NewService(
 		RegisterConsumer{
-			Topic:       topic,
+			Topic:       "",
 			HandlerFunc: GetGithubRepos,
 		},
 	)
@@ -43,12 +38,11 @@ func main() {
 		})
 	})
 
-	r.GET("/get_user_stars", m.JWTAuth(), c.GetUserStars)
-
-	r.OPTIONS("/sync_user_stars", m.Cors())
-	r.GET("/sync_user_stars", m.JWTAuth(), c.HandleConnections)
-
-	r.PATCH("/update_cron_tab_setting", m.Cors(), m.JWTAuth(), c.UpdateCronTabSetting)
+	repo := r.Group("/repository")
+	{
+		repo.GET("/", m.JWTAuth(), c.GetRepository)
+		repo.POST("/", m.JWTAuth(), c.CreateRepository)
+	}
 
 	r.Run(":" + port)
 }

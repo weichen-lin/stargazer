@@ -5,37 +5,46 @@ import (
 	"time"
 )
 
-type CronTab struct {
-	triggerAt     time.Time
-	createdAt     time.Time
-	updatedAt     time.Time
-	status        string
+type Crontab struct {
+	*AggregateRoot
+
+	triggerAt       time.Time
+	createdAt       time.Time
+	updatedAt       time.Time
+	status          string
+	lastTriggeredAt time.Time
 }
 
-type CronTabEntity struct {
-	TriggerAt     string `json:"trigger_at"`
-	CreatedAt     string `json:"created_at"`
-	UpdatedAt     string `json:"updated_at"`
-	Status        string `json:"status"`
+type CrontabEntity struct {
+	TriggerAt       string `json:"trigger_at"`
+	CreatedAt       string `json:"created_at"`
+	UpdatedAt       string `json:"updated_at"`
+	Status          string `json:"status"`
+	LastTriggeredAt string `json:"last_triggered_at"`
+	Version         int    `json:"version"`
 }
 
-func (c *CronTab) TriggerAt() time.Time {
+func (c *Crontab) TriggerAt() time.Time {
 	return c.triggerAt
 }
 
-func (c *CronTab) CreatedAt() time.Time {
+func (c *Crontab) CreatedAt() time.Time {
 	return c.createdAt
 }
 
-func (c *CronTab) UpdatedAt() time.Time {
+func (c *Crontab) UpdatedAt() time.Time {
 	return c.updatedAt
 }
 
-func (c *CronTab) Status() string {
+func (c *Crontab) LastTriggeredAt() time.Time {
+	return c.lastTriggeredAt
+}
+
+func (c *Crontab) Status() string {
 	return c.status
 }
 
-func (c *CronTab) SetTriggerAt(t string) error {
+func (c *Crontab) SetTriggerAt(t string) error {
 	if t == "" {
 		c.triggerAt = time.Time{}
 		return nil
@@ -50,7 +59,26 @@ func (c *CronTab) SetTriggerAt(t string) error {
 	return nil
 }
 
-func (c *CronTab) SetCreatedAt(t string) error {
+func (c *Crontab) SetLastTriggerAt(t string) error {
+	if t == "" {
+		c.lastTriggeredAt = time.Time{}
+		return nil
+	}
+
+	parsedTime, err := ParseTime(t)
+	if err != nil {
+		return err
+	}
+
+	if parsedTime.Before(c.createdAt) {
+		return errors.New("last triggered time cannot be before created time")
+	}
+
+	c.lastTriggeredAt = parsedTime
+	return nil
+}
+
+func (c *Crontab) SetCreatedAt(t string) error {
 	if t == "" {
 		return errors.New("created time cannot be empty")
 	}
@@ -64,7 +92,7 @@ func (c *CronTab) SetCreatedAt(t string) error {
 	return nil
 }
 
-func (c *CronTab) SetUpdatedAt(t string) error {
+func (c *Crontab) SetUpdatedAt(t string) error {
 	if t == "" {
 		c.updatedAt = time.Time{}
 		return nil
@@ -83,7 +111,7 @@ func (c *CronTab) SetUpdatedAt(t string) error {
 	return nil
 }
 
-func (c *CronTab) SetStatus(s string) error {
+func (c *Crontab) SetStatus(s string) error {
 	if s == "" {
 		return errors.New("invalid status: cannot be empty")
 	}
@@ -91,22 +119,25 @@ func (c *CronTab) SetStatus(s string) error {
 	return nil
 }
 
-func NewCronTab() (*CronTab, error) {
-	cronTab := &CronTab{}
+func NewCrontab() (*Crontab, error) {
+	Crontab := &Crontab{}
 
 	now := time.Now()
 
-	cronTab.SetTriggerAt("")
-	cronTab.SetCreatedAt(now.Format(time.RFC3339))
-	cronTab.SetUpdatedAt("")
-	cronTab.SetStatus("new")
+	Crontab.SetTriggerAt("")
+	Crontab.SetCreatedAt(now.Format(time.RFC3339))
+	Crontab.SetUpdatedAt("")
+	Crontab.SetStatus("new")
 
-	return cronTab, nil
+	root := NewAggregateRoot()
+	Crontab.AggregateRoot = root
+
+	return Crontab, nil
 }
 
-func (c *CronTab) ToCronTabEntity() *CronTabEntity {
+func (c *Crontab) ToCrontabEntity() *CrontabEntity {
 
-	var triggerAt, updatedAt string
+	var triggerAt, updatedAt, lastTriggeredAt string
 
 	if c.TriggerAt().IsZero() {
 		triggerAt = ""
@@ -120,32 +151,49 @@ func (c *CronTab) ToCronTabEntity() *CronTabEntity {
 		updatedAt = c.UpdatedAt().Format(time.RFC3339)
 	}
 
-	return &CronTabEntity{
-		CreatedAt:     c.CreatedAt().Format(time.RFC3339),
-		TriggerAt:     triggerAt,
-		UpdatedAt:     updatedAt,
-		Status:        c.Status(),
+	if c.LastTriggeredAt().IsZero() {
+		lastTriggeredAt = ""
+	} else {
+		lastTriggeredAt = c.LastTriggeredAt().Format(time.RFC3339)
+	}
+
+	return &CrontabEntity{
+		CreatedAt:       c.CreatedAt().Format(time.RFC3339),
+		TriggerAt:       triggerAt,
+		UpdatedAt:       updatedAt,
+		LastTriggeredAt: lastTriggeredAt,
+		Status:          c.Status(),
+		Version:         c.Version(),
 	}
 }
 
-func FromCronTabEntity(cronTabEntity *CronTabEntity) (*CronTab, error) {
-	cronTab := &CronTab{}
+func FromCrontabEntity(CrontabEntity *CrontabEntity) (*Crontab, error) {
+	Crontab := &Crontab{}
 
-	if err := cronTab.SetTriggerAt(cronTabEntity.TriggerAt); err != nil {
+	root := NewAggregateRoot()
+	root.version = CrontabEntity.Version
+
+	if err := Crontab.SetTriggerAt(CrontabEntity.TriggerAt); err != nil {
 		return nil, err
 	}
 
-	if err := cronTab.SetCreatedAt(cronTabEntity.CreatedAt); err != nil {
+	if err := Crontab.SetCreatedAt(CrontabEntity.CreatedAt); err != nil {
 		return nil, err
 	}
 
-	if err := cronTab.SetUpdatedAt(cronTabEntity.UpdatedAt); err != nil {
+	if err := Crontab.SetUpdatedAt(CrontabEntity.UpdatedAt); err != nil {
 		return nil, err
 	}
 
-	if err := cronTab.SetStatus(cronTabEntity.Status); err != nil {
+	if err := Crontab.SetStatus(CrontabEntity.Status); err != nil {
 		return nil, err
 	}
 
-	return cronTab, nil
+	if err := Crontab.SetLastTriggerAt(CrontabEntity.LastTriggeredAt); err != nil {
+		return nil, err
+	}
+
+	Crontab.AggregateRoot = root
+
+	return Crontab, nil
 }

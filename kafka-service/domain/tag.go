@@ -6,13 +6,13 @@ import (
 )
 
 type Tag struct {
-	name string
+	name      string
 	createdAt time.Time
 	updatedAt time.Time
 }
 
 type TagEntity struct {
-	Name string `json:"name"`
+	Name      string `json:"name"`
 	CreatedAt string `json:"created_at"`
 	UpdatedAt string `json:"updated_at"`
 }
@@ -29,7 +29,7 @@ func (t *Tag) UpdatedAt() time.Time {
 	return t.updatedAt
 }
 
-func (t *Tag) SetName(name string) error{
+func (t *Tag) SetName(name string) error {
 	if name == "" {
 		return errors.New("name cannot be empty")
 	}
@@ -56,7 +56,6 @@ func (t *Tag) SetCreatedAt(s string) error {
 	return nil
 }
 
-
 func (t *Tag) SetUpdatedAt(s string) error {
 	if s == "" {
 		t.updatedAt = time.Time{}
@@ -78,19 +77,19 @@ func (t *Tag) SetUpdatedAt(s string) error {
 
 func NewTag(name string) (*Tag, error) {
 	tag := &Tag{}
-	
+
 	if err := tag.SetName(name); err != nil {
 		return nil, err
 	}
 
 	now := time.Now()
 
-	tag.SetCreatedAt(now.Format(time.RFC3339));
+	tag.SetCreatedAt(now.Format(time.RFC3339))
 	tag.SetUpdatedAt("")
 
 	return tag, nil
 }
-	
+
 func FromTagEntity(tagEntity *TagEntity) (*Tag, error) {
 	tag := &Tag{}
 

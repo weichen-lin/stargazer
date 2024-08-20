@@ -56,14 +56,8 @@ func NewTeeWithRotate(tops []TeeOption, opts ...Option) *Logger {
 		cores = append(cores, core)
 	}
 
-	udpLogWriter, err := NewUDPLogWriter("127.0.0.1", 5001, zapcore.NewJSONEncoder(cfg.EncoderConfig))
-	if err != nil {
-		panic(err)
-	}
-
 	cores = append(cores, zapcore.NewCore(
 		zapcore.NewJSONEncoder(cfg.EncoderConfig),
-		zapcore.AddSync(udpLogWriter),
 		zapcore.DebugLevel,
 	))
 

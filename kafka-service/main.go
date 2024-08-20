@@ -44,5 +44,11 @@ func main() {
 		repo.POST("/", m.JWTAuth(), c.CreateRepository)
 	}
 
+	crontab := r.Group("/crontab")
+	{
+		crontab.GET("/", m.JWTAuth(), c.GetCronTab)
+		crontab.POST("/", m.JWTAuth(), c.GetCronTab)
+	}
+
 	r.Run(":" + port)
 }

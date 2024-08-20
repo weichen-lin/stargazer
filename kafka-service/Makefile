@@ -12,3 +12,10 @@ build-dev:
 
 push-dev:
 	docker push $(IMAGE_BASE)/kafka-service:latest
+
+run-neo4j:
+	docker run -d --name stargazer_neo4j \
+		-p 7474:7474 -p 7687:7687 \
+		-e NEO4J_AUTH=neo4j/password \
+		-v neo4j-data:/var/lib/neo4j/data \
+		neo4j:5.18.0

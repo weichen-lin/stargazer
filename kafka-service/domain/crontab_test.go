@@ -14,7 +14,7 @@ func TestNewCrontab(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Equal(t, "new", Crontab.Status())
-	require.True(t, Crontab.TriggerAt().IsZero())
+	require.True(t, Crontab.TriggeredAt().IsZero())
 	require.False(t, Crontab.CreatedAt().IsZero())
 	require.Equal(t, now.Sub(Crontab.createdAt).Milliseconds() > 0, true)
 	require.True(t, Crontab.UpdatedAt().IsZero())
@@ -28,7 +28,7 @@ func Test_ToCrontabEntityEmpty(t *testing.T) {
 
 	entity := Crontab.ToCrontabEntity()
 	require.Equal(t, entity.CreatedAt, Crontab.CreatedAt().Format(time.RFC3339))
-	require.Equal(t, entity.TriggerAt, "")
+	require.Equal(t, entity.TriggeredAt, "")
 	require.Equal(t, entity.UpdatedAt, "")
 	require.Equal(t, entity.Status, Crontab.Status())
 	require.Equal(t, entity.Version, Crontab.Version())
@@ -38,17 +38,17 @@ func Test_ToCrontabEntityEmpty(t *testing.T) {
 func TestCrontab_SetTriggerAt(t *testing.T) {
 	Crontab := &Crontab{}
 
-	err := Crontab.SetTriggerAt("2023-01-01T00:00:00Z")
+	err := Crontab.SetTriggeredAt("2023-01-01T00:00:00Z")
 	require.NoError(t, err)
-	require.Equal(t, "2023-01-01T00:00:00Z", Crontab.TriggerAt().Format(time.RFC3339))
+	require.Equal(t, "2023-01-01T00:00:00Z", Crontab.TriggeredAt().Format(time.RFC3339))
 
 	// Test empty string (should set to zero time)
-	err = Crontab.SetTriggerAt("")
+	err = Crontab.SetTriggeredAt("")
 	require.NoError(t, err)
-	require.Equal(t, Crontab.TriggerAt(), time.Time{})
+	require.Equal(t, Crontab.TriggeredAt(), time.Time{})
 
 	// Test invalid time format
-	err = Crontab.SetTriggerAt("invalid-time")
+	err = Crontab.SetTriggeredAt("invalid-time")
 	require.Error(t, err)
 }
 
@@ -131,7 +131,7 @@ func TestCrontab_SetStatus(t *testing.T) {
 func TestCrontab_ToCrontabEntity(t *testing.T) {
 	Crontab := &Crontab{}
 	Crontab.SetCreatedAt("2023-01-01T00:00:00Z")
-	Crontab.SetTriggerAt("2023-01-02T00:00:00Z")
+	Crontab.SetTriggeredAt("2023-01-02T00:00:00Z")
 	Crontab.SetUpdatedAt("2023-01-03T00:00:00Z")
 	Crontab.SetStatus("active")
 	Crontab.SetLastTriggerAt("2023-01-03T00:00:00Z")
@@ -139,7 +139,7 @@ func TestCrontab_ToCrontabEntity(t *testing.T) {
 	entity := Crontab.ToCrontabEntity()
 
 	require.Equal(t, "2023-01-01T00:00:00Z", entity.CreatedAt)
-	require.Equal(t, "2023-01-02T00:00:00Z", entity.TriggerAt)
+	require.Equal(t, "2023-01-02T00:00:00Z", entity.TriggeredAt)
 	require.Equal(t, "2023-01-03T00:00:00Z", entity.UpdatedAt)
 	require.Equal(t, "active", entity.Status)
 	require.Equal(t, "2023-01-03T00:00:00Z", entity.LastTriggeredAt)
@@ -147,7 +147,7 @@ func TestCrontab_ToCrontabEntity(t *testing.T) {
 
 func TestFromCrontabEntity(t *testing.T) {
 	entity := &CrontabEntity{
-		TriggerAt:       "2023-01-02T00:00:00Z",
+		TriggeredAt:     "2023-01-02T00:00:00Z",
 		CreatedAt:       "2023-01-01T00:00:00Z",
 		UpdatedAt:       "2023-01-03T00:00:00Z",
 		LastTriggeredAt: "2023-01-03T00:00:00Z",
@@ -158,7 +158,7 @@ func TestFromCrontabEntity(t *testing.T) {
 	Crontab, err := FromCrontabEntity(entity)
 	require.NoError(t, err)
 
-	require.Equal(t, "2023-01-02T00:00:00Z", Crontab.TriggerAt().Format(time.RFC3339))
+	require.Equal(t, "2023-01-02T00:00:00Z", Crontab.TriggeredAt().Format(time.RFC3339))
 	require.Equal(t, "2023-01-01T00:00:00Z", Crontab.CreatedAt().Format(time.RFC3339))
 	require.Equal(t, "2023-01-03T00:00:00Z", Crontab.UpdatedAt().Format(time.RFC3339))
 	require.Equal(t, "2023-01-03T00:00:00Z", Crontab.LastTriggeredAt().Format(time.RFC3339))
@@ -170,7 +170,7 @@ func TestFromCrontabEntity_ErrorCases(t *testing.T) {
 
 	// Test invalid times
 	invalidEntity := &CrontabEntity{
-		TriggerAt:       "invalid-time",
+		TriggeredAt:     "invalid-time",
 		CreatedAt:       "",
 		UpdatedAt:       "",
 		Status:          "active",
@@ -180,7 +180,7 @@ func TestFromCrontabEntity_ErrorCases(t *testing.T) {
 	_, err := FromCrontabEntity(invalidEntity)
 	require.Error(t, err)
 
-	invalidEntity.TriggerAt = ""
+	invalidEntity.TriggeredAt = ""
 	invalidEntity.CreatedAt = "invalid_createdAt"
 
 	_, err = FromCrontabEntity(invalidEntity)

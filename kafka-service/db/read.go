@@ -296,3 +296,4 @@ func (db *Database) GetAllUserCrontab() ([]Crontab, error) {
 
 	return crontabList, nil
 }
+ 

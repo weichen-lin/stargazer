@@ -99,7 +99,7 @@ func (db *Database) GetRepository(ctx context.Context, repo_id int64) (*domain.R
 	return repository, nil
 }
 
-func (db *Database) SaveRepository(ctx context.Context, repo *domain.Repository) error {
+func (db *Database) CreateRepository(ctx context.Context, repo *domain.Repository) error {
 	email, ok := EmailFromContext(ctx)
 	if !ok {
 		return ErrNotFoundEmailAtContext

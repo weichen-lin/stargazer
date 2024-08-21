@@ -39,3 +39,53 @@ func FromUserEntity(entity *UserEntity) *User {
 	}
 	return user
 }
+
+func (u *User) ToUserEntity() *UserEntity {
+	return &UserEntity{
+		Name:              u.name,
+		Email:             u.email,
+		Image:             u.image,
+		AccessToken:       u.accessToken,
+		Provider:          u.provider,
+		ProviderAccountId: u.providerAccountId,
+		Scope:             u.scope,
+		AuthType:          u.authType,
+		TokenType:         u.tokenType,
+	}
+}
+
+func (u *User) Name() string {
+	return u.name
+}
+
+func (u *User) Email() string {
+	return u.email
+}
+
+func (u *User) Image() string {
+	return u.image
+}
+
+func (u *User) AccessToken() string {
+	return u.accessToken
+}
+
+func (u *User) Provider() string {
+	return u.provider
+}
+
+func (u *User) ProviderAccountId() string {
+	return u.providerAccountId
+}
+
+func (u *User) Scope() string {
+	return u.scope
+}
+
+func (u *User) AuthType() string {
+	return u.authType
+}
+
+func (u *User) TokenType() string {
+	return u.tokenType
+}

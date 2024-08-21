@@ -1,6 +1,7 @@
 package db
 
 import (
+	"os"
 	"testing"
 
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
@@ -24,5 +25,7 @@ func NewTestDatabase() *Database {
 }
 
 func TestMain(m *testing.M) {
-	db = NewDatabase()
+	db = NewTestDatabase()
+
+	os.Exit(m.Run())
 }

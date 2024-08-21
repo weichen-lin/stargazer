@@ -106,7 +106,7 @@ func (db *Database) CreateRepository(ctx context.Context, repo *domain.Repositor
 	}
 
 	entity := repo.ToRepositoryEntity()
-	
+
 	session := db.driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
 	defer session.Close(context.Background())
 
@@ -144,22 +144,22 @@ func (db *Database) CreateRepository(ctx context.Context, repo *domain.Repositor
 			RETURN r.repo_id AS repo_id;
 			`,
 			map[string]interface{}{
-				"email" : email,
-				"repo_id": entity.RepoID,
-				"repo_name": entity.RepoName,
-				"owner_name": entity.OwnerName,
-				"avatar_url": entity.AvatarURL,
-				"html_url": entity.HtmlURL,
-				"homepage": entity.Homepage,
-				"description": entity.Description,
-				"created_at": entity.CreatedAt,
-				"updated_at": entity.UpdatedAt,
-				"stargazers_count": entity.StargazersCount,
-				"language": entity.Language,
-				"watchers_count": entity.WatchersCount,
+				"email":             email,
+				"repo_id":           entity.RepoID,
+				"repo_name":         entity.RepoName,
+				"owner_name":        entity.OwnerName,
+				"avatar_url":        entity.AvatarURL,
+				"html_url":          entity.HtmlURL,
+				"homepage":          entity.Homepage,
+				"description":       entity.Description,
+				"created_at":        entity.CreatedAt,
+				"updated_at":        entity.UpdatedAt,
+				"stargazers_count":  entity.StargazersCount,
+				"language":          entity.Language,
+				"watchers_count":    entity.WatchersCount,
 				"open_issues_count": entity.OpenIssuesCount,
-				"default_branch": entity.DefaultBranch,
-				"archived": entity.Archived,
+				"default_branch":    entity.DefaultBranch,
+				"archived":          entity.Archived,
 			},
 		)
 

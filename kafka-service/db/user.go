@@ -8,7 +8,72 @@ import (
 	"github.com/weichen-lin/kafka-service/domain"
 )
 
-func (db *Database) GetUser(ctx context.Context, email string) (*domain.User, error) {
+func (db *Database) CreateUser(user *domain.User) error {
+	entity := user.ToUserEntity()
+
+	session := db.driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
+	defer session.Close(context.Background())
+
+	result, err := session.ExecuteWrite(context.Background(), func(tx neo4j.ManagedTransaction) (any, error) {
+		result, err := tx.Run(context.Background(), `
+			MERGE (u:User {email: $email})
+			ON CREATE SET u.name = $name,
+						u.image = $image
+			ON MATCH SET u.name = $name,
+						u.image = $image
+			MERGE (a:Account {providerAccountId: $provider_account_id})
+			ON CREATE SET a.access_token = $access_token,
+						a.provider = $provider,
+						a.scope = $scope,
+						a.type = $auth_type,
+						a.token_type = $token_type
+			ON MATCH SET a.access_token = $access_token,
+						a.provider = $provider,
+						a.scope = $scope,
+						a.type = $auth_type,
+						a.token_type = $token_type
+			MERGE (u)-[:HAS_ACCOUNT]->(a)
+			RETURN u.name AS name;
+			`,
+			map[string]interface{}{
+				"name":                entity.Name,
+				"email":               entity.Email,
+				"image":               entity.Image,
+				"access_token":        entity.AccessToken,
+				"provider":            entity.Provider,
+				"provider_account_id": entity.ProviderAccountId,
+				"scope":               entity.Scope,
+				"auth_type":           entity.AuthType,
+				"token_type":          entity.TokenType,
+			})
+
+		if err != nil {
+			fmt.Println("error at create user: ", err)
+			return nil, err
+		}
+		record, err := result.Single(context.Background())
+		return record, err
+	})
+
+	if err != nil {
+		return err
+	}
+
+	userRecord, ok := result.(*neo4j.Record)
+	if !ok {
+		return fmt.Errorf("error at converting users records to []*neo4j.Record")
+	}
+
+	record := userRecord.AsMap()
+	_, ok = record["name"].(string)
+	if !ok {
+		return fmt.Errorf("error convert name from record: %v", record)
+	}
+
+	return nil
+}
+
+func (db *Database) GetUser(ctx context.Context) (*domain.User, error) {
 	email, ok := EmailFromContext(ctx)
 	if !ok {
 		return nil, ErrNotFoundEmailAtContext
@@ -73,10 +138,6 @@ func (db *Database) GetUser(ctx context.Context, email string) (*domain.User, er
 			TokenType:         getString(userRecord["token_type"]),
 		},
 	)
-
-	if err != nil {
-		return nil, err
-	}
 
 	return user, nil
 }

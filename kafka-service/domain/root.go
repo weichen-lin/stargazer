@@ -11,11 +11,7 @@ func (a *AggregateRoot) Version() int {
 	return a.version
 }
 
-func (a *AggregateRoot) SetVersion() {
-	if a == nil {
-		a.version = 1
-		return
-	}
+func (a *AggregateRoot) UpdateVersion() {
 	a.version++
 }
 

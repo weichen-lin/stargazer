@@ -60,7 +60,7 @@ func (db *Database) GetCrontab(ctx context.Context) (*domain.Crontab, error) {
 
 	cron, err := domain.FromCrontabEntity(
 		&domain.CrontabEntity{
-			TriggeredAt:       getString(crontab["triggered_at"]),
+			TriggeredAt:     getString(crontab["triggered_at"]),
 			CreatedAt:       getString(crontab["created_at"]),
 			UpdatedAt:       getString(crontab["updated_at"]),
 			Status:          getString(crontab["status"]),
@@ -75,7 +75,6 @@ func (db *Database) GetCrontab(ctx context.Context) (*domain.Crontab, error) {
 
 	return cron, nil
 }
-
 
 func (db *Database) CreateCrontab(ctx context.Context) error {
 	email, ok := EmailFromContext(ctx)
@@ -107,13 +106,13 @@ func (db *Database) CreateCrontab(ctx context.Context) error {
 			}
 			RETURN c.created_at AS created_at;
             `, map[string]any{
-			"email": email,
-			"created_at": entity.CreatedAt,
-			"updated_at": entity.UpdatedAt,
-			"triggered_at": entity.TriggeredAt,
+			"email":             email,
+			"created_at":        entity.CreatedAt,
+			"updated_at":        entity.UpdatedAt,
+			"triggered_at":      entity.TriggeredAt,
 			"last_triggered_at": entity.LastTriggeredAt,
-			"status": entity.Status,
-			"version": entity.Version,
+			"status":            entity.Status,
+			"version":           entity.Version,
 		})
 
 		if err != nil {
@@ -128,7 +127,7 @@ func (db *Database) CreateCrontab(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	
+
 	record, ok := result.(*neo4j.Record)
 	if !ok {
 		return fmt.Errorf("error at converting crontab records to []*neo4j.Record")

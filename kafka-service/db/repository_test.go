@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 	"github.com/weichen-lin/kafka-service/domain"
@@ -10,7 +11,7 @@ import (
 
 func TestGetRepository(t *testing.T) {
 	repo, err := db.GetRepository(context.Background(), 123)
-	require.Error(t, err)
+	require.ErrorIs(t, err, ErrNotFoundEmailAtContext)
 	require.Empty(t, repo)
 
 	repositoryEntity := &domain.RepositoryEntity{
@@ -32,10 +33,52 @@ func TestGetRepository(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEmpty(t, repo)
 
+	entity := &domain.UserEntity{
+		Name:              "Test 123",
+		Email:             "john.doe.123@example.com",
+		Image:             "https://example.comhaha/avatar.jpg",
+		AccessToken:       "abc123123123123",
+		Provider:          "github",
+		ProviderAccountId: "123412312312356",
+		Scope:             "read:user,user:email",
+		AuthType:          "oauth",
+		TokenType:         "bearer",
+	}
+
+	user := domain.FromUserEntity(entity)
+
+	err = db.CreateUser(user)
+	require.NoError(t, err)
+
 	ctx, err := WithEmail(context.Background(), "valid@example.com")
 	require.NoError(t, err)
 	require.NotEmpty(t, ctx)
 
 	err = db.CreateRepository(ctx, repo)
+	require.ErrorIs(t, err, ErrRepositoryNotFound)
+
+	ctx, err = WithEmail(context.Background(), "john.doe.123@example.com")
 	require.NoError(t, err)
+
+	err = db.CreateRepository(ctx, repo)
+	require.NoError(t, err)
+
+	repo, err = db.GetRepository(ctx, repositoryEntity.RepoID)
+	require.NoError(t, err)
+
+	expectCreated, _ := time.Parse(time.RFC3339, repositoryEntity.CreatedAt)
+	expectUpdateAt, _ := time.Parse(time.RFC3339, repositoryEntity.UpdatedAt)
+
+	require.Equal(t, repo.RepoID(), repositoryEntity.RepoID)
+	require.Equal(t, repo.RepoName(), repositoryEntity.RepoName)
+	require.Equal(t, repo.OwnerName(), repositoryEntity.OwnerName)
+	require.Equal(t, repo.AvatarURL(), repositoryEntity.AvatarURL)
+	require.Equal(t, repo.HTMLURL(), repositoryEntity.HtmlURL)
+	require.Equal(t, repo.Homepage(), repositoryEntity.Homepage)
+	require.Equal(t, repo.CreatedAt(), expectCreated)
+	require.Equal(t, repo.UpdatedAt(), expectUpdateAt)
+	require.Equal(t, repo.StargazersCount(), repositoryEntity.StargazersCount)
+	require.Equal(t, repo.WatchersCount(), repositoryEntity.WatchersCount)
+	require.Equal(t, repo.OpenIssuesCount(), repositoryEntity.OpenIssuesCount)
+	require.Equal(t, repo.DefaultBranch(), repositoryEntity.DefaultBranch)
 }

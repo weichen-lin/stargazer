@@ -65,7 +65,7 @@ func (db *Database) GetCrontab(ctx context.Context) (*domain.Crontab, error) {
 			UpdatedAt:       getString(crontab["updated_at"]),
 			Status:          getString(crontab["status"]),
 			LastTriggeredAt: getString(crontab["last_triggered_at"]),
-			Version:         getInt(crontab["version"]),
+			Version:         getInt64(crontab["version"]),
 		},
 	)
 

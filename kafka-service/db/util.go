@@ -45,13 +45,6 @@ func getString(v interface{}) string {
 	return ""
 }
 
-func getInt(v interface{}) int {
-	if i, ok := v.(int); ok {
-		return i
-	}
-	return 0
-}
-
 func getBool(v interface{}) bool {
 	if i, ok := v.(bool); ok {
 		return i

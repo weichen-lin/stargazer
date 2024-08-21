@@ -1,10 +1,10 @@
 package domain
 
 type AggregateRoot struct {
-	version int
+	version int64
 }
 
-func (a *AggregateRoot) Version() int {
+func (a *AggregateRoot) Version() int64 {
 	if a == nil {
 		return 0
 	}

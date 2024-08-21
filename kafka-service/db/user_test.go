@@ -66,10 +66,13 @@ func Test_GetUser(t *testing.T) {
 }
 
 func Test_ErrorGetUser(t *testing.T) {
+	_, err := db.GetUser(context.Background())
+	require.ErrorIs(t, err, ErrNotFoundEmailAtContext)
+
 	ctx, err := WithEmail(context.Background(), "invalid@example.com")
 	require.NoError(t, err)
 	require.NotEmpty(t, ctx)
 
 	_, err = db.GetUser(ctx)
-	require.ErrorIs(t, err, ErrNotFoundEmailAtContext)
+	require.ErrorIs(t, err, ErrNotFoundUser)
 }

@@ -22,11 +22,11 @@ type GithubRepository struct {
 	CreatedAt       string   `json:"created_at"`
 	UpdatedAt       string   `json:"updated_at"`
 	Homepage        string   `json:"homepage"`
-	StargazersCount int      `json:"stargazers_count"`
-	WatchersCount   int      `json:"watchers_count"`
+	StargazersCount int64    `json:"stargazers_count"`
+	WatchersCount   int64    `json:"watchers_count"`
 	Language        string   `json:"language"`
 	Archived        bool     `json:"archived"`
-	OpenIssuesCount int      `json:"open_issues_count"`
+	OpenIssuesCount int64    `json:"open_issues_count"`
 	Topics          []string `json:"topics"`
 	DefaultBranch   string   `json:"default_branch"`
 }
@@ -41,10 +41,10 @@ type RepositoryEntity struct {
 	Description     string `json:"description"`
 	CreatedAt       string `json:"created_at"`
 	UpdatedAt       string `json:"updated_at"`
-	StargazersCount int    `json:"stargazers_count"`
+	StargazersCount int64  `json:"stargazers_count"`
 	Language        string `json:"language"`
-	WatchersCount   int    `json:"watchers_count"`
-	OpenIssuesCount int    `json:"open_issues_count"`
+	WatchersCount   int64  `json:"watchers_count"`
+	OpenIssuesCount int64  `json:"open_issues_count"`
 	DefaultBranch   string `json:"default_branch"`
 	Archived        bool   `json:"archived"`
 }
@@ -59,9 +59,9 @@ type Repository struct {
 	description     string
 	createdAt       time.Time
 	updatedAt       time.Time
-	stargazersCount int
-	watchersCount   int
-	openIssuesCount int
+	stargazersCount int64
+	watchersCount   int64
+	openIssuesCount int64
 	language        string
 	defaultBranch   string
 	archived        bool
@@ -103,15 +103,15 @@ func (r *Repository) UpdatedAt() time.Time {
 	return r.updatedAt
 }
 
-func (r *Repository) StargazersCount() int {
+func (r *Repository) StargazersCount() int64 {
 	return r.stargazersCount
 }
 
-func (r *Repository) WatchersCount() int {
+func (r *Repository) WatchersCount() int64 {
 	return r.watchersCount
 }
 
-func (r *Repository) OpenIssuesCount() int {
+func (r *Repository) OpenIssuesCount() int64 {
 	return r.openIssuesCount
 }
 
@@ -221,7 +221,7 @@ func (r *Repository) setUpdatedAt(t string) error {
 	return nil
 }
 
-func (r *Repository) setStargazersCount(count int) error {
+func (r *Repository) setStargazersCount(count int64) error {
 	if count < 0 {
 		return errors.New("stargazers count cannot be negative")
 	}
@@ -229,7 +229,7 @@ func (r *Repository) setStargazersCount(count int) error {
 	return nil
 }
 
-func (r *Repository) setWatchersCount(count int) error {
+func (r *Repository) setWatchersCount(count int64) error {
 	if count < 0 {
 		return errors.New("watchers count cannot be negative")
 	}
@@ -237,7 +237,7 @@ func (r *Repository) setWatchersCount(count int) error {
 	return nil
 }
 
-func (r *Repository) setOpenIssuesCount(count int) error {
+func (r *Repository) setOpenIssuesCount(count int64) error {
 	if count < 0 {
 		return errors.New("open issues count cannot be negative")
 	}

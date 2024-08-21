@@ -83,9 +83,9 @@ func (db *Database) GetRepository(ctx context.Context, repo_id int64) (*domain.R
 			Description:     getString(repo["description"]),
 			CreatedAt:       getString(repo["created_at"]),
 			UpdatedAt:       getString(repo["updated_at"]),
-			StargazersCount: getInt(repo["stargazers_count"]),
-			WatchersCount:   getInt(repo["watchers_count"]),
-			OpenIssuesCount: getInt(repo["open_issues_count"]),
+			StargazersCount: getInt64(repo["stargazers_count"]),
+			WatchersCount:   getInt64(repo["watchers_count"]),
+			OpenIssuesCount: getInt64(repo["open_issues_count"]),
 			Language:        getString(repo["language"]),
 			DefaultBranch:   getString(repo["default_branch"]),
 			Archived:        getBool(repo["archived"]),
@@ -167,24 +167,20 @@ func (db *Database) CreateRepository(ctx context.Context, repo *domain.Repositor
 			fmt.Println("error at create repo: ", err)
 			return nil, err
 		}
-		records, err := result.Collect(context.Background())
+		records, err := result.Single(context.Background())
 		return records, err
 	})
 
 	if err != nil {
-		return err
+		return ErrRepositoryNotFound
 	}
 
-	repos, ok := records.([]*neo4j.Record)
+	repos, ok := records.(*neo4j.Record)
 	if !ok {
-		return fmt.Errorf("error at converting users records to []*neo4j.Record")
+		return ErrRepositoryNotFound
 	}
 
-	if len(repos) == 0 {
-		return fmt.Errorf("repo create failed")
-	}
-
-	record := repos[0].AsMap()
+	record := repos.AsMap()
 	_, ok = record["repo_id"].(int64)
 	if !ok {
 		return fmt.Errorf("error convert id from record: %v", record)

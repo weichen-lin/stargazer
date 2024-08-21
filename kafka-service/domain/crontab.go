@@ -21,7 +21,7 @@ type CrontabEntity struct {
 	UpdatedAt       string `json:"updated_at"`
 	Status          string `json:"status"`
 	LastTriggeredAt string `json:"last_triggered_at"`
-	Version         int    `json:"version"`
+	Version         int64  `json:"version"`
 }
 
 func (c *Crontab) TriggeredAt() time.Time {

@@ -2,11 +2,14 @@ package db
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 	"github.com/weichen-lin/kafka-service/domain"
 )
+
+var ErrNotFoundUser = errors.New("user not found")
 
 func (db *Database) CreateUser(user *domain.User) error {
 	entity := user.ToUserEntity()
@@ -110,7 +113,7 @@ func (db *Database) GetUser(ctx context.Context) (*domain.User, error) {
 	})
 
 	if err != nil {
-		return nil, err
+		return nil, ErrNotFoundUser
 	}
 
 	record, ok := result.(*neo4j.Record)

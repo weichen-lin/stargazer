@@ -119,7 +119,7 @@ func (c *Crontab) SetStatus(s string) error {
 	return nil
 }
 
-func NewCrontab() (*Crontab, error) {
+func NewCrontab() *Crontab {
 	Crontab := &Crontab{}
 
 	now := time.Now()
@@ -132,7 +132,7 @@ func NewCrontab() (*Crontab, error) {
 	root := NewAggregateRoot()
 	Crontab.AggregateRoot = root
 
-	return Crontab, nil
+	return Crontab
 }
 
 func (c *Crontab) ToCrontabEntity() *CrontabEntity {

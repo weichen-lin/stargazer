@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 	"github.com/weichen-lin/kafka-service/domain"
@@ -109,7 +110,7 @@ func (db *Database) CreateRepository(ctx context.Context, repo *domain.Repositor
 
 	session := db.driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
 	defer session.Close(context.Background())
-
+	
 	records, err := session.ExecuteWrite(context.Background(), func(tx neo4j.ManagedTransaction) (any, error) {
 		result, err := tx.Run(context.Background(), `
 			MATCH (u:User {email: $email})
@@ -134,14 +135,25 @@ func (db *Database) CreateRepository(ctx context.Context, repo *domain.Repositor
 			WITH u, r
 			MERGE (u)-[s:STARS]->(r)
 			MERGE (r)-[sb:STARRED_BY]->(u)
-			ON CREATE SET s += {
+			ON CREATE 
+			SET s += {
 				is_delete : false,
 				created_at : datetime()
 			}
-			ON MATCH SET s += {
+			ON MATCH 
+			SET s += {
 				last_synced_at : datetime()
 			}
-			RETURN r.repo_id AS repo_id;
+			WITH r, s, 
+			CASE
+				WHEN s.created_at = datetime() THEN 'CREATED'
+				ELSE 'MATCHED'
+			END AS operation
+			RETURN 
+			CASE operation
+				WHEN 'CREATED' THEN s.created_at
+				WHEN 'MATCHED' THEN s.last_synced_at
+			END AS result
 			`,
 			map[string]interface{}{
 				"email":             email,
@@ -181,7 +193,7 @@ func (db *Database) CreateRepository(ctx context.Context, repo *domain.Repositor
 	}
 
 	record := repos.AsMap()
-	_, ok = record["repo_id"].(int64)
+	_, ok = record["result"].(time.Time)
 	if !ok {
 		return fmt.Errorf("error convert id from record: %v", record)
 	}

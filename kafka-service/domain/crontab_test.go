@@ -10,21 +10,19 @@ import (
 func TestNewCrontab(t *testing.T) {
 	now := time.Now()
 
-	Crontab, err := NewCrontab()
-	require.NoError(t, err)
+	crontab := NewCrontab()
 
-	require.Equal(t, "new", Crontab.Status())
-	require.True(t, Crontab.TriggeredAt().IsZero())
-	require.False(t, Crontab.CreatedAt().IsZero())
-	require.Equal(t, now.Sub(Crontab.createdAt).Milliseconds() > 0, true)
-	require.True(t, Crontab.UpdatedAt().IsZero())
-	require.True(t, Crontab.LastTriggeredAt().IsZero())
-	require.Equal(t, Crontab.Version(), 1)
+	require.Equal(t, "new", crontab.Status())
+	require.True(t, crontab.TriggeredAt().IsZero())
+	require.False(t, crontab.CreatedAt().IsZero())
+	require.Equal(t, now.Sub(crontab.createdAt).Milliseconds() > 0, true)
+	require.True(t, crontab.UpdatedAt().IsZero())
+	require.True(t, crontab.LastTriggeredAt().IsZero())
+	require.Equal(t, crontab.Version(), 1)
 }
 
 func Test_ToCrontabEntityEmpty(t *testing.T) {
-	Crontab, err := NewCrontab()
-	require.NoError(t, err)
+	Crontab := NewCrontab()
 
 	entity := Crontab.ToCrontabEntity()
 	require.Equal(t, entity.CreatedAt, Crontab.CreatedAt().Format(time.RFC3339))

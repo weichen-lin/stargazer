@@ -93,6 +93,24 @@ func (t *Tag) SetUpdatedAt(s string) error {
 	return nil
 }
 
+func (t *Tag) ToTagEntity() *TagEntity {
+
+	var updatedAt string
+
+	if t.UpdatedAt().IsZero() {
+		updatedAt = ""
+	} else {
+		updatedAt = t.UpdatedAt().Format(time.RFC3339)
+	}
+	
+	return &TagEntity{
+		ID:        t.id.String(),
+		Name:      t.name,
+		CreatedAt: t.createdAt.Format(time.RFC3339),
+		UpdatedAt: updatedAt,
+	}
+}
+
 func NewTag(name string) (*Tag, error) {
 	tag := &Tag{}
 

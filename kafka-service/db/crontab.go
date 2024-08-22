@@ -9,6 +9,8 @@ import (
 	"github.com/weichen-lin/kafka-service/domain"
 )
 
+var ErrNotFoundCrontab = errors.New("crontab not found")
+
 func (db *Database) GetCrontab(ctx context.Context) (*domain.Crontab, error) {
 	email, ok := EmailFromContext(ctx)
 	if !ok {
@@ -43,7 +45,7 @@ func (db *Database) GetCrontab(ctx context.Context) (*domain.Crontab, error) {
 	})
 
 	if err != nil {
-		return nil, err
+		return nil, ErrNotFoundCrontab
 	}
 
 	record, ok := result.(*neo4j.Record)
@@ -76,15 +78,10 @@ func (db *Database) GetCrontab(ctx context.Context) (*domain.Crontab, error) {
 	return cron, nil
 }
 
-func (db *Database) CreateCrontab(ctx context.Context) error {
+func (db *Database) CreateCrontab(ctx context.Context, crontab *domain.Crontab) error {
 	email, ok := EmailFromContext(ctx)
 	if !ok {
 		return ErrNotFoundEmailAtContext
-	}
-
-	crontab, err := domain.NewCrontab()
-	if err != nil {
-		return err
 	}
 
 	entity := crontab.ToCrontabEntity()
@@ -96,7 +93,7 @@ func (db *Database) CreateCrontab(ctx context.Context) error {
 		result, err := tx.Run(context.Background(), `
 			MATCH (u:User {email: $email})
 			MERGE (u)-[h:HAS_CRONTAB]-(c:Crontab)
-			SET c = {
+			Set c += {
 				created_at: $created_at,
 				triggered_at: $triggered_at,
 				updated_at: $updated_at,
@@ -134,7 +131,6 @@ func (db *Database) CreateCrontab(ctx context.Context) error {
 	}
 
 	resultMap := record.AsMap()
-	fmt.Println(resultMap["created_at"])
 
 	createdAt, ok := resultMap["created_at"].(string)
 	if !ok {

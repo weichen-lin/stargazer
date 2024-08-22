@@ -27,6 +27,9 @@ func TestGetRepository(t *testing.T) {
 		WatchersCount:   50,
 		OpenIssuesCount: 10,
 		DefaultBranch:   "main",
+		Description:     "test-description",
+		Language:        "Go",
+		Archived:        true,
 	}
 
 	repo, err = domain.FromRepositoryEntity(repositoryEntity)
@@ -81,4 +84,7 @@ func TestGetRepository(t *testing.T) {
 	require.Equal(t, repo.WatchersCount(), repositoryEntity.WatchersCount)
 	require.Equal(t, repo.OpenIssuesCount(), repositoryEntity.OpenIssuesCount)
 	require.Equal(t, repo.DefaultBranch(), repositoryEntity.DefaultBranch)
+	require.Equal(t, repo.Description(), repositoryEntity.Description)
+	require.Equal(t, repo.Language(), repositoryEntity.Language)
+	require.Equal(t, repo.Archived(), repositoryEntity.Archived)
 }

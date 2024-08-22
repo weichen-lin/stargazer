@@ -82,14 +82,12 @@ func TestNewTag(t *testing.T) {
 	require.Equal(t, "Golang", tag.Name())
 	require.NotZero(t, tag.CreatedAt())
 	require.Zero(t, tag.UpdatedAt())
-	require.NotEmpty(t, tag.id)
 }
 
 func TestFromTagEntity(t *testing.T) {
 	nowString := time.Now().Format(time.RFC3339)
 
 	tagEntity := &TagEntity{
-		ID:        "1777f5cc-1882-4d26-a370-6d9439666a18",
 		Name:      "Golang",
 		CreatedAt: nowString,
 		UpdatedAt: time.Now().Add(1 * time.Hour).Format(time.RFC3339),
@@ -119,10 +117,6 @@ func TestFromTagEntity(t *testing.T) {
 	require.Error(t, err)
 
 	tagEntity.UpdatedAt = "invalid-date"
-	_, err = FromTagEntity(tagEntity)
-	require.Error(t, err)
-
-	tagEntity.ID = "invalid-id"
 	_, err = FromTagEntity(tagEntity)
 	require.Error(t, err)
 }

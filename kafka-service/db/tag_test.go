@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/go-faker/faker/v4"
 	"github.com/stretchr/testify/require"
 	"github.com/weichen-lin/kafka-service/domain"
 )
@@ -24,6 +25,7 @@ func Test_CreateAndRemoveTag(t *testing.T) {
 	user := domain.FromUserEntity(entity)
 
 	err := db.CreateUser(user)
+
 	require.NoError(t, err)
 
 	repositoryEntity := &domain.RepositoryEntity{
@@ -54,10 +56,20 @@ func Test_CreateAndRemoveTag(t *testing.T) {
 	err = db.CreateRepository(ctx, repo)
 	require.NoError(t, err)
 
-	tag, err := domain.NewTag("tag1")
+	name := faker.Name()
+	tag, err := domain.NewTag(name)
 	require.NoError(t, err)
 	require.NotEmpty(t, tag)
 
 	err = db.SaveTag(ctx, tag, repo.RepoID())
+	require.NoError(t, err)
+
+	savedTag, err := db.GetTagByName(ctx, tag.Name())
+	require.NoError(t, err)
+	require.Equal(t, savedTag.Name(), tag.Name())
+	require.Equal(t, savedTag.CreatedAt(), tag.CreatedAt())
+	require.Equal(t, savedTag.UpdatedAt(), tag.UpdatedAt())
+
+	err = db.RemoveTag(ctx, savedTag, repo.RepoID())
 	require.NoError(t, err)
 }

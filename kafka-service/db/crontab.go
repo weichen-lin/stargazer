@@ -113,7 +113,6 @@ func (db *Database) CreateCrontab(ctx context.Context, crontab *domain.Crontab) 
 		})
 
 		if err != nil {
-			fmt.Println("error at read crontab: ", err)
 			return nil, err
 		}
 

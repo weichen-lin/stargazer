@@ -31,7 +31,6 @@ func (db *Database) SaveTag(ctx context.Context, tag *domain.Tag, repo_id int64)
 			MATCH (u:User {email: $email})
 			MERGE (t:Tag {name: $name})
 			ON CREATE SET t += {
-				id: $id,
 				name: $name,
 				created_at: $created_at,
 				updated_at: $updated_at
@@ -46,19 +45,17 @@ func (db *Database) SaveTag(ctx context.Context, tag *domain.Tag, repo_id int64)
 			SET s.last_modified_at = datetime()
 			WITH t, r
 			MERGE (r)-[:TAGGED_BY]->(t)
-			RETURN DISTINCT t.id as id
+			RETURN DISTINCT t.created_at as created_at
 			`,
 			map[string]interface{}{
 				"email":      email,
 				"repo_id":    repo_id,
-				"id": entity.ID,
 				"name":       entity.Name,
 				"created_at": entity.CreatedAt,
 				"updated_at": entity.UpdatedAt,
 			})
 
 		if err != nil {
-			fmt.Println("error at create tag: ", err)
 			return nil, err
 		}
 		record, err := result.Single(context.Background())
@@ -75,13 +72,9 @@ func (db *Database) SaveTag(ctx context.Context, tag *domain.Tag, repo_id int64)
 	}
 
 	record := tagRecord.AsMap()
-	id, ok := record["id"].(string)
+	_, ok = record["created_at"].(string)
 	if !ok {
 		return fmt.Errorf("error convert name from record: %v", record)
-	}
-
-	if id != entity.ID {
-		return fmt.Errorf("error at create tag, id does not match")
 	}
 
 	return nil
@@ -98,13 +91,13 @@ func (db *Database) RemoveTag(ctx context.Context, tag *domain.Tag, repoID int64
 
     _, err := session.ExecuteWrite(context.Background(), func(tx neo4j.ManagedTransaction) (any, error) {
         result, err := tx.Run(context.Background(), `
-            MATCH (u:User {email: $email})-[:HAS_TAG]->(t:Tag {id: $id})
-            MATCH (t)<-[:TAGGED_BY]-(r:Repository {repo_id: $repo_id})
-            DELETE t, (u)-[:HAS_TAG]->(t), (r)-[:TAGGED_BY]->(t)
+            MATCH (u:User {email: $email})-[h:HAS_TAG]->(t:Tag {name: $name})
+            MATCH (t)<-[tb:TAGGED_BY]-(r:Repository {repo_id: $repo_id})
+            DELETE h, t, tb
             `,
             map[string]interface{}{
                 "email": email,
-                "id":  tag.ID().String(),
+				"name": tag.Name(),
                 "repo_id": repoID,
             })
 
@@ -123,7 +116,7 @@ func (db *Database) RemoveTag(ctx context.Context, tag *domain.Tag, repoID int64
     return nil
 }
 
-func (db *Database) GetTagByID(ctx context.Context, tagID int64) (*domain.Tag, error) {
+func (db *Database) GetTagByName(ctx context.Context, name string) (*domain.Tag, error) {
 	email, ok := EmailFromContext(ctx)
     if !ok {
         return nil, ErrNotFoundEmailAtContext
@@ -134,12 +127,16 @@ func (db *Database) GetTagByID(ctx context.Context, tagID int64) (*domain.Tag, e
 
     result, err := session.ExecuteRead(context.Background(), func(tx neo4j.ManagedTransaction) (any, error) {
 		result, err := tx.Run(context.Background(), `
-			MATCH (u:User {email: $email})-[r:HAS_TAG]-(t:Tag {id: $id})
-			RETURN t
+			MATCH (u:User {email: $email})-[r:HAS_TAG]-(t:Tag {name: $name})
+			RETURN {
+				name: t.name,
+				created_at: t.created_at,
+				updated_at: t.updated_at
+			} as tag
 			`,
 			map[string]interface{}{
 				"email":   email,
-				"id": tagID,
+				"name": name,
 			})
 
 		if err != nil {
@@ -160,39 +157,18 @@ func (db *Database) GetTagByID(ctx context.Context, tagID int64) (*domain.Tag, e
 	}
 
 	tagMap := record.AsMap()
+	tagData, ok := tagMap["tag"].(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("error converting record to map")
+	}
 
 	tag, err := domain.FromTagEntity(
 		&domain.TagEntity{
-			ID:        getString(tagMap["id"]),
-			Name:      getString(tagMap["name"]),
-			CreatedAt: getString(tagMap["created_at"]),
-			UpdatedAt: getString(tagMap["updated_at"]),
+			Name:      getString(tagData["name"]),
+			CreatedAt: getString(tagData["created_at"]),
+			UpdatedAt: getString(tagData["updated_at"]),
 		},
 	)
 
 	return tag, nil
 }
-
-
-// func (db *Database) GetTagByName(ctx context.Context, name string) (*domain.Tag, error) {
-//     email, ok := EmailFromContext(ctx)
-//     if !ok {
-//         return nil, ErrNotFoundEmailAtContext
-//     }
-	
-// 	session := db.driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
-//     defer session.Close(context.Background())
-
-//     result, err := session.Run(context.Background(), `
-//         MATCH (t:Tag {name: $name})
-//         RETURN t
-//         `, map[string]interface{}{
-//             "name": name,
-//         })
-
-//     if err != nil {
-//         return nil, err
-//     }
-
-//     // ... 以下與 GetTagByID 相同的邏輯
-// }

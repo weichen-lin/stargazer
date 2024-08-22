@@ -18,7 +18,7 @@ func TestNewCrontab(t *testing.T) {
 	require.Equal(t, now.Sub(crontab.createdAt).Milliseconds() > 0, true)
 	require.True(t, crontab.UpdatedAt().IsZero())
 	require.True(t, crontab.LastTriggeredAt().IsZero())
-	require.Equal(t, crontab.Version(), 1)
+	require.Equal(t, crontab.Version(), int64(1))
 }
 
 func Test_ToCrontabEntityEmpty(t *testing.T) {
@@ -161,7 +161,7 @@ func TestFromCrontabEntity(t *testing.T) {
 	require.Equal(t, "2023-01-03T00:00:00Z", Crontab.UpdatedAt().Format(time.RFC3339))
 	require.Equal(t, "2023-01-03T00:00:00Z", Crontab.LastTriggeredAt().Format(time.RFC3339))
 	require.Equal(t, "active", Crontab.Status())
-	require.Equal(t, 12, Crontab.Version())
+	require.Equal(t, int64(12), Crontab.Version())
 }
 
 func TestFromCrontabEntity_ErrorCases(t *testing.T) {

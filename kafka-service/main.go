@@ -38,16 +38,15 @@ func main() {
 		})
 	})
 
-	repo := r.Group("/repository")
+	repo := r.Group("/repository", m.JWTAuth())
 	{
-		repo.GET("/", m.JWTAuth(), c.GetRepository)
-		repo.POST("/", m.JWTAuth(), c.CreateRepository)
+		repo.GET("/", c.GetRepository)
 	}
 
-	crontab := r.Group("/crontab")
+	crontab := r.Group("/crontab", m.JWTAuth())
 	{
-		crontab.GET("/", m.JWTAuth(), c.GetCronTab)
-		crontab.POST("/", m.JWTAuth(), c.GetCronTab)
+		crontab.GET("/", c.GetCronTab)
+		crontab.POST("/", c.GetCronTab)
 	}
 
 	r.Run(":" + port)

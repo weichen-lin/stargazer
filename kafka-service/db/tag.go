@@ -13,8 +13,6 @@ type CreateTagPayload struct {
 	RepoID int64
 }
 
-
-
 func (db *Database) SaveTag(ctx context.Context, tag *domain.Tag, repo_id int64) error {
 	email, ok := EmailFromContext(ctx)
 	if !ok {
@@ -81,51 +79,51 @@ func (db *Database) SaveTag(ctx context.Context, tag *domain.Tag, repo_id int64)
 }
 
 func (db *Database) RemoveTag(ctx context.Context, tag *domain.Tag, repoID int64) error {
-    email, ok := EmailFromContext(ctx)
-    if !ok {
-        return ErrNotFoundEmailAtContext
-    }
+	email, ok := EmailFromContext(ctx)
+	if !ok {
+		return ErrNotFoundEmailAtContext
+	}
 
-    session := db.driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
-    defer session.Close(context.Background())
+	session := db.driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
+	defer session.Close(context.Background())
 
-    _, err := session.ExecuteWrite(context.Background(), func(tx neo4j.ManagedTransaction) (any, error) {
-        result, err := tx.Run(context.Background(), `
+	_, err := session.ExecuteWrite(context.Background(), func(tx neo4j.ManagedTransaction) (any, error) {
+		result, err := tx.Run(context.Background(), `
             MATCH (u:User {email: $email})-[h:HAS_TAG]->(t:Tag {name: $name})
             MATCH (t)<-[tb:TAGGED_BY]-(r:Repository {repo_id: $repo_id})
             DELETE h, t, tb
             `,
-            map[string]interface{}{
-                "email": email,
-				"name": tag.Name(),
-                "repo_id": repoID,
-            })
+			map[string]interface{}{
+				"email":   email,
+				"name":    tag.Name(),
+				"repo_id": repoID,
+			})
 
-        if err != nil {
-            fmt.Println("error at remove tag: ", err)
-            return nil, err
-        }
+		if err != nil {
+			fmt.Println("error at remove tag: ", err)
+			return nil, err
+		}
 
-        return result, nil
-    })
+		return result, nil
+	})
 
-    if err != nil {
-        return err
-    }
+	if err != nil {
+		return err
+	}
 
-    return nil
+	return nil
 }
 
 func (db *Database) GetTagByName(ctx context.Context, name string) (*domain.Tag, error) {
 	email, ok := EmailFromContext(ctx)
-    if !ok {
-        return nil, ErrNotFoundEmailAtContext
-    }
+	if !ok {
+		return nil, ErrNotFoundEmailAtContext
+	}
 
 	session := db.driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
-    defer session.Close(context.Background())
+	defer session.Close(context.Background())
 
-    result, err := session.ExecuteRead(context.Background(), func(tx neo4j.ManagedTransaction) (any, error) {
+	result, err := session.ExecuteRead(context.Background(), func(tx neo4j.ManagedTransaction) (any, error) {
 		result, err := tx.Run(context.Background(), `
 			MATCH (u:User {email: $email})-[r:HAS_TAG]-(t:Tag {name: $name})
 			RETURN {
@@ -135,8 +133,8 @@ func (db *Database) GetTagByName(ctx context.Context, name string) (*domain.Tag,
 			} as tag
 			`,
 			map[string]interface{}{
-				"email":   email,
-				"name": name,
+				"email": email,
+				"name":  name,
 			})
 
 		if err != nil {
@@ -169,6 +167,10 @@ func (db *Database) GetTagByName(ctx context.Context, name string) (*domain.Tag,
 			UpdatedAt: getString(tagData["updated_at"]),
 		},
 	)
+
+	if err != nil {
+		return nil, err
+	}
 
 	return tag, nil
 }

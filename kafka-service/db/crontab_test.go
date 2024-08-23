@@ -40,6 +40,7 @@ func Test_CreateCrontab(t *testing.T) {
 	require.NoError(t, err)
 
 	ctx, err = WithEmail(context.Background(), "test-not-exists@gmail.com")
+	require.NoError(t, err)
 	err = db.CreateCrontab(ctx, crontab)
 	require.Error(t, err)
 }

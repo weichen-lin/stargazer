@@ -84,7 +84,7 @@ func (t *Tag) ToTagEntity() *TagEntity {
 	} else {
 		updatedAt = t.UpdatedAt().Format(time.RFC3339)
 	}
-	
+
 	return &TagEntity{
 		Name:      t.name,
 		CreatedAt: t.createdAt.Format(time.RFC3339),

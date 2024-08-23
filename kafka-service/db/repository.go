@@ -100,6 +100,60 @@ func (db *Database) GetRepository(ctx context.Context, repo_id int64) (*domain.R
 	return repository, nil
 }
 
+type LanguageDistribution struct {
+	Language string `json:"language"`
+	Count    int64  `json:"count"`
+}
+
+func (db *Database) GetRepoLanguageDistribution(ctx context.Context) ([]*LanguageDistribution, error) {
+	email, ok := EmailFromContext(ctx)
+	if !ok {
+		return nil, ErrNotFoundEmailAtContext
+	}
+
+	session := db.driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
+	defer session.Close(context.Background())
+
+	result, err := session.ExecuteRead(context.Background(), func(tx neo4j.ManagedTransaction) (any, error) {
+		result, err := tx.Run(context.Background(), `
+			MATCH (u:User { email: $email })-[s:STARS { is_delete: false }]->(r:Repository)
+			WITH r.language as language, COUNT(r) as count
+			RETURN language, count
+			ORDER BY count DESC
+			`,
+			map[string]interface{}{
+				"email": email,
+			})
+
+		if err != nil {
+			fmt.Println("error at read repo: ", err)
+			return nil, err
+		}
+		record, err := result.Collect(context.Background())
+		return record, err
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	records, ok := result.([]*neo4j.Record)
+	if !ok {
+		return nil, fmt.Errorf("error at converting users records to []*neo4j.Record")
+	}
+
+	languages := make([]*LanguageDistribution, 0, len(records))
+
+	for _, record := range records {
+		languages = append(languages, &LanguageDistribution{
+			Language: getString(record.Values[0]),
+			Count:    getInt64(record.Values[1]),
+		})
+	}
+
+	return languages, nil
+}
+
 func (db *Database) CreateRepository(ctx context.Context, repo *domain.Repository) error {
 	email, ok := EmailFromContext(ctx)
 	if !ok {
@@ -110,7 +164,7 @@ func (db *Database) CreateRepository(ctx context.Context, repo *domain.Repositor
 
 	session := db.driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
 	defer session.Close(context.Background())
-	
+
 	records, err := session.ExecuteWrite(context.Background(), func(tx neo4j.ManagedTransaction) (any, error) {
 		result, err := tx.Run(context.Background(), `
 			MATCH (u:User {email: $email})
@@ -199,4 +253,128 @@ func (db *Database) CreateRepository(ctx context.Context, repo *domain.Repositor
 	}
 
 	return nil
+}
+
+type SearchParams struct {
+	Page      int64    `json:"page"`
+	Limit     int64    `json:"limit"`
+	Languages []string `json:"languages"`
+}
+
+type SearchResult struct {
+	Data  []*domain.Repository `json:"data"`
+	Total int64                `json:"total"`
+}
+
+func (db *Database) SearchRepositoryByLanguage(ctx context.Context, params *SearchParams) (*SearchResult, error) {
+	email, ok := EmailFromContext(ctx)
+	if !ok {
+		return nil, ErrNotFoundEmailAtContext
+	}
+
+	session := db.driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
+	defer session.Close(context.Background())
+
+	result, err := session.ExecuteRead(context.Background(), func(tx neo4j.ManagedTransaction) (any, error) {
+		result, err := tx.Run(context.Background(), `
+			MATCH (u:User {email: $email})-[s:STARS {is_delete: false}]-(r:Repository)
+			WHERE r.language IN $languages
+			WITH u, COUNT(r) as total
+			MATCH (u)-[s:STARS]-(r)
+			WHERE r.language IN $languages
+			WITH total, s, r
+			ORDER BY s.created_at DESC
+			SKIP $limit * ($page - 1)
+			LIMIT $limit
+			RETURN total, collect({
+				repo_id: r.repo_id,
+				repo_name: r.repo_name,
+				owner_name: r.owner_name,
+				avatar_url: r.avatar_url,
+				html_url: r.html_url,
+				homepage: r.homepage,
+				description: r.description,
+				created_at: r.created_at,
+				updated_at: r.updated_at,
+				stargazers_count: r.stargazers_count,
+				language: r.language,
+				watchers_count: r.watchers_count,
+				open_issues_count: r.open_issues_count,
+				default_branch: r.default_branch,
+				archived: r.archived
+			}) as data
+			`,
+			map[string]interface{}{
+				"email":     email,
+				"languages": params.Languages,
+				"limit":     params.Limit,
+				"page":      params.Page,
+			})
+
+		if err != nil {
+			fmt.Println("error at read repo: ", err)
+			return nil, err
+		}
+		record, err := result.Single(context.Background())
+		return record, err
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	record, ok := result.(*neo4j.Record)
+	if !ok {
+		return nil, fmt.Errorf("error at converting users records to []*neo4j.Record")
+	}
+
+	recordMap := record.AsMap()
+
+	total, ok := recordMap["total"].(int64)
+	if !ok {
+		return nil, fmt.Errorf("error convert id from record: %v", record)
+	}
+	fmt.Printf("total is %d", total)
+
+	data, ok := recordMap["data"].([]interface{})
+	if !ok {
+		return nil, fmt.Errorf("error convert id from record: %v", record)
+	}
+
+	repos := make([]*domain.Repository, len(data))
+
+	for i, r := range data {
+		repoMap := r.(map[string]interface{})
+
+		entity, err := domain.FromRepositoryEntity(
+			&domain.RepositoryEntity{
+				RepoID:          getInt64(repoMap["repo_id"]),
+				RepoName:        getString(repoMap["repo_name"]),
+				OwnerName:       getString(repoMap["owner_name"]),
+				AvatarURL:       getString(repoMap["avatar_url"]),
+				HtmlURL:         getString(repoMap["html_url"]),
+				Homepage:        getString(repoMap["homepage"]),
+				Description:     getString(repoMap["description"]),
+				CreatedAt:       getString(repoMap["created_at"]),
+				UpdatedAt:       getString(repoMap["updated_at"]),
+				StargazersCount: getInt64(repoMap["stargazers_count"]),
+				WatchersCount:   getInt64(repoMap["watchers_count"]),
+				OpenIssuesCount: getInt64(repoMap["open_issues_count"]),
+				Language:        getString(repoMap["language"]),
+				DefaultBranch:   getString(repoMap["default_branch"]),
+				Archived:        getBool(repoMap["archived"]),
+			},
+		)
+
+		repos[i] = entity
+
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return &SearchResult{
+		Data:  repos,
+		Total: total,
+	}, nil
 }

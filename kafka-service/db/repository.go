@@ -20,7 +20,7 @@ func (db *Database) GetRepository(ctx context.Context, repo_id int64) (*domain.R
 		return nil, ErrNotFoundEmailAtContext
 	}
 
-	session := db.driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
+	session := db.Driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
 	defer session.Close(context.Background())
 
 	result, err := session.ExecuteRead(context.Background(), func(tx neo4j.ManagedTransaction) (any, error) {
@@ -111,7 +111,7 @@ func (db *Database) GetRepoLanguageDistribution(ctx context.Context) ([]*Languag
 		return nil, ErrNotFoundEmailAtContext
 	}
 
-	session := db.driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
+	session := db.Driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
 	defer session.Close(context.Background())
 
 	result, err := session.ExecuteRead(context.Background(), func(tx neo4j.ManagedTransaction) (any, error) {
@@ -162,7 +162,7 @@ func (db *Database) CreateRepository(ctx context.Context, repo *domain.Repositor
 
 	entity := repo.ToRepositoryEntity()
 
-	session := db.driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
+	session := db.Driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
 	defer session.Close(context.Background())
 
 	records, err := session.ExecuteWrite(context.Background(), func(tx neo4j.ManagedTransaction) (any, error) {
@@ -272,7 +272,7 @@ func (db *Database) SearchRepositoryByLanguage(ctx context.Context, params *Sear
 		return nil, ErrNotFoundEmailAtContext
 	}
 
-	session := db.driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
+	session := db.Driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
 	defer session.Close(context.Background())
 
 	result, err := session.ExecuteRead(context.Background(), func(tx neo4j.ManagedTransaction) (any, error) {

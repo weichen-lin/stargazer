@@ -21,7 +21,7 @@ func (db *Database) SaveTag(ctx context.Context, tag *domain.Tag, repo_id int64)
 
 	entity := tag.ToTagEntity()
 
-	session := db.driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
+	session := db.Driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	defer session.Close(context.Background())
 
 	result, err := session.ExecuteWrite(context.Background(), func(tx neo4j.ManagedTransaction) (any, error) {
@@ -84,7 +84,7 @@ func (db *Database) RemoveTag(ctx context.Context, tag *domain.Tag, repoID int64
 		return ErrNotFoundEmailAtContext
 	}
 
-	session := db.driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
+	session := db.Driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	defer session.Close(context.Background())
 
 	_, err := session.ExecuteWrite(context.Background(), func(tx neo4j.ManagedTransaction) (any, error) {
@@ -120,7 +120,7 @@ func (db *Database) GetTagByName(ctx context.Context, name string) (*domain.Tag,
 		return nil, ErrNotFoundEmailAtContext
 	}
 
-	session := db.driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
+	session := db.Driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
 	defer session.Close(context.Background())
 
 	result, err := session.ExecuteRead(context.Background(), func(tx neo4j.ManagedTransaction) (any, error) {

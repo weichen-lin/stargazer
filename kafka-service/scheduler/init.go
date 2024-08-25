@@ -30,32 +30,32 @@ func NewScheduler(db *db.Database, producer *kafka.Writer) *Scheduler {
 		producer:   producer,
 	}
 
-	crontabs, err := db.GetAllUserCrontab()
-	if err != nil {
-		panic(err)
-	}
+	// crontabs, err := db.GetAllUserCrontab()
+	// if err != nil {
+	// 	panic(err)
+	// }
 
-	for _, crontab := range crontabs {
-		j, err := c.NewJob(
-			gocron.DailyJob(
-				1,
-				gocron.NewAtTimes(
-					gocron.NewAtTime(uint(crontab.Hour), 0, 0),
-				),
-			),
-			gocron.NewTask(func() {
-				producer.WriteMessages(context.Background(), kafka.Message{
-					Value: []byte(`{"email":"` + crontab.Email + `","page":1}`),
-				})
-			}),
-		)
+	// for _, crontab := range crontabs {
+	// 	j, err := c.NewJob(
+	// 		gocron.DailyJob(
+	// 			1,
+	// 			gocron.NewAtTimes(
+	// 				gocron.NewAtTime(uint(crontab.Hour), 0, 0),
+	// 			),
+	// 		),
+	// 		gocron.NewTask(func() {
+	// 			producer.WriteMessages(context.Background(), kafka.Message{
+	// 				Value: []byte(`{"email":"` + crontab.Email + `","page":1}`),
+	// 			})
+	// 		}),
+	// 	)
 
-		if err != nil {
-			panic(err)
-		}
+	// 	if err != nil {
+	// 		panic(err)
+	// 	}
 
-		s.jobs[crontab.Email] = j.ID()
-	}
+	// 	s.jobs[crontab.Email] = j.ID()
+	// }
 
 	c.Start()
 

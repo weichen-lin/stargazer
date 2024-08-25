@@ -63,7 +63,7 @@ func (c *Controller) CreateRepository(ctx *gin.Context) {
 
 	repo, _ := domain.NewRepository(githubRepo)
 
-	err := c.db.SaveRepository(ctx, repo)
+	err := c.db.CreateRepository(ctx, repo)
 
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, repo.ToRepositoryEntity()) 

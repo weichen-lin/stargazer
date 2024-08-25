@@ -8,7 +8,7 @@ import (
 )
 
 type Database struct {
-	driver neo4j.DriverWithContext
+	Driver neo4j.DriverWithContext
 }
 
 func NewDatabase() *Database {
@@ -30,7 +30,7 @@ func NewDatabase() *Database {
 	}
 
 	return &Database{
-		driver: driver,
+		Driver: driver,
 	}
 }
 

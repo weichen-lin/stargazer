@@ -17,7 +17,7 @@ func (db *Database) GetCrontab(ctx context.Context) (*domain.Crontab, error) {
 		return nil, ErrNotFoundEmailAtContext
 	}
 
-	session := db.driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
+	session := db.Driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
 	defer session.Close(context.Background())
 
 	result, err := session.ExecuteRead(context.Background(), func(tx neo4j.ManagedTransaction) (any, error) {
@@ -86,7 +86,7 @@ func (db *Database) CreateCrontab(ctx context.Context, crontab *domain.Crontab) 
 
 	entity := crontab.ToCrontabEntity()
 
-	session := db.driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
+	session := db.Driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	defer session.Close(context.Background())
 
 	result, err := session.ExecuteWrite(context.Background(), func(tx neo4j.ManagedTransaction) (any, error) {

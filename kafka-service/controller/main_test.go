@@ -1,15 +1,17 @@
-package db
+package controller
 
 import (
 	"os"
 	"testing"
 
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
+	"github.com/weichen-lin/kafka-service/db"
 )
 
-var db *Database
+var testDB *db.Database
+var testController *Controller
 
-func NewTestDatabase() *Database {
+func NewTestDatabase() *db.Database {
 	driver, err := neo4j.NewDriverWithContext(
 		"neo4j://localhost:7687",
 		neo4j.BasicAuth("neo4j", "password", ""),
@@ -19,13 +21,17 @@ func NewTestDatabase() *Database {
 		panic(err)
 	}
 
-	return &Database{
+	return &db.Database{
 		Driver: driver,
 	}
 }
 
 func TestMain(m *testing.M) {
-	db = NewTestDatabase()
+	testDB = NewTestDatabase()
+
+	testController = &Controller{
+		db: testDB,
+	}
 
 	os.Exit(m.Run())
 }

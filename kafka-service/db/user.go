@@ -14,7 +14,7 @@ var ErrNotFoundUser = errors.New("user not found")
 func (db *Database) CreateUser(user *domain.User) error {
 	entity := user.ToUserEntity()
 
-	session := db.driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
+	session := db.Driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	defer session.Close(context.Background())
 
 	result, err := session.ExecuteWrite(context.Background(), func(tx neo4j.ManagedTransaction) (any, error) {
@@ -82,7 +82,7 @@ func (db *Database) GetUser(ctx context.Context) (*domain.User, error) {
 		return nil, ErrNotFoundEmailAtContext
 	}
 
-	session := db.driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
+	session := db.Driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
 	defer session.Close(context.Background())
 
 	result, err := session.ExecuteRead(context.Background(), func(tx neo4j.ManagedTransaction) (any, error) {

@@ -16,7 +16,6 @@ func handleError(err error, ctx *gin.Context) {
 	default:
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "server is not response now"})
 	}
-	
 }
 
 func (c *Controller) GetCronTab(ctx *gin.Context) {

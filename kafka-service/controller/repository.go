@@ -25,16 +25,16 @@ func (c *Controller) GetRepository(ctx *gin.Context) {
 	case err == nil:
 		ctx.JSON(http.StatusOK, repo.ToRepositoryEntity())
 		return
-    case errors.Is(err, db.ErrRepositoryNotFound):
-        ctx.JSON(http.StatusNotFound, gin.H{"error": fmt.Sprintf("repository %d not found", repo_id)})
+	case errors.Is(err, db.ErrRepositoryNotFound):
+		ctx.JSON(http.StatusNotFound, gin.H{"error": fmt.Sprintf("repository %d not found", repo_id)})
 		return
-    case errors.Is(err, db.ErrNotFoundEmailAtContext):
-        ctx.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+	case errors.Is(err, db.ErrNotFoundEmailAtContext):
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
-    default:
-        ctx.JSON(http.StatusForbidden, gin.H{"error": ""})
+	default:
+		ctx.JSON(http.StatusForbidden, gin.H{"error": ""})
 		return
-    }
+	}
 }
 
 func (c *Controller) CreateRepository(ctx *gin.Context) {
@@ -66,7 +66,7 @@ func (c *Controller) CreateRepository(ctx *gin.Context) {
 	err := c.db.CreateRepository(ctx, repo)
 
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, repo.ToRepositoryEntity()) 
+		ctx.JSON(http.StatusBadRequest, repo.ToRepositoryEntity())
 	}
 
 	ctx.JSON(http.StatusOK, repo.ToRepositoryEntity())

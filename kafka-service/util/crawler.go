@@ -6,12 +6,12 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/weichen-lin/kafka-service/db"
+	"github.com/weichen-lin/kafka-service/domain"
 )
 
 var ErrNoToken = fmt.Errorf("invalid github token")
 
-func GetUserStarredRepos(page int, token string) ([]db.Repository, error) {
+func GetUserStarredRepos(page int, token string) ([]domain.GithubRepository, error) {
 
 	url := fmt.Sprintf("https://api.github.com/user/starred?&page=%d", page)
 
@@ -37,7 +37,7 @@ func GetUserStarredRepos(page int, token string) ([]db.Repository, error) {
 		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
 	}
 
-	var repos []db.Repository
+	var repos []domain.GithubRepository
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {

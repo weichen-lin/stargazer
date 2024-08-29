@@ -39,7 +39,6 @@ func SendMail(params *SendMailParams) error {
 
 	client := resend.NewClient(apikey)
 
-
 	p := &resend.SendEmailRequest{
 		From:    "Stargazer <stargazer@wei-chen.dev>",
 		To:      []string{params.Email},
@@ -47,12 +46,12 @@ func SendMail(params *SendMailParams) error {
 		Html:    body.String(),
 	}
 
-    sent, err := client.Emails.Send(p)
-    if err != nil {
-        fmt.Println(err.Error())
-        return nil
-    }
-	
-    fmt.Println(sent.Id)
+	sent, err := client.Emails.Send(p)
+	if err != nil {
+		fmt.Println(err.Error())
+		return nil
+	}
+
+	fmt.Println(sent.Id)
 	return nil
 }

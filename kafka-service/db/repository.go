@@ -50,15 +50,15 @@ func (db *Database) GetRepository(ctx context.Context, repo_id int64) (*domain.R
 			})
 
 		if err != nil {
-			fmt.Println("error at read repo: ", err)
 			return nil, err
 		}
+
 		record, err := result.Single(context.Background())
 		return record, err
 	})
 
 	if err != nil {
-		return nil, err
+		return nil, ErrRepositoryNotFound
 	}
 
 	record, ok := result.(*neo4j.Record)
@@ -145,6 +145,7 @@ func (db *Database) GetRepoLanguageDistribution(ctx context.Context) ([]*Languag
 	languages := make([]*LanguageDistribution, 0, len(records))
 
 	for _, record := range records {
+		fmt.Println(record.Values...)
 		languages = append(languages, &LanguageDistribution{
 			Language: getString(record.Values[0]),
 			Count:    getInt64(record.Values[1]),
@@ -262,8 +263,8 @@ type SearchParams struct {
 }
 
 type SearchResult struct {
-	Data  []*domain.Repository `json:"data"`
-	Total int64                `json:"total"`
+	Data  []*domain.RepositoryEntity `json:"data"`
+	Total int64                      `json:"total"`
 }
 
 func (db *Database) SearchRepositoryByLanguage(ctx context.Context, params *SearchParams) (*SearchResult, error) {
@@ -320,7 +321,10 @@ func (db *Database) SearchRepositoryByLanguage(ctx context.Context, params *Sear
 	})
 
 	if err != nil {
-		return nil, err
+		return &SearchResult{
+			Data:  []*domain.RepositoryEntity{},
+			Total: 0,
+		}, nil
 	}
 
 	record, ok := result.(*neo4j.Record)
@@ -334,43 +338,36 @@ func (db *Database) SearchRepositoryByLanguage(ctx context.Context, params *Sear
 	if !ok {
 		return nil, fmt.Errorf("error convert id from record: %v", record)
 	}
-	fmt.Printf("total is %d", total)
 
 	data, ok := recordMap["data"].([]interface{})
 	if !ok {
 		return nil, fmt.Errorf("error convert id from record: %v", record)
 	}
 
-	repos := make([]*domain.Repository, len(data))
+	repos := make([]*domain.RepositoryEntity, len(data))
 
 	for i, r := range data {
 		repoMap := r.(map[string]interface{})
 
-		entity, err := domain.FromRepositoryEntity(
-			&domain.RepositoryEntity{
-				RepoID:          getInt64(repoMap["repo_id"]),
-				RepoName:        getString(repoMap["repo_name"]),
-				OwnerName:       getString(repoMap["owner_name"]),
-				AvatarURL:       getString(repoMap["avatar_url"]),
-				HtmlURL:         getString(repoMap["html_url"]),
-				Homepage:        getString(repoMap["homepage"]),
-				Description:     getString(repoMap["description"]),
-				CreatedAt:       getString(repoMap["created_at"]),
-				UpdatedAt:       getString(repoMap["updated_at"]),
-				StargazersCount: getInt64(repoMap["stargazers_count"]),
-				WatchersCount:   getInt64(repoMap["watchers_count"]),
-				OpenIssuesCount: getInt64(repoMap["open_issues_count"]),
-				Language:        getString(repoMap["language"]),
-				DefaultBranch:   getString(repoMap["default_branch"]),
-				Archived:        getBool(repoMap["archived"]),
-			},
-		)
+		entity := &domain.RepositoryEntity{
+			RepoID:          getInt64(repoMap["repo_id"]),
+			RepoName:        getString(repoMap["repo_name"]),
+			OwnerName:       getString(repoMap["owner_name"]),
+			AvatarURL:       getString(repoMap["avatar_url"]),
+			HtmlURL:         getString(repoMap["html_url"]),
+			Homepage:        getString(repoMap["homepage"]),
+			Description:     getString(repoMap["description"]),
+			CreatedAt:       getString(repoMap["created_at"]),
+			UpdatedAt:       getString(repoMap["updated_at"]),
+			StargazersCount: getInt64(repoMap["stargazers_count"]),
+			WatchersCount:   getInt64(repoMap["watchers_count"]),
+			OpenIssuesCount: getInt64(repoMap["open_issues_count"]),
+			Language:        getString(repoMap["language"]),
+			DefaultBranch:   getString(repoMap["default_branch"]),
+			Archived:        getBool(repoMap["archived"]),
+		}
 
 		repos[i] = entity
-
-		if err != nil {
-			return nil, err
-		}
 	}
 
 	return &SearchResult{

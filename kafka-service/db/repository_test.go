@@ -186,4 +186,13 @@ func TestGetRepoLanguageDistribution(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, result.Total, int64(1))
 	require.Equal(t, len(result.Data), 1)
+
+	result, err = db.SearchRepositoryByLanguage(ctx, &SearchParams{
+		Languages: []string{"NotExist"},
+		Page:      1,
+		Limit:     10,
+	})
+	require.NoError(t, err)
+	require.Equal(t, result.Total, int64(0))
+	require.Equal(t, len(result.Data), 0)
 }

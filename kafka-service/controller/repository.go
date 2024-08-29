@@ -5,15 +5,31 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/weichen-lin/kafka-service/db"
-	"github.com/weichen-lin/kafka-service/domain"
 )
 
+type GetRepositoryQuery struct {
+	RepoId int64 `form:"repo_id" binding:"required"`
+}
+
+func handleRepositoryErr(err error, ctx *gin.Context) {
+	switch err {
+	case db.ErrNotFoundEmailAtContext:
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "UnAuthorized"})
+	case db.ErrRepositoryNotFound:
+		ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+	default:
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "server is not response now"})
+	}
+}
+
 func (c *Controller) GetRepository(ctx *gin.Context) {
-	repo_idStr := ctx.Param("repo_id")
-	repo_id, err := strconv.ParseInt(repo_idStr, 10, 64)
+	id := ctx.Param("id")
+
+	repo_id, err := strconv.ParseInt(id, 10, 64)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid repo_id"})
 		return
@@ -37,37 +53,43 @@ func (c *Controller) GetRepository(ctx *gin.Context) {
 	}
 }
 
-func (c *Controller) CreateRepository(ctx *gin.Context) {
-
-	createdAt := "2014-03-24T16:04:04Z"
-	updatedAt := "2014-03-24T17:04:04Z"
-
-	githubRepo := &domain.GithubRepository{
-		ID:              1234567,
-		Name:            "sample-repo",
-		FullName:        "user/sample-repo",
-		Owner:           domain.Owner{Login: "user", AvatarURL: "https://avatar.url", HTMLURL: "https://github.com/user"},
-		HTMLURL:         "https://github.com/user/sample-repo",
-		Description:     "This is a sample repository",
-		CreatedAt:       createdAt,
-		UpdatedAt:       updatedAt,
-		Homepage:        "https://sample-repo.com",
-		StargazersCount: 10,
-		WatchersCount:   20,
-		Language:        "Go",
-		Archived:        false,
-		OpenIssuesCount: 5,
-		Topics:          []string{"go", "sample"},
-		DefaultBranch:   "main",
-	}
-
-	repo, _ := domain.NewRepository(githubRepo)
-
-	err := c.db.CreateRepository(ctx, repo)
+func (c *Controller) GetUserLanguageDistribution(ctx *gin.Context) {
+	distribution, err := c.db.GetRepoLanguageDistribution(ctx)
 
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, repo.ToRepositoryEntity())
+		handleRepositoryErr(err, ctx)
+		return
 	}
 
-	ctx.JSON(http.StatusOK, repo.ToRepositoryEntity())
+	fmt.Println(distribution)
+
+	ctx.JSON(http.StatusOK, distribution)
+}
+
+type SearchRepositoryQuery struct {
+	Page      int64  `form:"page" binding:"required"`
+	Limit     int64  `form:"limit" binding:"required"`
+	Languages string `form:"languages" binding:"required"`
+}
+
+func (c *Controller) SearchRepoByLanguages(ctx *gin.Context) {
+
+	var query SearchRepositoryQuery
+	if err := ctx.ShouldBindQuery(&query); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	results, err := c.db.SearchRepositoryByLanguage(ctx, &db.SearchParams{
+		Page:      query.Page,
+		Limit:     query.Limit,
+		Languages: strings.Split(query.Languages, ","),
+	})
+
+	if err != nil {
+		handleRepositoryErr(err, ctx)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, results)
 }

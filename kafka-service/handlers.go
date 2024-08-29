@@ -68,8 +68,6 @@ func GetGithubRepos(db *db.Database, msg kafka.Message, producer *kafka.Writer) 
 		return fmt.Errorf("error getting user stars: %s", err.Error())
 	}
 
-
-
 	if len(stars) == 30 {
 		info.Page++
 
@@ -87,10 +85,10 @@ func GetGithubRepos(db *db.Database, msg kafka.Message, producer *kafka.Writer) 
 		}
 	} else {
 		starsCount := (info.Page-1)*30 + len(stars)
-		
+
 		err := util.SendMail(&util.SendMailParams{
-			Email:   info.Email,
-			Name: "Stargazer user",
+			Email:      info.Email,
+			Name:       "Stargazer user",
 			StarsCount: starsCount,
 		})
 

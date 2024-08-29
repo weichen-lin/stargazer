@@ -144,3 +144,7 @@ func (db *Database) GetUser(ctx context.Context) (*domain.User, error) {
 
 	return user, nil
 }
+
+func (db *Database) DeleteUser(ctx context.Context) error {
+	return nil
+}

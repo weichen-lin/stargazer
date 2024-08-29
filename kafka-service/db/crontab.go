@@ -78,7 +78,7 @@ func (db *Database) GetCrontab(ctx context.Context) (*domain.Crontab, error) {
 	return cron, nil
 }
 
-func (db *Database) CreateCrontab(ctx context.Context, crontab *domain.Crontab) error {
+func (db *Database) SaveCrontab(ctx context.Context, crontab *domain.Crontab) error {
 	email, ok := EmailFromContext(ctx)
 	if !ok {
 		return ErrNotFoundEmailAtContext

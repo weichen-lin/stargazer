@@ -1,0 +1,51 @@
+package main
+
+import (
+	"net/http"
+	"os"
+
+	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
+	"github.com/weichen-lin/kafka-service/controller"
+)
+
+func main() {
+	err := godotenv.Load()
+	if err != nil {
+		panic(err)
+	}
+
+	m := NewMiddleware()
+	service := NewService()
+
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
+	c := controller.NewController(service.DB, service.Producer)
+
+	r := gin.Default()
+
+	r.HEAD("/health", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{
+			"message": "OK",
+		})
+	})
+
+	repo := r.Group("/repository", m.JWTAuth())
+	{
+		repo.GET("/", c.SearchRepoByLanguages)
+		repo.GET("/:id", c.GetRepository)
+		repo.GET("/repository/language-distribution", c.GetUserLanguageDistribution)
+	}
+
+	crontab := r.Group("/crontab", m.JWTAuth())
+	{
+		crontab.GET("/", c.GetCrontab)
+		crontab.POST("/", c.CreateCrontab)
+		crontab.PATCH("/", c.UpdateCrontab)
+	}
+
+	r.Run(":" + port)
+}

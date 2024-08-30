@@ -1,7 +1,6 @@
 package db
 
 import (
-	"context"
 	"testing"
 
 	"github.com/go-faker/faker/v4"
@@ -9,67 +8,58 @@ import (
 	"github.com/weichen-lin/kafka-service/domain"
 )
 
-func Test_CreateAndRemoveTag(t *testing.T) {
-	entity := &domain.UserEntity{
-		Name:              "John Doe",
-		Email:             "john.doe@example.com",
-		Image:             "https://example.com/avatar.jpg",
-		AccessToken:       "abc123",
-		Provider:          "github",
-		ProviderAccountId: "123456",
-		Scope:             "read:user,user:email",
-		AuthType:          "oauth",
-		TokenType:         "bearer",
-	}
+func Test_GetTagsByRepo(t *testing.T) {
+	t.Run("Save tag and check exist, finally try to delete", func(t *testing.T) {
 
-	user := domain.FromUserEntity(entity)
+		user, ctx := createFakeUser(t)
+		repo := createRepositoryAtFakeUser(t, user)
 
-	err := db.CreateUser(user)
+		tag, err := domain.NewTag(faker.Name())
+		require.NoError(t, err)
+		require.NotEmpty(t, tag)
 
-	require.NoError(t, err)
+		err = db.SaveTag(ctx, tag, repo.RepoID())
+		require.NoError(t, err)
 
-	repositoryEntity := &domain.RepositoryEntity{
-		RepoID:          123456789,
-		RepoName:        "example-repo",
-		OwnerName:       "example-owner",
-		AvatarURL:       "https://example.com/avatar.png",
-		HtmlURL:         "https://github.com/example/repo",
-		Homepage:        "https://example.com",
-		CreatedAt:       "2024-01-01T00:00:00Z",
-		UpdatedAt:       "2024-01-02T00:00:00Z",
-		StargazersCount: 100,
-		WatchersCount:   50,
-		OpenIssuesCount: 10,
-		DefaultBranch:   "main",
-		Description:     "test-description",
-		Language:        "Go",
-		Archived:        true,
-	}
+		fakeName := "NotExist"
 
-	repo, err := domain.FromRepositoryEntity(repositoryEntity)
-	require.NoError(t, err)
-	require.NotEmpty(t, repo)
+		tagfromDB, err := db.GetTagByName(ctx, fakeName)
+		require.ErrorIs(t, err, ErrorNotFoundTag)
+		require.Empty(t, tagfromDB)
 
-	ctx, err := WithEmail(context.Background(), entity.Email)
-	require.NoError(t, err)
+		tagfromDB, err = db.GetTagByName(ctx, tag.Name())
+		require.NoError(t, err)
+		require.Equal(t, tag.Name(), tagfromDB.Name())
 
-	err = db.CreateRepository(ctx, repo)
-	require.NoError(t, err)
+		err = db.RemoveTag(ctx, tag, repo.RepoID())
+		require.NoError(t, err)
 
-	name := faker.Name()
-	tag, err := domain.NewTag(name)
-	require.NoError(t, err)
-	require.NotEmpty(t, tag)
+		tagfromDB, err = db.GetTagByName(ctx, tag.Name())
+		require.ErrorIs(t, err, ErrorNotFoundTag)
+		require.Empty(t, tagfromDB)
+	})
 
-	err = db.SaveTag(ctx, tag, repo.RepoID())
-	require.NoError(t, err)
+	t.Run("test get tags by repo", func(t *testing.T) {
+		user, ctx := createFakeUser(t)
+		repo := createRepositoryAtFakeUser(t, user)
 
-	savedTag, err := db.GetTagByName(ctx, tag.Name())
-	require.NoError(t, err)
-	require.Equal(t, savedTag.Name(), tag.Name())
-	require.Equal(t, savedTag.CreatedAt(), tag.CreatedAt())
-	require.Equal(t, savedTag.UpdatedAt(), tag.UpdatedAt())
+		for i := 0; i < 10; i++ {
+			newTag, err := domain.NewTag(faker.Name())
 
-	err = db.RemoveTag(ctx, savedTag, repo.RepoID())
-	require.NoError(t, err)
+			require.NoError(t, err)
+			require.NotEmpty(t, newTag)
+
+			err = db.SaveTag(ctx, newTag, repo.RepoID())
+			require.NoError(t, err)
+		}
+
+		tags, err := db.GetTagsByRepo(ctx, repo.RepoID())
+		require.NoError(t, err)
+		require.Equal(t, 10, len(tags))
+
+		newRepo := createRepositoryAtFakeUser(t, user)
+		tags, err = db.GetTagsByRepo(ctx, newRepo.RepoID())
+		require.NoError(t, err)
+		require.Equal(t, 0, len(tags))
+	})
 }

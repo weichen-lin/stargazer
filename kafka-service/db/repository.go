@@ -145,7 +145,6 @@ func (db *Database) GetRepoLanguageDistribution(ctx context.Context) ([]*Languag
 	languages := make([]*LanguageDistribution, 0, len(records))
 
 	for _, record := range records {
-		fmt.Println(record.Values...)
 		languages = append(languages, &LanguageDistribution{
 			Language: getString(record.Values[0]),
 			Count:    getInt64(record.Values[1]),

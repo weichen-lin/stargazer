@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
@@ -12,6 +13,8 @@ type CreateTagPayload struct {
 	Name   string
 	RepoID int64
 }
+
+var ErrorNotFoundTag = errors.New("tag not found")
 
 func (db *Database) SaveTag(ctx context.Context, tag *domain.Tag, repo_id int64) error {
 	email, ok := EmailFromContext(ctx)
@@ -100,7 +103,6 @@ func (db *Database) RemoveTag(ctx context.Context, tag *domain.Tag, repoID int64
 			})
 
 		if err != nil {
-			fmt.Println("error at remove tag: ", err)
 			return nil, err
 		}
 
@@ -146,7 +148,7 @@ func (db *Database) GetTagByName(ctx context.Context, name string) (*domain.Tag,
 	})
 
 	if err != nil {
-		return nil, err
+		return nil, ErrorNotFoundTag
 	}
 
 	record, ok := result.(*neo4j.Record)
@@ -173,4 +175,60 @@ func (db *Database) GetTagByName(ctx context.Context, name string) (*domain.Tag,
 	}
 
 	return tag, nil
+}
+
+func (db *Database) GetTagsByRepo(ctx context.Context, repo_id int64) ([]*domain.Tag, error) {
+	email, ok := EmailFromContext(ctx)
+	if !ok {
+		return nil, ErrNotFoundEmailAtContext
+	}
+
+	session := db.Driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
+	defer session.Close(context.Background())
+
+	result, err := session.ExecuteRead(context.Background(), func(tx neo4j.ManagedTransaction) (any, error) {
+		result, err := tx.Run(context.Background(), `
+			MATCH (u:User {email: $email})-[:HAS_TAG]->(t:Tag)<-[:TAGGED_BY]-(r:Repository {repo_id: $repo_id})
+  			RETURN t.created_at as created_at, t.updated_at as updated_at, t.name as name
+			`,
+			map[string]interface{}{
+				"email":   email,
+				"repo_id": repo_id,
+			})
+
+		if err != nil {
+			return nil, err
+		}
+		record, err := result.Collect(context.Background())
+		return record, err
+	})
+
+	if err != nil {
+		return []*domain.Tag{}, err
+	}
+
+	records, ok := result.([]*neo4j.Record)
+	if !ok {
+		return nil, fmt.Errorf("error at converting users records to []*neo4j.Record")
+	}
+
+	tags := make([]*domain.Tag, 0, len(records))
+
+	for _, record := range records {
+		tag, err := domain.FromTagEntity(
+			&domain.TagEntity{
+				Name:      getString(record.Values[2]),
+				CreatedAt: getString(record.Values[0]),
+				UpdatedAt: getString(record.Values[1]),
+			},
+		)
+
+		if err != nil {
+			return nil, err
+		}
+
+		tags = append(tags, tag)
+	}
+
+	return tags, nil
 }

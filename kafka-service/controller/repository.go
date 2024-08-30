@@ -60,9 +60,7 @@ func (c *Controller) GetUserLanguageDistribution(ctx *gin.Context) {
 		handleRepositoryErr(err, ctx)
 		return
 	}
-
-	fmt.Println(distribution)
-
+	
 	ctx.JSON(http.StatusOK, distribution)
 }
 

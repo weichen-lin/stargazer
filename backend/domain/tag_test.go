@@ -120,3 +120,20 @@ func TestFromTagEntity(t *testing.T) {
 	_, err = FromTagEntity(tagEntity)
 	require.Error(t, err)
 }
+
+func TestToTagEntity(t *testing.T){
+	tag, err := NewTag("test")
+	require.NoError(t, err)
+
+	entity := tag.ToTagEntity()
+
+	require.Equal(t, entity.Name, tag.Name())
+
+	now := time.Now()
+	now.Add(time.Hour * 1)
+	updatedAt := now.Format(time.RFC3339)
+	tag.SetUpdatedAt(updatedAt)
+
+	entity2 := tag.ToTagEntity()
+	require.Equal(t, entity2.UpdatedAt, updatedAt)
+}

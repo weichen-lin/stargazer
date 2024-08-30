@@ -19,6 +19,13 @@ func TestNewCrontab(t *testing.T) {
 	require.True(t, crontab.UpdatedAt().IsZero())
 	require.True(t, crontab.LastTriggeredAt().IsZero())
 	require.Equal(t, crontab.Version(), int64(1))
+
+	updateAt := now.Add(time.Hour * 2).Format(time.RFC3339)
+	crontab.SetUpdatedAt(updateAt)
+	crontab.UpdateVersion()
+
+	require.Equal(t, updateAt, crontab.UpdatedAt().Format(time.RFC3339))
+	require.Equal(t, int64(2), crontab.Version())
 }
 
 func Test_ToCrontabEntityEmpty(t *testing.T) {

@@ -6,7 +6,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
-	"github.com/weichen-lin/kafka-service/controller"
+	"github.com/weichen-lin/stargazer/controller"
+	"go.uber.org/zap"
 )
 
 func main() {
@@ -16,14 +17,17 @@ func main() {
 	}
 
 	m := NewMiddleware()
-	service := NewService()
 
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
 	}
 
-	c := controller.NewController(service.DB, service.Producer)
+	core, _ := zap.NewProduction()
+
+	logger := NewStarGazerLogger(core)
+
+	c := controller.NewController(logger)
 
 	r := gin.Default()
 

@@ -11,10 +11,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-faker/faker/v4"
 	"github.com/stretchr/testify/require"
-	"github.com/weichen-lin/kafka-service/domain"
+	"github.com/weichen-lin/stargazer/domain"
 )
 
-func Test_TagCRUD(t *testing.T){
+func Test_TagCRUD(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	r := gin.Default()
 
@@ -32,7 +32,7 @@ func Test_TagCRUD(t *testing.T){
 		r.ServeHTTP(w, req)
 
 		require.Equal(t, http.StatusUnauthorized, w.Code)
-		
+
 		w = httptest.NewRecorder()
 		req, _ = http.NewRequest("POST", "/tag", nil)
 
@@ -87,19 +87,19 @@ func Test_TagCRUD(t *testing.T){
 				},
 			},
 		}
-	
+
 		for _, tt := range tests {
 			t.Run(tt.name, func(t *testing.T) {
 				body, err := json.Marshal(tt.payload)
 				require.NoError(t, err)
-	
+
 				w := httptest.NewRecorder()
 				req, _ := http.NewRequest("POST", "/tag", bytes.NewBuffer(body))
 				req.Header.Set("Authorization", token)
 				req.Header.Set("Content-Type", "application/json")
-	
+
 				r.ServeHTTP(w, req)
-	
+
 				require.Equal(t, http.StatusBadRequest, w.Code, "Test case: %s", tt.name)
 			})
 		}
@@ -108,14 +108,14 @@ func Test_TagCRUD(t *testing.T){
 			t.Run(tt.name, func(t *testing.T) {
 				body, err := json.Marshal(tt.payload)
 				require.NoError(t, err)
-	
+
 				w := httptest.NewRecorder()
 				req, _ := http.NewRequest("DELETE", "/tag", bytes.NewBuffer(body))
 				req.Header.Set("Authorization", token)
 				req.Header.Set("Content-Type", "application/json")
-	
+
 				r.ServeHTTP(w, req)
-	
+
 				require.Equal(t, http.StatusBadRequest, w.Code, "Test case: %s", tt.name)
 			})
 		}
@@ -123,7 +123,7 @@ func Test_TagCRUD(t *testing.T){
 
 	t.Run("Get tags after create tag then delete it", func(t *testing.T) {
 		payload := &TagRequest{
-			Name: faker.Name(),
+			Name:   faker.Name(),
 			RepoId: repo.RepoID(),
 		}
 

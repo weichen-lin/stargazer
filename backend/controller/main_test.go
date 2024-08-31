@@ -10,9 +10,9 @@ import (
 	"github.com/go-faker/faker/v4"
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 	"github.com/stretchr/testify/require"
-	"github.com/weichen-lin/kafka-service/db"
-	"github.com/weichen-lin/kafka-service/domain"
-	"github.com/weichen-lin/kafka-service/util"
+	"github.com/weichen-lin/stargazer/db"
+	"github.com/weichen-lin/stargazer/domain"
+	"github.com/weichen-lin/stargazer/util"
 )
 
 var testDB *db.Database

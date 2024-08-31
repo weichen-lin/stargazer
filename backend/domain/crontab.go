@@ -54,7 +54,7 @@ func (c *Crontab) SetTriggeredAt(t string) error {
 	if err != nil {
 		return err
 	}
-	
+
 	c.triggeredAt = parsedTime
 	return nil
 }

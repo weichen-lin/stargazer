@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"github.com/weichen-lin/kafka-service/domain"
+	"github.com/weichen-lin/stargazer/domain"
 )
 
 func Test_CreateUser(t *testing.T) {

@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	"github.com/weichen-lin/kafka-service/domain"
+	"github.com/weichen-lin/stargazer/domain"
 )
 
 func Test_SaveCrontab(t *testing.T) {

@@ -7,7 +7,7 @@ import (
 
 	"github.com/go-faker/faker/v4"
 	"github.com/stretchr/testify/require"
-	"github.com/weichen-lin/kafka-service/domain"
+	"github.com/weichen-lin/stargazer/domain"
 )
 
 func TestGetRepository(t *testing.T) {

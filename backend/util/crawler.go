@@ -6,7 +6,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/weichen-lin/kafka-service/domain"
+	"github.com/weichen-lin/stargazer/domain"
 )
 
 var ErrNoToken = fmt.Errorf("invalid github token")

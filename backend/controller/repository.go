@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/weichen-lin/kafka-service/db"
+	"github.com/weichen-lin/stargazer/db"
 )
 
 type GetRepositoryQuery struct {
@@ -60,7 +60,7 @@ func (c *Controller) GetUserLanguageDistribution(ctx *gin.Context) {
 		handleRepositoryErr(err, ctx)
 		return
 	}
-	
+
 	ctx.JSON(http.StatusOK, distribution)
 }
 

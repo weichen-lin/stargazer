@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/gin-gonic/gin"
-	"github.com/weichen-lin/kafka-service/util"
+	"github.com/weichen-lin/stargazer/util"
 )
 
 type Middleware interface {

@@ -12,8 +12,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-faker/faker/v4"
 	"github.com/stretchr/testify/require"
-	"github.com/weichen-lin/kafka-service/db"
-	"github.com/weichen-lin/kafka-service/domain"
+	"github.com/weichen-lin/stargazer/db"
+	"github.com/weichen-lin/stargazer/domain"
 	"golang.org/x/exp/rand"
 )
 

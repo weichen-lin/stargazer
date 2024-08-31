@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/weichen-lin/kafka-service/db"
-	"github.com/weichen-lin/kafka-service/domain"
+	"github.com/weichen-lin/stargazer/db"
+	"github.com/weichen-lin/stargazer/domain"
 )
 
 func handleError(err error, ctx *gin.Context) {

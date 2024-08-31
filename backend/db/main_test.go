@@ -9,7 +9,7 @@ import (
 	"github.com/go-faker/faker/v4"
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 	"github.com/stretchr/testify/require"
-	"github.com/weichen-lin/kafka-service/domain"
+	"github.com/weichen-lin/stargazer/domain"
 	"golang.org/x/exp/rand"
 )
 

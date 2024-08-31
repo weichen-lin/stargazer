@@ -7,7 +7,7 @@ import (
 	"github.com/go-co-op/gocron/v2"
 	"github.com/google/uuid"
 	"github.com/segmentio/kafka-go"
-	"github.com/weichen-lin/kafka-service/db"
+	"github.com/weichen-lin/stargazer/db"
 )
 
 type Scheduler struct {
@@ -29,33 +29,6 @@ func NewScheduler(db *db.Database, producer *kafka.Writer) *Scheduler {
 		jobs:       make(map[string]uuid.UUID),
 		producer:   producer,
 	}
-
-	// crontabs, err := db.GetAllUserCrontab()
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// for _, crontab := range crontabs {
-	// 	j, err := c.NewJob(
-	// 		gocron.DailyJob(
-	// 			1,
-	// 			gocron.NewAtTimes(
-	// 				gocron.NewAtTime(uint(crontab.Hour), 0, 0),
-	// 			),
-	// 		),
-	// 		gocron.NewTask(func() {
-	// 			producer.WriteMessages(context.Background(), kafka.Message{
-	// 				Value: []byte(`{"email":"` + crontab.Email + `","page":1}`),
-	// 			})
-	// 		}),
-	// 	)
-
-	// 	if err != nil {
-	// 		panic(err)
-	// 	}
-
-	// 	s.jobs[crontab.Email] = j.ID()
-	// }
 
 	c.Start()
 

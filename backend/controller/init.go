@@ -1,21 +1,24 @@
 package controller
 
 import (
-	"github.com/segmentio/kafka-go"
-	"github.com/weichen-lin/kafka-service/db"
-	"github.com/weichen-lin/kafka-service/scheduler"
+	"github.com/weichen-lin/kabaka"
+	"github.com/weichen-lin/stargazer/db"
 )
 
 type Controller struct {
-	db        *db.Database
-	producer  *kafka.Writer
-	scheduler *scheduler.Scheduler
+	db     *db.Database
+	kabaka *kabaka.Kabaka
 }
 
-func NewController(db *db.Database, producer *kafka.Writer) *Controller {
+func NewController(logger kabaka.Logger) *Controller {
+
+	db := db.NewDatabase()
+	kabaka := kabaka.NewKabaka(&kabaka.Config{
+		Logger: logger,
+	})
+
 	return &Controller{
-		db:        db,
-		producer:  producer,
-		scheduler: scheduler.NewScheduler(db, producer),
+		db:     db,
+		kabaka: kabaka,
 	}
 }

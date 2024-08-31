@@ -121,7 +121,7 @@ func TestFromTagEntity(t *testing.T) {
 	require.Error(t, err)
 }
 
-func TestToTagEntity(t *testing.T){
+func TestToTagEntity(t *testing.T) {
 	tag, err := NewTag("test")
 	require.NoError(t, err)
 

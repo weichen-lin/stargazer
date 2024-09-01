@@ -15,7 +15,6 @@ import (
 
 var getUserStarsLimiter = cache.New(20*time.Minute, 10*time.Minute)
 
-
 func (c *Controller) SyncRepository(ctx *gin.Context) {
 	user, _ := c.db.GetUser(ctx)
 

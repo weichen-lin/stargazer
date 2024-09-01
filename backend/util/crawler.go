@@ -115,12 +115,12 @@ func GetGithubRepos(database *db.Database, msg kabaka.Message, writer *kabaka.Ka
 	}
 
 	crontab, err := database.GetCrontab(ctx)
-		
+
 	if err != nil {
 		return err
 	}
 
-	crontab.SetStatus(fmt.Sprintf("successful parsed %d stars", (info.Page-1)*30 + len(stars)))
+	crontab.SetStatus(fmt.Sprintf("successful parsed %d stars", (info.Page-1)*30+len(stars)))
 	crontab.SetLastTriggerAt(time.Now().Format(time.RFC3339))
 
 	database.SaveCrontab(ctx, crontab)

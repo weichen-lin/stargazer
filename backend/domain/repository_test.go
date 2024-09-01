@@ -80,6 +80,10 @@ func TestRepository_Setters(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "https://sample-repo.com", repo.Homepage())
 
+	err = repo.setHomepage("")
+	require.NoError(t, err)
+	require.Equal(t, "", repo.Homepage())
+
 	repo.setDescription("This is a sample repository")
 	require.Equal(t, "This is a sample repository", repo.Description())
 

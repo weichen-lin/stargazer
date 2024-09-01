@@ -1,5 +1,8 @@
 name: CI - Run Go Uni Tests
 
+on:
+  push:
+
 jobs:
   unit-test:
     name: Backend Unit Test

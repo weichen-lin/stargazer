@@ -1,0 +1,33 @@
+name: CI - Run Go Uni Tests
+
+jobs:
+  unit-test:
+    name: Backend Unit Test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: './backend'
+
+    services:
+      neo4j:
+        image: neo4j:5.18.0
+        env:
+          NEO4J_AUTH: neo4j/password
+        ports:
+          - '7474:7474'
+          - '7687:7687'
+        options: --health-cmd "cypher-shell -u neo4j -p password 'RETURN 1'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+
+      - name: Uni tests
+        run: go test -v -cover ./...

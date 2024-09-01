@@ -24,7 +24,7 @@ func (db *Database) GetCrontab(ctx context.Context) (*domain.Crontab, error) {
 		result, err := tx.Run(context.Background(), `
 			MATCH (u:User {email: $email})-[h:HAS_CRONTAB]-(c:Crontab)
 			RETURN {
-				trigger_at: c.trigger_at,
+				triggered_at: c.triggered_at,
 				created_at: c.created_at,
 				updated_at: c.updated_at,
 				status: c.status,

@@ -6,13 +6,32 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/patrickmn/go-cache"
 	"github.com/weichen-lin/stargazer/db"
 )
 
+var getUserStarsLimiter = cache.New(20*time.Minute, 10*time.Minute)
+
+
 func (c *Controller) SyncRepository(ctx *gin.Context) {
 	user, _ := c.db.GetUser(ctx)
+
+	if _, found := getUserStarsLimiter.Get(user.Email()); found {
+		_, expired, _ := getUserStarsLimiter.GetWithExpiration(user.Email())
+		remain := time.Until(expired)
+		mins := int(remain.Minutes())
+
+		ctx.JSON(http.StatusConflict, gin.H{
+			"message": "This user is already being processed. Please try again later.",
+			"expires": fmt.Sprintf("%d minutes", mins),
+		})
+		return
+	}
+
+	getUserStarsLimiter.Set(user.Email(), true, time.Minute*30)
 
 	c.kabaka.Publish("star-syncer", []byte(`{"email":"`+user.Email()+`","page":1}`))
 

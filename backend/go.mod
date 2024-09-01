@@ -18,7 +18,10 @@ require (
 	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56
 )
 
-require go.uber.org/multierr v1.10.0 // indirect
+require (
+	github.com/patrickmn/go-cache v2.1.0+incompatible // indirect
+	go.uber.org/multierr v1.10.0 // indirect
+)
 
 require (
 	github.com/bytedance/sonic v1.11.2 // indirect

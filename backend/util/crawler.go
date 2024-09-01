@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"time"
 
 	"github.com/weichen-lin/kabaka"
 	"github.com/weichen-lin/stargazer/db"
@@ -103,7 +104,6 @@ func GetGithubRepos(database *db.Database, msg kabaka.Message, writer *kabaka.Ka
 		if err != nil {
 			return fmt.Errorf("error sending message: %s", err.Error())
 		}
-
 	} else {
 		starsCount := (info.Page-1)*30 + len(stars)
 
@@ -113,6 +113,17 @@ func GetGithubRepos(database *db.Database, msg kabaka.Message, writer *kabaka.Ka
 			StarsCount: starsCount,
 		})
 	}
+
+	crontab, err := database.GetCrontab(ctx)
+		
+	if err != nil {
+		return err
+	}
+
+	crontab.SetStatus(fmt.Sprintf("successful parsed %d stars", (info.Page-1)*30 + len(stars)))
+	crontab.SetLastTriggerAt(time.Now().Format(time.RFC3339))
+
+	database.SaveCrontab(ctx, crontab)
 
 	return nil
 }

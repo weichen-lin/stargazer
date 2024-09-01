@@ -177,10 +177,6 @@ func (r *Repository) setHTMLURL(url string) error {
 }
 
 func (r *Repository) setHomepage(url string) error {
-	err := r.checkUrl(url)
-	if err != nil {
-		return err
-	}
 	r.homepage = url
 	return nil
 }

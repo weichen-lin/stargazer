@@ -40,8 +40,9 @@ func main() {
 	repo := r.Group("/repository", m.JWTAuth())
 	{
 		repo.GET("/", c.SearchRepoByLanguages)
+		repo.GET("/sync-repository", c.SyncRepository)
 		repo.GET("/:id", c.GetRepository)
-		repo.GET("/repository/language-distribution", c.GetUserLanguageDistribution)
+		repo.GET("/language-distribution", c.GetUserLanguageDistribution)
 	}
 
 	crontab := r.Group("/crontab", m.JWTAuth())

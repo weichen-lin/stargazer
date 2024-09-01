@@ -14,84 +14,83 @@ import (
 )
 
 func generateFakeLogMessage(action kabaka.Action, msgStatus kabaka.MessageStatus) *kabaka.LogMessage {
-    return &kabaka.LogMessage{
-        TopicName:     faker.Name(),
-        Action:        action,
-        MessageID:     uuid.New(),
-        Message:       faker.Sentence(),
-        MessageStatus: msgStatus,
-        SubScriber:    uuid.New(),
-        SpendTime:     12345,
-        CreatedAt:     time.Now(),
-    }
+	return &kabaka.LogMessage{
+		TopicName:     faker.Name(),
+		Action:        action,
+		MessageID:     uuid.New(),
+		Message:       faker.Sentence(),
+		MessageStatus: msgStatus,
+		SubScriber:    uuid.New(),
+		SpendTime:     12345,
+		CreatedAt:     time.Now(),
+	}
 }
 
 func TestStarGazerLogger(t *testing.T) {
 
-    core, recorded := observer.New(zapcore.DebugLevel)
-    
-    testLogger := zap.New(core)
-    
-    starLogger := NewStarGazerLogger(testLogger)
+	core, recorded := observer.New(zapcore.DebugLevel)
 
-    // 測試數據
-    testCases := []struct {
-        level   string
-        message string
-        action kabaka.Action
-        status kabaka.MessageStatus
-    }{
-        {"debug", "Debug message", "subscribe", "success"},
-        {"info", "Info message","subscribe", "retry"},
-        {"warn", "Warn message","publish", "error"},
-        {"error", "Error message","consume", "success"},
-        {"debug", "Debug message","publish", "retry"},
-        {"info", "Info message","subscribe", "error"},
-        {"warn", "Warn message","subscribe", "success"},
-        {"error", "Error message","subscribe", "retry"},
-        {"debug", "Debug message","consume", "error"},
-        {"info", "Info message","consume", "retry"},
-        {"warn", "Warn message","consume", "error"},
-        {"error", "Error message","publish", "error"},
-    }
+	testLogger := zap.New(core)
 
-    for _, tc := range testCases {
-        t.Run(tc.level, func(t *testing.T) {
-            logMsg := generateFakeLogMessage(tc.action, tc.status)
+	starLogger := NewStarGazerLogger(testLogger)
 
-            switch tc.level {
-            case "debug":
-                starLogger.Debug(logMsg)
-            case "info":
-                starLogger.Info(logMsg)
-            case "warn":
-                starLogger.Warn(logMsg)
-            case "error":
-                starLogger.Error(logMsg)
-            }
+	testCases := []struct {
+		level   string
+		message string
+		action  kabaka.Action
+		status  kabaka.MessageStatus
+	}{
+		{"debug", "Debug message", "subscribe", "success"},
+		{"info", "Info message", "subscribe", "retry"},
+		{"warn", "Warn message", "publish", "error"},
+		{"error", "Error message", "consume", "success"},
+		{"debug", "Debug message", "publish", "retry"},
+		{"info", "Info message", "subscribe", "error"},
+		{"warn", "Warn message", "subscribe", "success"},
+		{"error", "Error message", "subscribe", "retry"},
+		{"debug", "Debug message", "consume", "error"},
+		{"info", "Info message", "consume", "retry"},
+		{"warn", "Warn message", "consume", "error"},
+		{"error", "Error message", "publish", "error"},
+	}
 
-            logs := recorded.All()
-            
-            require.Equal(t, 1, len(logs))
+	for _, tc := range testCases {
+		t.Run(tc.level, func(t *testing.T) {
+			logMsg := generateFakeLogMessage(tc.action, tc.status)
 
-            log := logs[0]
-            contextMap := log.ContextMap()
-            
-            require.Equal(t, tc.level, log.Level.String())
-            require.Equal(t, logMsg.Message, contextMap["message"])
+			switch tc.level {
+			case "debug":
+				starLogger.Debug(logMsg)
+			case "info":
+				starLogger.Info(logMsg)
+			case "warn":
+				starLogger.Warn(logMsg)
+			case "error":
+				starLogger.Error(logMsg)
+			}
 
-            require.Equal(t, logMsg.TopicName, contextMap["topic_name"])
-            require.Equal(t, string(logMsg.Action), contextMap["action"])
-            require.Equal(t, logMsg.MessageID.String(), contextMap["message_id"])
-            require.Equal(t, string(logMsg.MessageStatus), contextMap["message_status"])
-            require.Equal(t, logMsg.SubScriber.String(), contextMap["subscriber"])
-            require.Equal(t, logMsg.SpendTime, contextMap["spend_time"])
+			logs := recorded.All()
 
-            loggedTime, ok := contextMap["msg_created_at"].(time.Time)
-            require.True(t, ok, "created_at should be a time.Time")
-            require.True(t, loggedTime.Equal(logMsg.CreatedAt), "Logged time should match the original time")
+			require.Equal(t, 1, len(logs))
 
-            recorded.TakeAll()
-        })
-    }
+			log := logs[0]
+			contextMap := log.ContextMap()
+
+			require.Equal(t, tc.level, log.Level.String())
+			require.Equal(t, logMsg.Message, contextMap["message"])
+
+			require.Equal(t, logMsg.TopicName, contextMap["topic_name"])
+			require.Equal(t, string(logMsg.Action), contextMap["action"])
+			require.Equal(t, logMsg.MessageID.String(), contextMap["message_id"])
+			require.Equal(t, string(logMsg.MessageStatus), contextMap["message_status"])
+			require.Equal(t, logMsg.SubScriber.String(), contextMap["subscriber"])
+			require.Equal(t, logMsg.SpendTime, contextMap["spend_time"])
+
+			loggedTime, ok := contextMap["msg_created_at"].(time.Time)
+			require.True(t, ok, "created_at should be a time.Time")
+			require.True(t, loggedTime.Equal(logMsg.CreatedAt), "Logged time should match the original time")
+
+			recorded.TakeAll()
+		})
+	}
 }

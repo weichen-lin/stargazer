@@ -11,6 +11,14 @@ import (
 	"github.com/weichen-lin/stargazer/db"
 )
 
+func (c *Controller) SyncRepository(ctx *gin.Context) {
+	user, _ := c.db.GetUser(ctx)
+
+	c.kabaka.Publish("star-syncer", []byte(`{"email":"`+user.Email()+`","page":1}`))
+
+	ctx.JSON(http.StatusOK, "ok")
+}
+
 type GetRepositoryQuery struct {
 	RepoId int64 `form:"repo_id" binding:"required"`
 }

@@ -5,7 +5,7 @@ import (
 	"go.uber.org/zap"
 )
 
-type StarGazerLogger struct{
+type StarGazerLogger struct {
 	logger *zap.Logger
 }
 
@@ -26,21 +26,20 @@ func (l *StarGazerLogger) Error(args *kabaka.LogMessage) {
 }
 
 func logMessageToZapFields(log *kabaka.LogMessage) []zap.Field {
-    return []zap.Field{
-        zap.String("topic_name", log.TopicName),
-        zap.String("action", string(log.Action)),
-        zap.String("message_id", log.MessageID.String()),
-        zap.String("message", log.Message),
-        zap.String("message_status", string(log.MessageStatus)),
-        zap.String("subscriber", log.SubScriber.String()),
-        zap.Int64("spend_time", log.SpendTime),
-        zap.Time("msg_created_at", log.CreatedAt),
-    }
+	return []zap.Field{
+		zap.String("topic_name", log.TopicName),
+		zap.String("action", string(log.Action)),
+		zap.String("message_id", log.MessageID.String()),
+		zap.String("message", log.Message),
+		zap.String("message_status", string(log.MessageStatus)),
+		zap.String("subscriber", log.SubScriber.String()),
+		zap.Int64("spend_time", log.SpendTime),
+		zap.Time("msg_created_at", log.CreatedAt),
+	}
 }
-
 
 func NewStarGazerLogger(logger *zap.Logger) *StarGazerLogger {
 	return &StarGazerLogger{
-        logger: logger,
-    }
+		logger: logger,
+	}
 }

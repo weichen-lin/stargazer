@@ -4,8 +4,6 @@ on:
   push:
     paths:
       - next-app/**
-    bracnhes-ignore:
-      - main
 
 jobs:
   build:

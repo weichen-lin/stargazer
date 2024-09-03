@@ -84,7 +84,7 @@ services:
     restart: 'always'
     networks:
       - startgazer-net
-    
+
   transformer:
     image: transformer:latest
     build:

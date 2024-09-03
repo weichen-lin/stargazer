@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: './backend'
+        working-directory: "./backend"
 
     services:
       neo4j:
@@ -17,8 +17,8 @@ jobs:
         env:
           NEO4J_AUTH: neo4j/password
         ports:
-          - '7474:7474'
-          - '7687:7687'
+          - "7474:7474"
+          - "7687:7687"
         options: --health-cmd "cypher-shell -u neo4j -p password 'RETURN 1'"
           --health-interval 10s
           --health-timeout 5s
@@ -30,7 +30,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
-          go-version: '1.21'
+          go-version: "1.21"
 
       - name: Uni tests
         run: go test -v -cover ./...

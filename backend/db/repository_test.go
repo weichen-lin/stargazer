@@ -31,6 +31,7 @@ func TestGetRepository(t *testing.T) {
 		Description:       "test-description",
 		Language:          "Go",
 		Archived:          true,
+		Topics:            []string{"TEST", "test-2"},
 		ExternalCreatedAt: time.Now().Format(time.RFC3339),
 		LastSyncedAt:      time.Now().Format(time.RFC3339),
 		LastModifiedAt:    time.Now().Format(time.RFC3339),
@@ -64,7 +65,7 @@ func TestGetRepository(t *testing.T) {
 	err = db.CreateRepository(ctx, repo)
 	require.ErrorIs(t, err, ErrRepositoryNotFound)
 
-	ctx, err = WithEmail(context.Background(), "john.doe.123@example.com")
+	ctx, err = WithEmail(context.Background(), user.Email())
 	require.NoError(t, err)
 
 	err = db.CreateRepository(ctx, repo)
@@ -100,6 +101,7 @@ func TestGetRepository(t *testing.T) {
 	require.Equal(t, repo.Description(), repositoryEntity.Description)
 	require.Equal(t, repo.Language(), repositoryEntity.Language)
 	require.Equal(t, repo.Archived(), repositoryEntity.Archived)
+	require.Equal(t, repo.Topics(), repositoryEntity.Topics)
 	require.WithinDuration(t, repo.ExternalCreateAt(), expectExternalCreatedAt, time.Duration(time.Second*3))
 	require.WithinDuration(t, repo.LastSyncedAt(), expectLastSyncedAt, time.Duration(time.Second*3))
 	require.WithinDuration(t, repo.LastModifiedAt(), expectLastModifiedAt, time.Duration(time.Second*3))
@@ -126,6 +128,7 @@ func TestGetRepoLanguageDistribution(t *testing.T) {
 		Description:       "test-description",
 		Language:          "Go",
 		Archived:          true,
+		Topics:            []string{"TEST"},
 		ExternalCreatedAt: time.Now().Format(time.RFC3339),
 		LastSyncedAt:      time.Now().Format(time.RFC3339),
 		LastModifiedAt:    time.Now().Format(time.RFC3339),
@@ -147,6 +150,7 @@ func TestGetRepoLanguageDistribution(t *testing.T) {
 		Description:       "test-description",
 		Language:          "Python",
 		Archived:          true,
+		Topics:            []string{"TEST-2"},
 		ExternalCreatedAt: time.Now().Format(time.RFC3339),
 		LastSyncedAt:      time.Now().Format(time.RFC3339),
 		LastModifiedAt:    time.Now().Format(time.RFC3339),

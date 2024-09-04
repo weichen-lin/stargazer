@@ -42,6 +42,7 @@ func (db *Database) GetRepository(ctx context.Context, repo_id int64) (*domain.R
 				open_issues_count: r.open_issues_count,
 				default_branch: r.default_branch,
 				archived: r.archived,
+				topics: r.topics,
 				external_created_at: s.created_at,
 				last_synced_at: s.last_synced_at,
 				last_modified_at: s.last_modified_at
@@ -93,6 +94,7 @@ func (db *Database) GetRepository(ctx context.Context, repo_id int64) (*domain.R
 			Language:          getString(repo["language"]),
 			DefaultBranch:     getString(repo["default_branch"]),
 			Archived:          getBool(repo["archived"]),
+			Topics:            getStringArray(repo["topics"]),
 			ExternalCreatedAt: getTimeString(repo["external_created_at"]),
 			LastSyncedAt:      getTimeString(repo["last_synced_at"]),
 			LastModifiedAt:    getTimeString(repo["last_modified_at"]),
@@ -190,7 +192,8 @@ func (db *Database) CreateRepository(ctx context.Context, repo *domain.Repositor
 				watchers_count: $watchers_count,
 				open_issues_count: $open_issues_count,
 				default_branch: $default_branch,
-				archived: $archived
+				archived: $archived,
+				topics: $topics
 			}
 			WITH u, r
 			MERGE (u)-[s:STARS]->(r)
@@ -232,6 +235,7 @@ func (db *Database) CreateRepository(ctx context.Context, repo *domain.Repositor
 				"open_issues_count": entity.OpenIssuesCount,
 				"default_branch":    entity.DefaultBranch,
 				"archived":          entity.Archived,
+				"topics":            entity.Topics,
 			},
 		)
 
@@ -308,6 +312,7 @@ func (db *Database) SearchRepositoryByLanguage(ctx context.Context, params *Sear
 				open_issues_count: r.open_issues_count,
 				default_branch: r.default_branch,
 				archived: r.archived,
+				topics: r.topics,
 				external_created_at: s.created_at,
 				last_synced_at: s.last_synced_at,
 				last_modified_at: s.last_modified_at
@@ -373,6 +378,7 @@ func (db *Database) SearchRepositoryByLanguage(ctx context.Context, params *Sear
 			Language:          getString(repoMap["language"]),
 			DefaultBranch:     getString(repoMap["default_branch"]),
 			Archived:          getBool(repoMap["archived"]),
+			Topics:            getStringArray(repoMap["topics"]),
 			ExternalCreatedAt: getTimeString(repoMap["external_created_at"]),
 			LastSyncedAt:      getTimeString(repoMap["last_synced_at"]),
 			LastModifiedAt:    getTimeString(repoMap["last_modified_at"]),

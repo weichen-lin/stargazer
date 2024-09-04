@@ -48,6 +48,18 @@ func getString(v interface{}) string {
 	return ""
 }
 
+func getStringArray(v interface{}) []string {
+	if s, ok := v.([]interface{}); !ok {
+		return []string{}
+	} else {
+		var topics []string
+		for _, topic := range s {
+			topics = append(topics, topic.(string))
+		}
+		return topics
+	}
+}
+
 func getBool(v interface{}) bool {
 	if i, ok := v.(bool); ok {
 		return i

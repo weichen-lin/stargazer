@@ -47,6 +47,10 @@ type RepositoryEntity struct {
 	OpenIssuesCount int64  `json:"open_issues_count"`
 	DefaultBranch   string `json:"default_branch"`
 	Archived        bool   `json:"archived"`
+	Topics          []string `json:"topics"`
+	ExternalCreatedAt string  `json:"external_created_at"`
+	LastSyncedAt    string    `json:"last_synced_at"`
+	LastModifiedAt  string    `json:"last_modified_at"`
 }
 
 type Repository struct {
@@ -65,6 +69,10 @@ type Repository struct {
 	language        string
 	defaultBranch   string
 	archived        bool
+	topics	 []string
+	externalCreatedAt time.Time
+	lastSyncedAt time.Time
+	lastModifiedAt time.Time
 }
 
 func (r *Repository) RepoID() int64 {
@@ -126,6 +134,24 @@ func (r *Repository) DefaultBranch() string {
 func (r *Repository) Archived() bool {
 	return r.archived
 }
+
+func (r *Repository) Topics() []string {
+	return r.topics
+}
+
+func (r *Repository) ExternalCreateAt() time.Time {
+	return r.externalCreatedAt
+}
+
+
+func (r *Repository) LastSyncedAt() time.Time {
+	return r.lastSyncedAt
+}
+
+func (r *Repository) LastModifiedAt() time.Time {
+	return r.lastModifiedAt
+}
+
 
 func (r *Repository) checkUrl(url string) error {
 	if !strings.HasPrefix(url, "http://") && !strings.HasPrefix(url, "https://") {
@@ -270,10 +296,40 @@ func (r *Repository) setArchived(archived bool) {
 	r.archived = archived
 }
 
+func (r *Repository) setTopics(topics []string) {
+	r.topics = topics
+}
+
+func (r *Repository) setExternalCreatedAt (t time.Time) error {
+	if t.IsZero() {
+		return errors.New("external created time cannot be empty")
+	}
+
+	r.externalCreatedAt = t
+	return nil
+}
+
+func (r *Repository) setLastSyncedAt (t time.Time) error {
+	if t.IsZero() {
+		return errors.New("last sync time cannot be empty")
+	}
+
+	r.lastSyncedAt = t
+	return nil
+}
+
+
+func (r *Repository) setModifiedAt (t time.Time) error {
+	if t.IsZero() {
+		return errors.New("last modified time cannot be empty")
+	}
+
+	r.lastModifiedAt = t
+	return nil
+}
+
 func (r *Repository) ToRepositoryEntity() *RepositoryEntity {
 	layout := "2006-01-02T15:04:05Z07:00"
-	parsedCreatedAt := r.createdAt.Format(layout)
-	parsedUpdatedAt := r.updatedAt.Format(layout)
 
 	return &RepositoryEntity{
 		RepoID:          r.repoID,
@@ -283,14 +339,18 @@ func (r *Repository) ToRepositoryEntity() *RepositoryEntity {
 		HtmlURL:         r.htmlURL,
 		Homepage:        r.homepage,
 		Description:     r.description,
-		CreatedAt:       parsedCreatedAt,
-		UpdatedAt:       parsedUpdatedAt,
+		CreatedAt:       r.createdAt.Format(layout),
+		UpdatedAt:        r.updatedAt.Format(layout),
 		StargazersCount: r.stargazersCount,
 		WatchersCount:   r.watchersCount,
 		OpenIssuesCount: r.openIssuesCount,
 		Language:        r.language,
 		DefaultBranch:   r.defaultBranch,
 		Archived:        r.archived,
+		Topics: r.topics,
+		ExternalCreatedAt: r.externalCreatedAt.Format(layout),
+		LastSyncedAt: r.lastSyncedAt.Format(layout),
+		LastModifiedAt: r.lastModifiedAt.Format(layout),
 	}
 }
 
@@ -350,6 +410,34 @@ func FromRepositoryEntity(repositoryEntity *RepositoryEntity) (*Repository, erro
 	}
 
 	r.setArchived(repositoryEntity.Archived)
+	r.setTopics(repositoryEntity.Topics)
+
+	externalTime, err := ParseTime(repositoryEntity.ExternalCreatedAt)
+	if err != nil {
+		return nil , err
+	}
+
+	if err := r.setExternalCreatedAt(externalTime); err != nil {
+		return nil, err
+	}
+
+	lastSyncedAtTime, err := ParseTime(repositoryEntity.LastSyncedAt)
+	if err != nil {
+		return nil , err
+	}
+
+	if err := r.setLastSyncedAt(lastSyncedAtTime); err != nil {
+		return nil, err
+	}
+
+	lastModifiedAtTime, err := ParseTime(repositoryEntity.LastModifiedAt)
+	if err != nil {
+		return nil , err
+	}
+
+	if err := r.setModifiedAt(lastModifiedAtTime); err != nil {
+		return nil, err
+	}
 
 	return r, nil
 }
@@ -410,6 +498,12 @@ func NewRepository(githubRepo *GithubRepository) (*Repository, error) {
 	}
 
 	repo.setArchived(githubRepo.Archived)
+
+	repo.setTopics(githubRepo.Topics)
+
+	repo.setExternalCreatedAt(time.Now())
+	repo.setLastSyncedAt(time.Now())
+	repo.setModifiedAt(time.Now())
 
 	return repo, nil
 }

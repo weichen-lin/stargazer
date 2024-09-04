@@ -4,6 +4,9 @@ import (
 	"context"
 	"errors"
 	"net/mail"
+	"time"
+
+	"github.com/weichen-lin/stargazer/domain"
 )
 
 var ErrNotFoundEmailAtContext = errors.New("not found email at context")
@@ -45,9 +48,36 @@ func getString(v interface{}) string {
 	return ""
 }
 
+func getStringArray(v interface{}) []string {
+	if s, ok := v.([]interface{}); !ok {
+		return []string{}
+	} else {
+		var topics []string
+		for _, topic := range s {
+			topics = append(topics, topic.(string))
+		}
+		return topics
+	}
+}
+
 func getBool(v interface{}) bool {
 	if i, ok := v.(bool); ok {
 		return i
 	}
 	return false
+}
+
+func getTimeString(v interface{}) string {
+	if i, ok := v.(string); !ok {
+		return time.Now().Format(time.RFC3339)
+	} else {
+		t, err := domain.ParseTime(i)
+
+		if err != nil {
+			return time.Now().Format(time.RFC3339)
+		}
+
+		return t.Format(time.RFC3339)
+	}
+
 }

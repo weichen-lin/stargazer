@@ -36,21 +36,25 @@ func TestNewRepository(t *testing.T) {
 	repo, err := NewRepository(githubRepo)
 	require.NoError(t, err)
 
-	require.Equal(t, int64(12345), repo.RepoID())
-	require.Equal(t, "sample-repo", repo.RepoName())
-	require.Equal(t, "user", repo.OwnerName())
-	require.Equal(t, "https://avatar.url", repo.AvatarURL())
-	require.Equal(t, "https://github.com/user/sample-repo", repo.HTMLURL())
-	require.Equal(t, "https://sample-repo.com", repo.Homepage())
+	require.Equal(t, int64(githubRepo.ID), repo.RepoID())
+	require.Equal(t, githubRepo.Name, repo.RepoName())
+	require.Equal(t, githubRepo.Owner.Login, repo.OwnerName())
+	require.Equal(t, githubRepo.Owner.AvatarURL, repo.AvatarURL())
+	require.Equal(t, githubRepo.HTMLURL, repo.HTMLURL())
+	require.Equal(t, githubRepo.Homepage, repo.Homepage())
 	require.Equal(t, "This is a sample repository", repo.Description())
 	require.Equal(t, expectCreatedAt, repo.CreatedAt())
 	require.Equal(t, expectUpdatedAt, repo.UpdatedAt())
-	require.Equal(t, int64(10), repo.StargazersCount())
-	require.Equal(t, int64(20), repo.WatchersCount())
-	require.Equal(t, int64(5), repo.OpenIssuesCount())
-	require.Equal(t, "Go", repo.Language())
-	require.Equal(t, "main", repo.DefaultBranch())
-	require.False(t, repo.Archived())
+	require.Equal(t, int64(githubRepo.StargazersCount), repo.StargazersCount())
+	require.Equal(t, int64(githubRepo.WatchersCount), repo.WatchersCount())
+	require.Equal(t, int64(githubRepo.OpenIssuesCount), repo.OpenIssuesCount())
+	require.Equal(t, githubRepo.Language, repo.Language())
+	require.Equal(t, githubRepo.DefaultBranch, repo.DefaultBranch())
+	require.Equal(t, githubRepo.Archived, repo.Archived())
+	require.Equal(t, githubRepo.Topics, repo.Topics())
+	require.WithinDuration(t, time.Now(), repo.ExternalCreateAt(), time.Duration(time.Millisecond*10))
+	require.WithinDuration(t, time.Now(), repo.LastSyncedAt(), time.Duration(time.Millisecond*10))
+	require.WithinDuration(t, time.Now(), repo.LastModifiedAt(), time.Duration(time.Millisecond*10))
 }
 
 func TestRepository_Setters(t *testing.T) {
@@ -121,6 +125,15 @@ func TestRepository_Setters(t *testing.T) {
 
 	repo.setArchived(false)
 	require.False(t, repo.Archived())
+
+	repo.setExternalCreatedAt(time.Now())
+	require.WithinDuration(t, time.Now(), repo.ExternalCreateAt(), time.Duration(time.Millisecond*10))
+
+	repo.setLastSyncedAt(time.Now())
+	require.WithinDuration(t, time.Now(), repo.LastSyncedAt(), time.Duration(time.Millisecond*10))
+
+	repo.setModifiedAt(time.Now())
+	require.WithinDuration(t, time.Now(), repo.LastModifiedAt(), time.Duration(time.Millisecond*10))
 }
 
 func TestRepository_Setters_ErrorCases(t *testing.T) {
@@ -196,6 +209,15 @@ func TestRepository_Setters_ErrorCases(t *testing.T) {
 
 	repo.setLanguage("")
 	require.Equal(t, "Unknown", repo.Language())
+
+	err = repo.setExternalCreatedAt(time.Time{})
+	require.Error(t, err)
+
+	err = repo.setLastSyncedAt(time.Time{})
+	require.Error(t, err)
+
+	err = repo.setModifiedAt(time.Time{})
+	require.Error(t, err)
 }
 
 func TestNewRepository_ErrorCases(t *testing.T) {
@@ -410,25 +432,31 @@ func TestToRepositoryEntity(t *testing.T) {
 	require.Equal(t, "Go", repositoryEntity.Language)
 	require.Equal(t, "main", repositoryEntity.DefaultBranch)
 	require.False(t, repositoryEntity.Archived)
+	require.WithinDuration(t, time.Now(), repo.ExternalCreateAt(), time.Duration(time.Millisecond*10))
+	require.WithinDuration(t, time.Now(), repo.LastSyncedAt(), time.Duration(time.Millisecond*10))
+	require.WithinDuration(t, time.Now(), repo.LastModifiedAt(), time.Duration(time.Millisecond*10))
 }
 
 func TestFromRepositoryEntity(t *testing.T) {
 	repositoryEntity := &RepositoryEntity{
-		RepoID:          123456789,
-		RepoName:        "example-repo",
-		OwnerName:       "example-owner",
-		AvatarURL:       "https://example.com/avatar.png",
-		HtmlURL:         "https://github.com/example/repo",
-		Homepage:        "https://example.com",
-		Description:     "An example repository",
-		CreatedAt:       "2024-01-01T00:00:00Z",
-		UpdatedAt:       "2024-01-02T00:00:00Z",
-		StargazersCount: 100,
-		WatchersCount:   50,
-		OpenIssuesCount: 5,
-		Language:        "Go",
-		DefaultBranch:   "main",
-		Archived:        false,
+		RepoID:            123456789,
+		RepoName:          "example-repo",
+		OwnerName:         "example-owner",
+		AvatarURL:         "https://example.com/avatar.png",
+		HtmlURL:           "https://github.com/example/repo",
+		Homepage:          "https://example.com",
+		Description:       "An example repository",
+		CreatedAt:         "2024-01-01T00:00:00Z",
+		UpdatedAt:         "2024-01-02T00:00:00Z",
+		StargazersCount:   100,
+		WatchersCount:     50,
+		OpenIssuesCount:   5,
+		Language:          "Go",
+		DefaultBranch:     "main",
+		Archived:          false,
+		ExternalCreatedAt: time.Now().Format(time.RFC3339),
+		LastSyncedAt:      time.Now().Format(time.RFC3339),
+		LastModifiedAt:    time.Now().Format(time.RFC3339),
 	}
 
 	parsedCreatedAt, _ := time.Parse(time.RFC3339, repositoryEntity.CreatedAt)
@@ -602,4 +630,64 @@ func TestFromRepositoryEntitySetterErrors(t *testing.T) {
 
 	_, err = FromRepositoryEntity(repositoryEntity)
 	require.Error(t, err, "expected error for invalid DefaultBranch")
+
+	repositoryEntity = &RepositoryEntity{
+		RepoID:            123456789,
+		RepoName:          "example-repo",
+		OwnerName:         "example-owner",
+		AvatarURL:         "https://example.com/avatar.png",
+		HtmlURL:           "https://github.com/example/repo",
+		Homepage:          "https://example.com",
+		CreatedAt:         "2024-01-01T00:00:00Z",
+		UpdatedAt:         "2024-01-02T00:00:00Z",
+		StargazersCount:   100,
+		WatchersCount:     50,
+		OpenIssuesCount:   10,
+		DefaultBranch:     "main",
+		ExternalCreatedAt: "invalid-time",
+	}
+
+	_, err = FromRepositoryEntity(repositoryEntity)
+	require.Error(t, err)
+
+	repositoryEntity = &RepositoryEntity{
+		RepoID:            123456789,
+		RepoName:          "example-repo",
+		OwnerName:         "example-owner",
+		AvatarURL:         "https://example.com/avatar.png",
+		HtmlURL:           "https://github.com/example/repo",
+		Homepage:          "https://example.com",
+		CreatedAt:         "2024-01-01T00:00:00Z",
+		UpdatedAt:         "2024-01-02T00:00:00Z",
+		StargazersCount:   100,
+		WatchersCount:     50,
+		OpenIssuesCount:   10,
+		DefaultBranch:     "main",
+		ExternalCreatedAt: "2024-01-01T00:00:00Z",
+		LastSyncedAt:      "invalid-time",
+	}
+
+	_, err = FromRepositoryEntity(repositoryEntity)
+	require.Error(t, err)
+
+	repositoryEntity = &RepositoryEntity{
+		RepoID:            123456789,
+		RepoName:          "example-repo",
+		OwnerName:         "example-owner",
+		AvatarURL:         "https://example.com/avatar.png",
+		HtmlURL:           "https://github.com/example/repo",
+		Homepage:          "https://example.com",
+		CreatedAt:         "2024-01-01T00:00:00Z",
+		UpdatedAt:         "2024-01-02T00:00:00Z",
+		StargazersCount:   100,
+		WatchersCount:     50,
+		OpenIssuesCount:   10,
+		DefaultBranch:     "main",
+		ExternalCreatedAt: "2024-01-01T00:00:00Z",
+		LastSyncedAt:      "2024-01-02T00:00:00Z",
+		LastModifiedAt:    "invalid-time",
+	}
+
+	_, err = FromRepositoryEntity(repositoryEntity)
+	require.Error(t, err)
 }

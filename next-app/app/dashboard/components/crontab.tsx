@@ -8,6 +8,7 @@ import { useUser } from '@/context'
 import moment from 'moment'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import HourSetting from './crontab-setting'
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 
 export default function Crontab() {
   const user = useUser()
@@ -34,33 +35,29 @@ export default function Crontab() {
   return isLoading ? (
     <CrontabLoading />
   ) : (
-    <div
-      className={clsx(
-        'border-[2px] border-slate-300/70 rounded-lg flex flex-col items-center justify-center gap-y-4',
-        'bg-white drop-shadow-lg dark:bg-slate-300 dark:border-slate-800 dark:text-white px-8',
-        'w-full h-[60%]',
-      )}
-    >
-      <div className='flex gap-x-4 items-center w-full'>
-        <CalendarDays className='w-8 h-8 text-slate-500' />
-        <div className='w-full text-left text-2xl text-slate-500'>Cron Job</div>
-      </div>
-      <HourSetting
-        hour={hour}
-        update={e => {
-          setHour(e.getHours())
-        }}
-      />
-      <div className='flex items-start justify-start gap-x-8 w-full'>
-        <StatusMapper status={status} />
-        <div className='flex flex-col h-12 gap-y-1'>
-          <div className='text-slate-300 dark:text-slate-500'>Last Trigger Time</div>
-          <span className='text-slate-500 dark:text-slate-700'>
-            {lastTriggerTime ? moment(lastTriggerTime).format('YYYY-MM-DD HH:mm:ss') : '--'}
-          </span>
+    <Card className='flex flex-col h-[320px] w-full'>
+      <CardHeader className='items-start pb-0 gap-y-0'>
+        <CardTitle className='text-xl'>Crontab Setting</CardTitle>
+        <CardDescription>Sync your github stars</CardDescription>
+      </CardHeader>
+      <CardContent className='flex-1 pb-0 overflow-y-scroll flex flex-col gap-y-2 py-4'>
+        <HourSetting
+          hour={hour}
+          update={e => {
+            setHour(e.getHours())
+          }}
+        />
+        <div className='flex items-start justify-start gap-x-8 w-full'>
+          <StatusMapper status={status} />
+          <div className='flex flex-col h-12 gap-y-1'>
+            <div className='text-slate-300 dark:text-slate-500'>Last Trigger Time</div>
+            <span className='text-slate-500 dark:text-slate-700'>
+              {lastTriggerTime ? moment(lastTriggerTime).format('YYYY-MM-DD HH:mm:ss') : '--'}
+            </span>
+          </div>
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   )
 }
 

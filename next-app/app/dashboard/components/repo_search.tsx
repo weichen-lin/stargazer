@@ -155,24 +155,24 @@ const fakeData = [
   },
 ]
 
-export default function RepoSearch({ searchKey, title }: { searchKey: ISearchKey; title: string }) {
+export default function RepoSearch() {
   const [repos, setRepos] = useState<IRepoAtDashboard[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const { email } = useUser()
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const res = await getReposByKey(email, searchKey)
-        setRepos(res)
-      } catch (error) {
-        console.error(error)
-      } finally {
-        setIsLoading(false)
-      }
-    }
-    fetchData()
-  }, [])
+  // useEffect(() => {
+  //   const fetchData = async () => {
+  //     try {
+  //       const res = await getReposByKey(email, searchKey)
+  //       setRepos(res)
+  //     } catch (error) {
+  //       console.error(error)
+  //     } finally {
+  //       setIsLoading(false)
+  //     }
+  //   }
+  //   fetchData()
+  // }, [])
 
   return (
     <Card className='flex flex-col h-[320px]'>

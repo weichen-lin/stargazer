@@ -152,7 +152,7 @@ export function LanguageDistribution() {
   }))
 
   return (
-    <Card className='flex flex-col h-[320px]'>
+    <Card className='flex flex-col h-[320px] w-full'>
       <CardHeader className='items-center pb-0 gap-y-1'>
         <CardTitle className='text-xl'>Language Distribution</CardTitle>
       </CardHeader>

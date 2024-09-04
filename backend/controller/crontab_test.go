@@ -106,12 +106,14 @@ func Test_CrontabCRUD(t *testing.T) {
 		err = json.NewDecoder(w.Body).Decode(&response)
 		require.NoError(t, err)
 
-		updatedTime := time.Now().Format(time.RFC3339)
+		updatedTime := time.Now()
 
 		triggeredTime, _ := getTime(12)
 
+		checkUpdatedTime, err := time.Parse(time.RFC3339, response.UpdatedAt)
+
 		require.Equal(t, triggeredTime.Format(time.RFC3339), response.TriggeredAt)
-		require.Equal(t, updatedTime, response.UpdatedAt)
+		require.WithinDuration(t, updatedTime, checkUpdatedTime, time.Second*3)
 		require.Equal(t, validTime, response.CreatedAt)
 		require.Equal(t, int64(2), response.Version)
 		require.Equal(t, "new", response.Status)

@@ -41,7 +41,10 @@ func (db *Database) GetRepository(ctx context.Context, repo_id int64) (*domain.R
 				watchers_count: r.watchers_count,
 				open_issues_count: r.open_issues_count,
 				default_branch: r.default_branch,
-				archived: r.archived
+				archived: r.archived,
+				external_created_at: s.created_at,
+				last_synced_at: s.last_synced_at,
+				last_modified_at: s.last_modified_at
 			} as repo
 			`,
 			map[string]interface{}{
@@ -75,21 +78,24 @@ func (db *Database) GetRepository(ctx context.Context, repo_id int64) (*domain.R
 
 	repository, err := domain.FromRepositoryEntity(
 		&domain.RepositoryEntity{
-			RepoID:          getInt64(repo["repo_id"]),
-			RepoName:        getString(repo["repo_name"]),
-			OwnerName:       getString(repo["owner_name"]),
-			AvatarURL:       getString(repo["avatar_url"]),
-			HtmlURL:         getString(repo["html_url"]),
-			Homepage:        getString(repo["homepage"]),
-			Description:     getString(repo["description"]),
-			CreatedAt:       getString(repo["created_at"]),
-			UpdatedAt:       getString(repo["updated_at"]),
-			StargazersCount: getInt64(repo["stargazers_count"]),
-			WatchersCount:   getInt64(repo["watchers_count"]),
-			OpenIssuesCount: getInt64(repo["open_issues_count"]),
-			Language:        getString(repo["language"]),
-			DefaultBranch:   getString(repo["default_branch"]),
-			Archived:        getBool(repo["archived"]),
+			RepoID:            getInt64(repo["repo_id"]),
+			RepoName:          getString(repo["repo_name"]),
+			OwnerName:         getString(repo["owner_name"]),
+			AvatarURL:         getString(repo["avatar_url"]),
+			HtmlURL:           getString(repo["html_url"]),
+			Homepage:          getString(repo["homepage"]),
+			Description:       getString(repo["description"]),
+			CreatedAt:         getString(repo["created_at"]),
+			UpdatedAt:         getString(repo["updated_at"]),
+			StargazersCount:   getInt64(repo["stargazers_count"]),
+			WatchersCount:     getInt64(repo["watchers_count"]),
+			OpenIssuesCount:   getInt64(repo["open_issues_count"]),
+			Language:          getString(repo["language"]),
+			DefaultBranch:     getString(repo["default_branch"]),
+			Archived:          getBool(repo["archived"]),
+			ExternalCreatedAt: getTimeString(repo["external_created_at"]),
+			LastSyncedAt:      getTimeString(repo["last_synced_at"]),
+			LastModifiedAt:    getTimeString(repo["last_modified_at"]),
 		},
 	)
 
@@ -301,7 +307,10 @@ func (db *Database) SearchRepositoryByLanguage(ctx context.Context, params *Sear
 				watchers_count: r.watchers_count,
 				open_issues_count: r.open_issues_count,
 				default_branch: r.default_branch,
-				archived: r.archived
+				archived: r.archived,
+				external_created_at: s.created_at,
+				last_synced_at: s.last_synced_at,
+				last_modified_at: s.last_modified_at
 			}) as data
 			`,
 			map[string]interface{}{
@@ -349,21 +358,24 @@ func (db *Database) SearchRepositoryByLanguage(ctx context.Context, params *Sear
 		repoMap := r.(map[string]interface{})
 
 		entity := &domain.RepositoryEntity{
-			RepoID:          getInt64(repoMap["repo_id"]),
-			RepoName:        getString(repoMap["repo_name"]),
-			OwnerName:       getString(repoMap["owner_name"]),
-			AvatarURL:       getString(repoMap["avatar_url"]),
-			HtmlURL:         getString(repoMap["html_url"]),
-			Homepage:        getString(repoMap["homepage"]),
-			Description:     getString(repoMap["description"]),
-			CreatedAt:       getString(repoMap["created_at"]),
-			UpdatedAt:       getString(repoMap["updated_at"]),
-			StargazersCount: getInt64(repoMap["stargazers_count"]),
-			WatchersCount:   getInt64(repoMap["watchers_count"]),
-			OpenIssuesCount: getInt64(repoMap["open_issues_count"]),
-			Language:        getString(repoMap["language"]),
-			DefaultBranch:   getString(repoMap["default_branch"]),
-			Archived:        getBool(repoMap["archived"]),
+			RepoID:            getInt64(repoMap["repo_id"]),
+			RepoName:          getString(repoMap["repo_name"]),
+			OwnerName:         getString(repoMap["owner_name"]),
+			AvatarURL:         getString(repoMap["avatar_url"]),
+			HtmlURL:           getString(repoMap["html_url"]),
+			Homepage:          getString(repoMap["homepage"]),
+			Description:       getString(repoMap["description"]),
+			CreatedAt:         getString(repoMap["created_at"]),
+			UpdatedAt:         getString(repoMap["updated_at"]),
+			StargazersCount:   getInt64(repoMap["stargazers_count"]),
+			WatchersCount:     getInt64(repoMap["watchers_count"]),
+			OpenIssuesCount:   getInt64(repoMap["open_issues_count"]),
+			Language:          getString(repoMap["language"]),
+			DefaultBranch:     getString(repoMap["default_branch"]),
+			Archived:          getBool(repoMap["archived"]),
+			ExternalCreatedAt: getTimeString(repoMap["external_created_at"]),
+			LastSyncedAt:      getTimeString(repoMap["last_synced_at"]),
+			LastModifiedAt:    getTimeString(repoMap["last_modified_at"]),
 		}
 
 		repos[i] = entity

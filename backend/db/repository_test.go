@@ -16,21 +16,24 @@ func TestGetRepository(t *testing.T) {
 	require.Empty(t, repo)
 
 	repositoryEntity := &domain.RepositoryEntity{
-		RepoID:          123456789,
-		RepoName:        "example-repo",
-		OwnerName:       "example-owner",
-		AvatarURL:       "https://example.com/avatar.png",
-		HtmlURL:         "https://github.com/example/repo",
-		Homepage:        "https://example.com",
-		CreatedAt:       "2024-01-01T00:00:00Z",
-		UpdatedAt:       "2024-01-02T00:00:00Z",
-		StargazersCount: 100,
-		WatchersCount:   50,
-		OpenIssuesCount: 10,
-		DefaultBranch:   "main",
-		Description:     "test-description",
-		Language:        "Go",
-		Archived:        true,
+		RepoID:            123456789,
+		RepoName:          "example-repo",
+		OwnerName:         "example-owner",
+		AvatarURL:         "https://example.com/avatar.png",
+		HtmlURL:           "https://github.com/example/repo",
+		Homepage:          "https://example.com",
+		CreatedAt:         "2024-01-01T00:00:00Z",
+		UpdatedAt:         "2024-01-02T00:00:00Z",
+		StargazersCount:   100,
+		WatchersCount:     50,
+		OpenIssuesCount:   10,
+		DefaultBranch:     "main",
+		Description:       "test-description",
+		Language:          "Go",
+		Archived:          true,
+		ExternalCreatedAt: time.Now().Format(time.RFC3339),
+		LastSyncedAt:      time.Now().Format(time.RFC3339),
+		LastModifiedAt:    time.Now().Format(time.RFC3339),
 	}
 
 	repo, err = domain.FromRepositoryEntity(repositoryEntity)
@@ -73,6 +76,15 @@ func TestGetRepository(t *testing.T) {
 	expectCreated, _ := time.Parse(time.RFC3339, repositoryEntity.CreatedAt)
 	expectUpdateAt, _ := time.Parse(time.RFC3339, repositoryEntity.UpdatedAt)
 
+	expectExternalCreatedAt, err := time.Parse(time.RFC3339, repositoryEntity.ExternalCreatedAt)
+	require.NoError(t, err)
+
+	expectLastSyncedAt, err := time.Parse(time.RFC3339, repositoryEntity.LastSyncedAt)
+	require.NoError(t, err)
+
+	expectLastModifiedAt, err := time.Parse(time.RFC3339, repositoryEntity.LastModifiedAt)
+	require.NoError(t, err)
+
 	require.Equal(t, repo.RepoID(), repositoryEntity.RepoID)
 	require.Equal(t, repo.RepoName(), repositoryEntity.RepoName)
 	require.Equal(t, repo.OwnerName(), repositoryEntity.OwnerName)
@@ -88,6 +100,9 @@ func TestGetRepository(t *testing.T) {
 	require.Equal(t, repo.Description(), repositoryEntity.Description)
 	require.Equal(t, repo.Language(), repositoryEntity.Language)
 	require.Equal(t, repo.Archived(), repositoryEntity.Archived)
+	require.WithinDuration(t, repo.ExternalCreateAt(), expectExternalCreatedAt, time.Duration(time.Second*3))
+	require.WithinDuration(t, repo.LastSyncedAt(), expectLastSyncedAt, time.Duration(time.Second*3))
+	require.WithinDuration(t, repo.LastModifiedAt(), expectLastModifiedAt, time.Duration(time.Second*3))
 }
 
 func TestGetRepoLanguageDistribution(t *testing.T) {
@@ -96,39 +111,45 @@ func TestGetRepoLanguageDistribution(t *testing.T) {
 	require.Empty(t, repo)
 
 	repositoryEntityGo := &domain.RepositoryEntity{
-		RepoID:          1233211234,
-		RepoName:        "example-repo-for-language-distribution",
-		OwnerName:       "example-owner",
-		AvatarURL:       "https://example.com/avatar.png",
-		HtmlURL:         "https://github.com/example/repo",
-		Homepage:        "https://example.com",
-		CreatedAt:       "2024-01-01T00:00:00Z",
-		UpdatedAt:       "2024-01-02T00:00:00Z",
-		StargazersCount: 100,
-		WatchersCount:   50,
-		OpenIssuesCount: 10,
-		DefaultBranch:   "main",
-		Description:     "test-description",
-		Language:        "Go",
-		Archived:        true,
+		RepoID:            1233211234,
+		RepoName:          "example-repo-for-language-distribution",
+		OwnerName:         "example-owner",
+		AvatarURL:         "https://example.com/avatar.png",
+		HtmlURL:           "https://github.com/example/repo",
+		Homepage:          "https://example.com",
+		CreatedAt:         "2024-01-01T00:00:00Z",
+		UpdatedAt:         "2024-01-02T00:00:00Z",
+		StargazersCount:   100,
+		WatchersCount:     50,
+		OpenIssuesCount:   10,
+		DefaultBranch:     "main",
+		Description:       "test-description",
+		Language:          "Go",
+		Archived:          true,
+		ExternalCreatedAt: time.Now().Format(time.RFC3339),
+		LastSyncedAt:      time.Now().Format(time.RFC3339),
+		LastModifiedAt:    time.Now().Format(time.RFC3339),
 	}
 
 	repositoryEntityPython := &domain.RepositoryEntity{
-		RepoID:          432112345,
-		RepoName:        "example-repo-for-language-distribution",
-		OwnerName:       "example-owner",
-		AvatarURL:       "https://example.com/avatar.png",
-		HtmlURL:         "https://github.com/example/repo",
-		Homepage:        "https://example.com",
-		CreatedAt:       "2024-01-01T00:00:00Z",
-		UpdatedAt:       "2024-01-02T00:00:00Z",
-		StargazersCount: 100,
-		WatchersCount:   50,
-		OpenIssuesCount: 10,
-		DefaultBranch:   "main",
-		Description:     "test-description",
-		Language:        "Python",
-		Archived:        true,
+		RepoID:            432112345,
+		RepoName:          "example-repo-for-language-distribution",
+		OwnerName:         "example-owner",
+		AvatarURL:         "https://example.com/avatar.png",
+		HtmlURL:           "https://github.com/example/repo",
+		Homepage:          "https://example.com",
+		CreatedAt:         "2024-01-01T00:00:00Z",
+		UpdatedAt:         "2024-01-02T00:00:00Z",
+		StargazersCount:   100,
+		WatchersCount:     50,
+		OpenIssuesCount:   10,
+		DefaultBranch:     "main",
+		Description:       "test-description",
+		Language:          "Python",
+		Archived:          true,
+		ExternalCreatedAt: time.Now().Format(time.RFC3339),
+		LastSyncedAt:      time.Now().Format(time.RFC3339),
+		LastModifiedAt:    time.Now().Format(time.RFC3339),
 	}
 
 	goRepo, err := domain.FromRepositoryEntity(repositoryEntityGo)

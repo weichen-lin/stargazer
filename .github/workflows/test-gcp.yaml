@@ -17,5 +17,12 @@ jobs:
         with:
           version: ">= 363.0.0"
 
-      - name: "Use gcloud CLI"
-        run: "gcloud info"
+      - name: Configure docker for GCP
+        run: gcloud auth configure-docker
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v2
+        with:
+          context: backend
+          push: true
+          tags: ${{ format('{0}-docker.pkg.dev/{1}/{2}/stargazer-backend:latest', $LOCATION, $PROJECT_ID, $PROJECT) }}

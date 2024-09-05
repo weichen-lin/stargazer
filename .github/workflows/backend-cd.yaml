@@ -37,8 +37,8 @@ jobs:
 
       - name: Deploy cloud run
         run: |
-          gcloud run deploy stargazer-backend
-          --image=${{ vars.LOCATION }}-docker.pkg.dev/${{ vars.PROJECT_ID }}/${{ vars.PROJECT }}/stargazer-backend:latest 
-          --region=${{ vars.LOCATION }}
-          --allow-unauthenticated
+          gcloud run deploy stargazer-backend \\
+          --image ${{ vars.LOCATION }}-docker.pkg.dev/${{ vars.PROJECT_ID }}/${{ vars.PROJECT }}/stargazer-backend:latest \\
+          --region ${{ vars.LOCATION }} \\
+          --allow-unauthenticated \\
           --no-cpu-throttling

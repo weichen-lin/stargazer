@@ -40,7 +40,7 @@ export default function Crontab() {
         <CardTitle className='text-xl'>Crontab Setting</CardTitle>
         <CardDescription>Sync your github stars</CardDescription>
       </CardHeader>
-      <CardContent className='flex-1 pb-0 overflow-y-scroll flex flex-col gap-y-2 py-4'>
+      <CardContent className='flex-1 pb-0 flex flex-col gap-y-2 py-4'>
         <HourSetting
           hour={hour}
           update={e => {

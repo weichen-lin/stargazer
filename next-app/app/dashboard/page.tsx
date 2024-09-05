@@ -1,7 +1,7 @@
 'use client'
 
 import clsx from 'clsx'
-import { TotalRepositories, Crontab, RepoSearch, LanguageDistribution } from './components'
+import { TotalRepositories, Crontab, RepoSearch, LanguageDistribution, Example } from './components'
 
 export default function Dashboard() {
   return (
@@ -16,6 +16,9 @@ export default function Dashboard() {
       <LanguageDistribution />
       <RepoSearch />
       <Crontab />
+      <LanguageDistribution />
+      <RepoSearch />
+      <Example width={320} height={320} />
     </div>
   )
 }

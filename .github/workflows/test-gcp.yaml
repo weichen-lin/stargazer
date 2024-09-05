@@ -23,6 +23,10 @@ jobs:
       - name: Configure docker for GCP
         run: gcloud auth configure-docker
 
+      - name: Add Envs for image build
+        run: |
+          echo ${{ secrets.BACKEND_ENVS }} | base64 -d > backend/.env
+
       - name: Build and push Docker image
         uses: docker/build-push-action@v2
         with:

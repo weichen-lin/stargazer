@@ -1,4 +1,4 @@
-name: "Deploy Backend to Google Cloud Run"
+name: 'Deploy Backend to Google Cloud Run'
 
 on:
   push:
@@ -10,18 +10,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - id: "auth"
-        uses: "google-github-actions/auth@v2"
+      - id: 'auth'
+        uses: 'google-github-actions/auth@v2'
         with:
-          credentials_json: "${{ secrets.GCP_CREDENTIALS }}"
+          credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
 
-      - name: "Set up Cloud SDK"
-        uses: "google-github-actions/setup-gcloud@v2"
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v2'
         with:
-          version: ">= 363.0.0"
-
-      # - name: Configure docker for GCP
-      #   run: gcloud auth configure-docker
+          version: '>= 363.0.0'
 
       - name: Add Envs for image build
         run: |
@@ -37,3 +34,11 @@ jobs:
           context: backend
           push: true
           tags: ${{ vars.LOCATION }}-docker.pkg.dev/${{ vars.PROJECT_ID }}/${{ vars.PROJECT }}/stargazer-backend:latest
+
+      - name: Deploy cloud run
+        run: |
+          gcloud run deploy stargazer-backend
+          --image=${{ vars.LOCATION }}-docker.pkg.dev/${{ vars.PROJECT_ID }}/${{ vars.PROJECT }}/stargazer-backend:latest 
+          --region=${{ vars.LOCATION }}
+          --allow-unauthenticated
+          --no-cpu-throttling

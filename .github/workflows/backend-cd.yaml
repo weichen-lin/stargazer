@@ -1,0 +1,48 @@
+name: 'Deploy Backend to Google Cloud Run'
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - backend/**
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - id: 'auth'
+        uses: 'google-github-actions/auth@v2'
+        with:
+          credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
+
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v2'
+        with:
+          version: '>= 363.0.0'
+
+      - name: Add Envs for image build
+        run: |
+          echo ${{ secrets.BACKEND_ENVS }} | base64 -d > backend/.env
+
+      - name: Login to GCP docker registry
+        run: |
+          gcloud auth print-access-token | docker login -u oauth2accesstoken --password-stdin https://${{ vars.LOCATION }}-docker.pkg.dev
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v2
+        with:
+          context: backend
+          push: true
+          tags: ${{ vars.LOCATION }}-docker.pkg.dev/${{ vars.PROJECT_ID }}/${{ vars.PROJECT }}/stargazer-backend:latest
+
+      - name: Deploy cloud run
+        run: |
+          gcloud run deploy stargazer-backend \
+          --image ${{ vars.LOCATION }}-docker.pkg.dev/${{ vars.PROJECT_ID }}/${{ vars.PROJECT }}/stargazer-backend:latest \
+          --region ${{ vars.LOCATION }} \
+          --allow-unauthenticated \
+          --no-cpu-throttling

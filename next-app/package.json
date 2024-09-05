@@ -54,6 +54,7 @@
     "react-dom": "^18",
     "react-parallax-tilt": "^1.7.209",
     "react-responsive": "^10.0.0",
+    "recharts": "^2.12.7",
     "sharp": "^0.33.3",
     "tailwind-merge": "^2.2.1",
     "tailwindcss-animate": "^1.0.7",

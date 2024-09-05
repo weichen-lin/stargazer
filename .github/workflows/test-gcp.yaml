@@ -25,4 +25,4 @@ jobs:
         with:
           context: backend
           push: true
-          tags: ${{ env.LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.PROJECT }}/stargazer-backend:latest
+          tags: ${{ $LOCATION }}-docker.pkg.dev/${{ $PROJECT_ID }}/${{ $PROJECT }}/stargazer-backend:latest

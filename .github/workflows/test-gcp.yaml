@@ -20,12 +20,16 @@ jobs:
         with:
           version: ">= 363.0.0"
 
-      - name: Configure docker for GCP
-        run: gcloud auth configure-docker
+      # - name: Configure docker for GCP
+      #   run: gcloud auth configure-docker
 
       - name: Add Envs for image build
         run: |
           echo ${{ secrets.BACKEND_ENVS }} | base64 -d > backend/.env
+
+      - name: Login to GCP docker registry
+        run: |
+          gcloud auth print-access-token | docker login -u oauth2accesstoken --password-stdin https://${{ vars.LOCATION }}-docker.pkg.dev
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v2

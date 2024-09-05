@@ -2,9 +2,13 @@ name: 'Deploy Backend to Google Cloud Run'
 
 on:
   push:
+    branches:
+      - main
+    paths:
+      - backend/**
 
 jobs:
-  job_id:
+  deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code

@@ -11,12 +11,20 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/patrickmn/go-cache"
 	"github.com/weichen-lin/stargazer/db"
+	"github.com/weichen-lin/stargazer/util"
 )
 
 var getUserStarsLimiter = cache.New(20*time.Minute, 10*time.Minute)
+var getTopicsLimiter = cache.New(5*time.Minute, 5*time.Minute)
 
 func (c *Controller) SyncRepository(ctx *gin.Context) {
-	user, _ := c.db.GetUser(ctx)
+	user, err := c.db.GetUser(ctx)
+
+	if err != nil {
+		ctx.JSON(http.StatusUnauthorized, gin.H{
+			"error": err.Error(),
+		})
+	}
 
 	if _, found := getUserStarsLimiter.Get(user.Email()); found {
 		_, expired, _ := getUserStarsLimiter.GetWithExpiration(user.Email())
@@ -116,4 +124,26 @@ func (c *Controller) SearchRepoByLanguages(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, results)
+}
+
+func (c *Controller) GetTopics(ctx *gin.Context) {
+	user, err := c.db.GetUser(ctx)
+	if err != nil {
+		ctx.JSON(http.StatusUnauthorized, gin.H{
+			"error": err.Error(),
+		})
+	}
+
+	topics, _ := util.StarGazerTopicCache.GetTopics(user.Email())
+
+	if _, found := getTopicsLimiter.Get(user.Email()); !found {
+		c.kabaka.Publish("topic-syncer", []byte(`{"email":"`+user.Email()+`"}`))
+		getTopicsLimiter.Set(user.Email(), true, time.Minute*5)
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"data": topics,
+	})
+
+	return
 }

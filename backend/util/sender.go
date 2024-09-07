@@ -46,12 +46,11 @@ func SendMail(params *SendMailParams) error {
 		Html:    body.String(),
 	}
 
-	sent, err := client.Emails.Send(p)
+	_, err = client.Emails.Send(p)
 	if err != nil {
 		fmt.Println(err.Error())
 		return nil
 	}
 
-	fmt.Println(sent.Id)
 	return nil
 }

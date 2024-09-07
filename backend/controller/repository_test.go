@@ -184,7 +184,6 @@ func Test_GetRepositoryLanguageDistribution(t *testing.T) {
 		req.Header.Set("Authorization", token)
 
 		r.ServeHTTP(w, req)
-		fmt.Println(w.Body)
 		require.Equal(t, http.StatusOK, w.Code)
 
 		var response []db.LanguageDistribution

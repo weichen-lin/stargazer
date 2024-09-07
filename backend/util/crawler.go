@@ -127,3 +127,46 @@ func GetGithubRepos(database *db.Database, msg kabaka.Message, writer *kabaka.Ka
 
 	return nil
 }
+
+type GetRepositoryTopicsMessage struct {
+	Email string `json:"email"`
+}
+
+func GetRepositoryTopics(database *db.Database, msg kabaka.Message, writer *kabaka.Kabaka) error {
+
+	var info GetRepositoryTopicsMessage
+
+	err := json.Unmarshal(msg.Value, &info)
+	if err != nil {
+		return fmt.Errorf("error unmarshalling JSON: %s", err.Error())
+	}
+
+	ctx, err := db.WithEmail(context.Background(), info.Email)
+	if err != nil {
+		return err
+	}
+
+	results, err := database.GetAllRepositoryTopics(ctx)
+
+	topicsMap := make(map[string][]int64)
+
+	for _, result := range results {
+		for _, topic := range result.Topics {
+			repos, exists := topicsMap[topic]
+
+			if !exists {
+				repos := []int64{}
+				repos = append(repos, result.RepoId)
+				topicsMap[topic] = repos
+				continue
+			}
+
+			repos = append(repos, result.RepoId)
+			topicsMap[topic] = repos
+		}
+	}
+
+	StarGazerTopicCache.SetTopics(info.Email, topicsMap)
+
+	return nil
+}

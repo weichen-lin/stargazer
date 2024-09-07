@@ -221,3 +221,17 @@ func TestGetRepoLanguageDistribution(t *testing.T) {
 	require.Equal(t, result.Total, int64(0))
 	require.Equal(t, len(result.Data), 0)
 }
+
+func TestGetAllRepositoryTopics(t *testing.T) {
+	user, ctx := createFakeUser(t)
+
+	repo1 := createRepositoryAtFakeUser(t, user)
+	require.NotEmpty(t, repo1)
+
+	repo2 := createRepositoryAtFakeUser(t, user)
+	require.NotEmpty(t, repo2)
+
+	results, err := db.GetAllRepositoryTopics(ctx)
+	require.NoError(t, err)
+	require.Equal(t, 2, len(results))
+}

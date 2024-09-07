@@ -41,6 +41,7 @@ func main() {
 	{
 		repo.GET("/", c.SearchRepoByLanguages)
 		repo.GET("/sync-repository", c.SyncRepository)
+		repo.GET("/topics", c.GetTopics)
 		repo.GET("/:id", c.GetRepository)
 		repo.GET("/language-distribution", c.GetUserLanguageDistribution)
 	}

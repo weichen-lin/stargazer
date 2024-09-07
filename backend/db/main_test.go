@@ -87,6 +87,19 @@ func getRandomLanguage() string {
 	return Languages[randomIndex]
 }
 
+func getRandomTopics() []string {
+	seed := uint64(time.Now().UnixNano()) & ((1 << 63) - 1)
+	rand.Seed(seed)
+	numTopics := rand.Intn(6)
+	topics := make([]string, numTopics)
+
+	for i := 0; i < numTopics; i++ {
+		topics[i] = faker.Word()
+	}
+
+	return topics
+}
+
 func createRepositoryAtFakeUser(t *testing.T, user *domain.User) *domain.Repository {
 	repositoryEntity := &domain.RepositoryEntity{
 		RepoID:            faker.RandomUnixTime(),
@@ -104,6 +117,7 @@ func createRepositoryAtFakeUser(t *testing.T, user *domain.User) *domain.Reposit
 		Description:       faker.Sentence(),
 		Language:          getRandomLanguage(),
 		Archived:          false,
+		Topics:            getRandomTopics(),
 		ExternalCreatedAt: time.Now().Format(time.RFC3339),
 		LastSyncedAt:      time.Now().Format(time.RFC3339),
 		LastModifiedAt:    time.Now().Format(time.RFC3339),

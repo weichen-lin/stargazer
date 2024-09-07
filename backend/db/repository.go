@@ -392,3 +392,54 @@ func (db *Database) SearchRepositoryByLanguage(ctx context.Context, params *Sear
 		Total: total,
 	}, nil
 }
+
+type TopicResult struct {
+	RepoId int64    `json:"repo_id"`
+	Topics []string `json:"topics"`
+}
+
+func (db *Database) GetAllRepositoryTopics(ctx context.Context) ([]*TopicResult, error) {
+	email, ok := EmailFromContext(ctx)
+	if !ok {
+		return nil, ErrNotFoundEmailAtContext
+	}
+
+	session := db.Driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
+	defer session.Close(context.Background())
+
+	results, err := session.ExecuteRead(context.Background(), func(tx neo4j.ManagedTransaction) (any, error) {
+		result, err := tx.Run(context.Background(), `
+			MATCH (u:User {email: $email})-[s:STARS {is_delete: false}]-(r:Repository)
+			RETURN r.repo_id as repo_id, r.topics as topics
+			`,
+			map[string]interface{}{
+				"email": email,
+			})
+
+		if err != nil {
+			fmt.Println("error at read repo: ", err)
+			return nil, err
+		}
+		record, err := result.Collect(context.Background())
+		return record, err
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	records, ok := results.([]*neo4j.Record)
+	if !ok {
+		return nil, fmt.Errorf("error at converting topics records to []*neo4j.Record")
+	}
+
+	topics := make([]*TopicResult, 0, len(records))
+	for _, record := range records {
+		topics = append(topics, &TopicResult{
+			RepoId: getInt64(record.Values[0]),
+			Topics: getStringArray(record.Values[1]),
+		})
+	}
+
+	return topics, nil
+}

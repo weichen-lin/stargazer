@@ -18,7 +18,7 @@ func NewController(logger kabaka.Logger) *Controller {
 		Logger: logger,
 	})
 
-	handleFunc := func(msg *kabaka.Message) error {
+	starSyncerHandleFunc := func(msg *kabaka.Message) error {
 		err := util.GetGithubRepos(db, *msg, kbk)
 
 		if err != nil {
@@ -28,9 +28,16 @@ func NewController(logger kabaka.Logger) *Controller {
 		return nil
 	}
 
-	kbk.CreateTopic("star-syncer")
+	topicHandlerFunc := func(msg *kabaka.Message) error {
+		_ = util.GetRepositoryTopics(db, *msg, kbk)
+		return nil
+	}
 
-	kbk.Subscribe("star-syncer", handleFunc)
+	kbk.CreateTopic("star-syncer")
+	kbk.CreateTopic("topic-syncer")
+
+	kbk.Subscribe("star-syncer", starSyncerHandleFunc)
+	kbk.Subscribe("topic-syncer", topicHandlerFunc)
 
 	return &Controller{
 		db:     db,

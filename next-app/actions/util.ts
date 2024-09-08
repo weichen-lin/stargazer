@@ -2,6 +2,8 @@
 
 import { sign } from 'jsonwebtoken'
 
+const secret = process.env.JWT_SECRET ?? ''
+
 export async function generateAccessToken(email: string) {
   const expired = new Date()
   expired.setMinutes(expired.getMinutes() + 1)
@@ -12,9 +14,7 @@ export async function generateAccessToken(email: string) {
     expire_at: expired,
   }
 
-  const TOKEN = process.env.AUTHENTICATION_TOKEN ?? ''
-
-  const token = sign(payload, TOKEN, { algorithm: 'HS256' })
+  const token = sign(payload, secret, { algorithm: 'HS256' })
 
   return token
 }

@@ -35,7 +35,7 @@ export default function Crontab() {
   return isLoading ? (
     <CrontabLoading />
   ) : (
-    <Card className='flex flex-col h-[320px] w-full'>
+    <Card className='flex flex-col h-[320px] w-full max-w-[380px] md:max-w-none'>
       <CardHeader className='items-start pb-0 gap-y-0'>
         <CardTitle className='text-xl'>Crontab Setting</CardTitle>
         <CardDescription>Sync your github stars</CardDescription>

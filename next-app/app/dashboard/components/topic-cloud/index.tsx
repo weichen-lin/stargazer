@@ -1,15 +1,11 @@
-import React, { useState } from 'react'
 import { Text } from '@visx/text'
 import { scaleLog } from '@visx/scale'
 import Wordcloud from '@visx/wordcloud/lib/Wordcloud'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { generateRandomColors } from './helper'
-
-interface ExampleProps {
-  width: number
-  height: number
-  showControls?: boolean
-}
+import { useFetch } from '@/hooks/util'
+import { ITopics } from '@/client/repository-client'
+import { PieChart as PieChartIcon, Plus } from 'lucide-react'
 
 export interface WordData {
   text: string
@@ -24,88 +20,29 @@ function getRotationDegree() {
   return rand * degree
 }
 
-const words = [
-  { text: '12321', value: 1234 },
-  { text: 'qwe', value: 13 },
-  { text: '123asdwq21', value: 3 },
-  { text: 'asd', value: 12344 },
-  { text: '12321', value: 123 },
-  { text: '123sc21', value: 12222123 },
-  { text: '12321', value: 11 },
-  { text: '123svsdv21', value: 23 },
-  { text: '123werwe21asdad', value: 13 },
-  { text: '123wsvwe21', value: 1 },
-  { text: '12werwe321', value: 3 },
-  { text: '12321', value: 1234 },
-  { text: 'qwe', value: 13 },
-  { text: '123asdwq21', value: 3 },
-  { text: 'asd', value: 12344 },
-  { text: '12321', value: 123 },
-  { text: '123sc21', value: 12222123 },
-  { text: '12321', value: 11 },
-  { text: '123svsdv21', value: 23 },
-  { text: '123werwe21asdad', value: 13 },
-  { text: '123wsvwe21', value: 1 },
-  { text: '12werwe321', value: 3 },
-  { text: '12321', value: 1234 },
-  { text: 'qwe', value: 13 },
-  { text: '123asdwq21', value: 3 },
-  { text: 'asd', value: 12344 },
-  { text: '12321', value: 123 },
-  { text: '123sc21', value: 12222123 },
-  { text: '12321', value: 11 },
-  { text: '123svsdv21', value: 23 },
-  { text: '123werwe21asdad', value: 13 },
-  { text: '123wsvwe21', value: 1 },
-  { text: '12werwe321', value: 3 },
-  { text: '12321', value: 1234 },
-  { text: 'qwe', value: 13 },
-  { text: '123asdwq21', value: 3 },
-  { text: 'asd', value: 12344 },
-  { text: '12321', value: 123 },
-  { text: '123sc21', value: 12222123 },
-  { text: '12321', value: 11 },
-  { text: '123svsdv21', value: 23 },
-  { text: '123werwe21asdad', value: 13 },
-  { text: '123wsvwe21', value: 1 },
-  { text: '12werwe321', value: 3 },
-  { text: '12321', value: 1234 },
-  { text: 'qwe', value: 13 },
-  { text: '123asdwq21', value: 3 },
-  { text: 'asd', value: 12344 },
-  { text: '12321', value: 123 },
-  { text: '123sc21', value: 12222123 },
-  { text: '12321', value: 11 },
-  { text: '123svsdv21', value: 23 },
-  { text: '123werwe21asdad', value: 13 },
-  { text: '123wsvwe21', value: 1 },
-  { text: '12werwe321', value: 3 },
-  { text: '12321', value: 1234 },
-  { text: 'qwe', value: 13 },
-  { text: '123asdwq21', value: 3 },
-  { text: 'asd', value: 12344 },
-  { text: '12321', value: 123 },
-  { text: '123sc21', value: 12222123 },
-  { text: '12321', value: 11 },
-  { text: '123svsdv21', value: 23 },
-  { text: '123werwe21asdad', value: 13 },
-  { text: '123wsvwe21', value: 1 },
-  { text: '12werwe321', value: 3 },
-]
-
-const fontScale = scaleLog({
-  domain: [Math.min(...words.map(w => w.value)), Math.max(...words.map(w => w.value))],
-  range: [10, 100],
-})
-const fontSizeSetter = (datum: WordData) => fontScale(datum.value)
-
 const fixedValueGenerator = () => 0.5
 
-type SpiralType = 'archimedean' | 'rectangular'
+export default function TopicsCloud() {
+  const { data, isLoading } = useFetch<ITopics[]>({
+    initialRun: true,
+    config: {
+      url: '/repository/topics',
+      method: 'GET',
+    },
+  })
 
-export default function TopicsCloud({ width, height, showControls }: ExampleProps) {
-  const [spiralType, setSpiralType] = useState<SpiralType>('archimedean')
-  const [withRotation, setWithRotation] = useState(false)
+  const words =
+    data?.map(e => ({
+      text: e.name,
+      value: e.repos.length,
+    })) ?? []
+
+  const fontScale = scaleLog({
+    domain: [Math.min(...words.map(w => w.value)), Math.max(...words.map(w => w.value))],
+    range: [10, 100],
+  })
+
+  const fontSizeSetter = (datum: WordData) => fontScale(datum.value)
 
   return (
     <div className='flex flex-col h-[320px] w-full max-w-[380px] md:max-w-none'>
@@ -113,81 +50,64 @@ export default function TopicsCloud({ width, height, showControls }: ExampleProp
         <CardHeader className='items-center pb-0 gap-y-1'>
           <CardTitle className='text-xl'>Topics Cloud</CardTitle>
         </CardHeader>
-        <CardContent className='flex-1 pb-0 flex items-center justify-center'>
-          <Wordcloud
-            words={words}
-            width={width}
-            height={height}
-            fontSize={fontSizeSetter}
-            font={'Impact'}
-            padding={2}
-            spiral='rectangular'
-            rotate={getRotationDegree}
-            random={fixedValueGenerator}
-          >
-            {cloudWords =>
-              cloudWords.map((w, i) => (
-                <Text
-                  key={w.text}
-                  fill={colors[i % colors.length]}
-                  textAnchor={'middle'}
-                  transform={`translate(${w.x}, ${w.y}) rotate(${w.rotate})`}
-                  fontSize={w.size}
-                  fontFamily={w.font}
-                  onMouseEnter={e => {
-                    console.log(e)
-                  }}
-                >
-                  {w.text}
-                </Text>
-              ))
-            }
-          </Wordcloud>
+        <CardContent className='flex-1 flex items-center justify-center'>
+          {!isLoading && data && data.length > 0 && (
+            <Wordcloud
+              words={words}
+              width={340}
+              height={260}
+              fontSize={fontSizeSetter}
+              font={'Impact'}
+              padding={2}
+              spiral='rectangular'
+              rotate={getRotationDegree}
+              random={fixedValueGenerator}
+            >
+              {cloudWords =>
+                cloudWords.map((w, i) => (
+                  <Text
+                    key={w.text}
+                    fill={colors[i % colors.length]}
+                    textAnchor={'middle'}
+                    transform={`translate(${w.x}, ${w.y}) rotate(${w.rotate})`}
+                    fontSize={w.size}
+                    fontFamily={w.font}
+                    onMouseEnter={e => {
+                      console.log(e)
+                    }}
+                  >
+                    {w.text}
+                  </Text>
+                ))
+              }
+            </Wordcloud>
+          )}
+          {!isLoading && data && data.length === 0 && <EmptyContent />}
         </CardContent>
-        {/* <Loading /> */}
+        {isLoading && <Loading />}
       </Card>
+    </div>
+  )
+}
 
-      {showControls && (
-        <div>
-          <label>
-            Spiral type &nbsp;
-            <select onChange={e => setSpiralType(e.target.value as SpiralType)} value={spiralType}>
-              <option key={'archimedean'} value={'archimedean'}>
-                archimedean
-              </option>
-              <option key={'rectangular'} value={'rectangular'}>
-                rectangular
-              </option>
-            </select>
-          </label>
-          <label>
-            With rotation &nbsp;
-            <input type='checkbox' checked={withRotation} onChange={() => setWithRotation(!withRotation)} />
-          </label>
-          <br />
+const Loading = () => {
+  return (
+    <div className='flex flex-col items-center justify-center py-1 gap-y-4 pb-16'>
+      <div className='w-[150px] h-[150px] rounded-full bg-slate-200 animate-pulse'></div>
+    </div>
+  )
+}
+
+const EmptyContent = () => {
+  return (
+    <div className='w-full flex flex-col items-center justify-center my-1'>
+      <div className='w-32 h-32 relative'>
+        <PieChartIcon className='w-full h-full text-gray-200' />
+        <div className='absolute inset-0 flex items-center justify-center'>
+          <Plus className='w-8 h-8 text-gray-400' />
         </div>
-      )}
-      {/* <style jsx>{`
-        .wordcloud {
-          display: flex;
-          flex-direction: column;
-          user-select: none;
-        }
-        .wordcloud svg {
-          margin: 1rem 0;
-          cursor: pointer;
-        }
-
-        .wordcloud label {
-          display: inline-flex;
-          align-items: center;
-          font-size: 14px;
-          margin-right: 8px;
-        }
-        .wordcloud textarea {
-          min-height: 100px;
-        }
-      `}</style> */}
+      </div>
+      <p className='text-center text-gray-500 mb-4'>No data yet.</p>
     </div>
   )
 }

@@ -72,16 +72,15 @@ export default function LanguageDistribution() {
 
 const Loading = () => {
   return (
-    <div className='flex flex-col items-center justify-center py-1 gap-y-4 pb-12'>
+    <div className='flex flex-col items-center justify-center py-1 gap-y-4 pb-16'>
       <div className='w-[150px] h-[150px] rounded-full bg-slate-200 animate-pulse'></div>
-      <div className='w-2/3 rounded-full bg-slate-200 animate-pulse h-8'></div>
     </div>
   )
 }
 
 const EmptyContent = () => {
   return (
-    <div className='w-full flex flex-col items-center justify-center my-1'>
+    <div className='w-full flex flex-col items-center justify-center my-4'>
       <div className='w-32 h-32 relative'>
         <PieChartIcon className='w-full h-full text-gray-200' />
         <div className='absolute inset-0 flex items-center justify-center'>

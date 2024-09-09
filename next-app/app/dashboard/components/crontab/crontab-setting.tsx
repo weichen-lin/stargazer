@@ -76,7 +76,7 @@ export default function HourSetting(props: ICrontabSetting) {
 
   return (
     <div className='w-full flex justify-between items-center'>
-      <span className='text-slate-500 dark:text-slate-700 lg:text-sm'>
+      <span className='text-slate-500 dark:text-slate-700'>
         {hour !== null ? `Everyday at ${formatHour(hour)}` : '--'}
       </span>
       <div className='flex gap-x-2'>

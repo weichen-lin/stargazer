@@ -14,7 +14,7 @@ export default function Dashboard() {
       )}
     >
       <LanguageDistribution />
-      <TopicsCloud width={320} height={260} />
+      <TopicsCloud />
       <Crontab />
       <RepoSearch />
       <RepoSearch />

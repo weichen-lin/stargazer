@@ -19,17 +19,16 @@ export default function Crontab() {
   const [hour, setHour] = useState<number | null>(null)
 
   useEffect(() => {
-    const fetchCrontabInfo = async () => {
-      const crontabInfo = await getCrontabInfo(user.email)
-      setIsLoading(false)
-      if (crontabInfo) {
-        crontabInfo?.status && setStatus(crontabInfo.status)
-        crontabInfo?.lastTriggerTime && setLastTriggerTime(crontabInfo.lastTriggerTime)
-        crontabInfo?.hour && setHour(crontabInfo.hour)
-      }
-    }
-
-    fetchCrontabInfo()
+    // const fetchCrontabInfo = async () => {
+    //   const crontabInfo = await getCrontabInfo(user.email)
+    //   setIsLoading(false)
+    //   if (crontabInfo) {
+    //     crontabInfo?.status && setStatus(crontabInfo.status)
+    //     crontabInfo?.lastTriggerTime && setLastTriggerTime(crontabInfo.lastTriggerTime)
+    //     crontabInfo?.hour && setHour(crontabInfo.hour)
+    //   }
+    // }
+    // fetchCrontabInfo()
   }, [])
 
   return isLoading ? (

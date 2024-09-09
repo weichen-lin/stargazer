@@ -1,6 +1,10 @@
 'use server'
 
 import BaseClient from './base-client'
+export interface ILanguageDistribution {
+  language: string
+  count: number
+}
 
 class RepositoryClient extends BaseClient {
   constructor(email: string) {
@@ -8,7 +12,7 @@ class RepositoryClient extends BaseClient {
   }
 
   getLanguageDistribution() {
-    return this.get('/repository/language-distribution')
+    return this.get<ILanguageDistribution[]>('/repository/language-distribution')
   }
 }
 

@@ -7,14 +7,9 @@ export async function GET() {
   const client = new RepositoryClient(email)
 
   const data = await client.getLanguageDistribution()
-  console.log({ data })
 
   try {
-    return new Response('OK', {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
+    return Response.json(data)
   } catch (error) {
     return new Response('error', {
       status: 400,

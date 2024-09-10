@@ -144,6 +144,4 @@ func (c *Controller) GetTopics(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{
 		"data": topics,
 	})
-
-	return
 }

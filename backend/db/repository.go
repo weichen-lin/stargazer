@@ -443,3 +443,101 @@ func (db *Database) GetAllRepositoryTopics(ctx context.Context) ([]*TopicResult,
 
 	return topics, nil
 }
+
+type SortKey string
+
+type SortOrder string
+
+const (
+	SortKeyCreatedAt         SortKey = "created_at"
+	SortKeyUpdatedAt         SortKey = "updated_at"
+	SortKeyExternalCreatedAt SortKey = "external_created_at"
+	SortKeyLastModifiedAt    SortKey = "last_modified_at"
+	SortKeyLastSyncedAt      SortKey = "last_synced_at"
+	SortKeyStargazersCount   SortKey = "stargazers_count"
+	SortKeyWatchersCount     SortKey = "watchers_count"
+)
+
+const (
+	SortOrderDESC SortOrder = "DESC"
+	SortOrderASC  SortOrder = "ASC"
+)
+
+// func (db *Database) GetRepositoriesOrderBy(ctx context.Context) ([]*domain.RepositoryEntity, error) {
+// 	email, ok := EmailFromContext(ctx)
+// 	if !ok {
+// 		return nil, ErrNotFoundEmailAtContext
+// 	}
+
+// 	query := fmt.Sprintf(`
+// 			MATCH (u:User {email: $email})-[s:STARS { is_delete: false }]-(r:Repository)
+// 			RETURN {
+// 				repo_id: r.repo_id,
+// 				repo_name: r.repo_name,
+// 				owner_name: r.owner_name,
+// 				avatar_url: r.avatar_url,
+// 				html_url: r.html_url,
+// 				homepage: r.homepage,
+// 				description: r.description,
+// 				created_at: r.created_at,
+// 				updated_at: r.updated_at,
+// 				stargazers_count: r.stargazers_count,
+// 				language: r.language,
+// 				watchers_count: r.watchers_count,
+// 				open_issues_count: r.open_issues_count,
+// 				default_branch: r.default_branch,
+// 				archived: r.archived,
+// 				topics: r.topics,
+// 				external_created_at: s.created_at,
+// 				last_synced_at: s.last_synced_at,
+// 				last_modified_at: s.last_modified_at
+// 			} as repo
+// 			ORDER BY %s
+// 			LIMIT 5
+// 			`, "")
+
+// 	session := db.Driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
+// 	defer session.Close(context.Background())
+
+// 	results, err := session.ExecuteRead(context.Background(), func(tx neo4j.ManagedTransaction) (any, error) {
+// 		result, err := tx.Run(context.Background(), `
+// 			MATCH (u:User {email: $email})-[s:STARS { is_delete: false }]-(r:Repository)
+// 			RETURN {
+// 				repo_id: r.repo_id,
+// 				repo_name: r.repo_name,
+// 				owner_name: r.owner_name,
+// 				avatar_url: r.avatar_url,
+// 				html_url: r.html_url,
+// 				homepage: r.homepage,
+// 				description: r.description,
+// 				created_at: r.created_at,
+// 				updated_at: r.updated_at,
+// 				stargazers_count: r.stargazers_count,
+// 				language: r.language,
+// 				watchers_count: r.watchers_count,
+// 				open_issues_count: r.open_issues_count,
+// 				default_branch: r.default_branch,
+// 				archived: r.archived,
+// 				topics: r.topics,
+// 				external_created_at: s.created_at,
+// 				last_synced_at: s.last_synced_at,
+// 				last_modified_at: s.last_modified_at
+// 			} as repo
+// 			ORDER BY $order_by DESC
+// 			`,
+// 			map[string]interface{}{
+// 				"email": email,
+// 			})
+
+// 		if err != nil {
+// 			fmt.Println("error at read repo: ", err)
+// 			return nil, err
+// 		}
+// 		record, err := result.Collect(context.Background())
+// 		return record, err
+// 	})
+
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// }

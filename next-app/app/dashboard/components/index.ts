@@ -1,11 +1,13 @@
-import TotalRepositories from './total'
-import Crontab from './crontab'
+import LanguageDistribution from './pie-chart'
+import TopicsCloud from './topic-cloud'
+
 import RepoSearch from './repo_search'
 import { TotalLoading, ReposLoading } from './loadings'
 import Loading from './loading'
-import LanguagePie from './languagePie'
-import { Component } from './bar-chart'
 
-export { TotalRepositories, Crontab, RepoSearch }
+import { Crontab } from './crontab'
+
+export { Crontab, RepoSearch }
 export { TotalLoading, ReposLoading }
-export { Loading, LanguagePie, Component }
+export { Loading, LanguageDistribution }
+export { TopicsCloud }

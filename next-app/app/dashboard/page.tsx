@@ -1,7 +1,7 @@
 'use client'
 
 import clsx from 'clsx'
-import { TotalRepositories, Crontab, LanguagePie, RepoSearch, Component } from './components'
+import { Crontab, RepoSearch, LanguageDistribution, TopicsCloud } from './components'
 
 export default function Dashboard() {
   return (
@@ -13,16 +13,12 @@ export default function Dashboard() {
         'lg:content-around',
       )}
     >
-      <div className='w-full rounded-md h-[300px] flex flex-col justify-between'>
-        <TotalRepositories />
-        <Crontab />
-      </div>
-      {/* <LanguagePie /> */}
-      <Component />
-      <RepoSearch searchKey='created_at' title='Recently Added' />
-      <RepoSearch searchKey='open_issues_count' title='Repository with the most issues open' />
-      <RepoSearch searchKey='last_updated_at' title='Most recently active' />
-      <RepoSearch searchKey='last_modified_at' title='Recently manually updated' />
+      <LanguageDistribution />
+      <TopicsCloud />
+      <Crontab />
+      <RepoSearch />
+      <RepoSearch />
+      <RepoSearch />
     </div>
   )
 }

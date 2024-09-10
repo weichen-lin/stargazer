@@ -1,62 +1,190 @@
 'use client'
 
 import clsx from 'clsx'
-import { GetUser } from '@/actions'
 import { getReposByKey, ISearchKey } from '@/actions/neo4j'
 import Repo from './repo'
 import { useEffect, useState } from 'react'
 import { IRepoAtDashboard } from '@/actions/neo4j'
 import { useUser } from '@/context'
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 
-export default function RepoSearch({ searchKey, title }: { searchKey: ISearchKey; title: string }) {
+const fakeData = [
+  {
+    owner_name: 'ClickHouse',
+    stargazers_count: 36484,
+    open_issues_count: 3896,
+    created_at: '2016-06-02T08:28:18Z',
+    description:
+      'ClickHouse® is a real-time analytics DBMSClickHouse® is a real-time analytics DBMSClickHouse® is a real-time analytics DBMSClickHouse® is a real-time analytics DBMSClickHouse® is a real-time analytics DBMS',
+    language: 'Go',
+    archived: false,
+    avatar_url: 'https://avatars.githubusercontent.com/u/54801242?v=4',
+    updated_at: '2024-09-01T10:12:20Z',
+    repo_id: 60246359,
+    html_url: 'https://github.com/ClickHouse/ClickHouse',
+    default_branch: 'master',
+    repo_name: 'ClickHouse',
+    watchers_count: 36484,
+    homepage: 'https://clickhouse.com',
+  },
+  {
+    owner_name: 'ClickHouse',
+    stargazers_count: 36484,
+    open_issues_count: 3896,
+    created_at: '2016-06-02T08:28:18Z',
+    description:
+      'ClickHouse® is a real-time analytics DBMSClickHouse® is a real-time analytics DBMSClickHouse® is a real-time analytics DBMSClickHouse® is a real-time analytics DBMSClickHouse® is a real-time analytics DBMS',
+    language: 'Go',
+    archived: false,
+    avatar_url: 'https://avatars.githubusercontent.com/u/54801242?v=4',
+    updated_at: '2024-09-01T10:12:20Z',
+    repo_id: 60246359,
+    html_url: 'https://github.com/ClickHouse/ClickHouse',
+    default_branch: 'master',
+    repo_name: 'ClickHouse',
+    watchers_count: 36484,
+    homepage: 'https://clickhouse.com',
+  },
+  {
+    owner_name: 'ClickHouse',
+    stargazers_count: 36484,
+    open_issues_count: 3896,
+    created_at: '2016-06-02T08:28:18Z',
+    description:
+      'ClickHouse® is a real-time analytics DBMSClickHouse® is a real-time analytics DBMSClickHouse® is a real-time analytics DBMSClickHouse® is a real-time analytics DBMSClickHouse® is a real-time analytics DBMS',
+    language: 'Go',
+    archived: false,
+    avatar_url: 'https://avatars.githubusercontent.com/u/54801242?v=4',
+    updated_at: '2024-09-01T10:12:20Z',
+    repo_id: 60246359,
+    html_url: 'https://github.com/ClickHouse/ClickHouse',
+    default_branch: 'master',
+    repo_name: 'ClickHouse',
+    watchers_count: 36484,
+    homepage: 'https://clickhouse.com',
+  },
+  {
+    owner_name: 'ClickHouse',
+    stargazers_count: 36484,
+    open_issues_count: 3896,
+    created_at: '2016-06-02T08:28:18Z',
+    description:
+      'ClickHouse® is a real-time analytics DBMSClickHouse® is a real-time analytics DBMSClickHouse® is a real-time analytics DBMSClickHouse® is a real-time analytics DBMSClickHouse® is a real-time analytics DBMS',
+    language: 'Go',
+    archived: false,
+    avatar_url: 'https://avatars.githubusercontent.com/u/54801242?v=4',
+    updated_at: '2024-09-01T10:12:20Z',
+    repo_id: 60246359,
+    html_url: 'https://github.com/ClickHouse/ClickHouse',
+    default_branch: 'master',
+    repo_name: 'ClickHouse',
+    watchers_count: 36484,
+    homepage: 'https://clickhouse.com',
+  },
+  {
+    owner_name: 'ClickHouse',
+    stargazers_count: 36484,
+    open_issues_count: 3896,
+    created_at: '2016-06-02T08:28:18Z',
+    description:
+      'ClickHouse® is a real-time analytics DBMSClickHouse® is a real-time analytics DBMSClickHouse® is a real-time analytics DBMSClickHouse® is a real-time analytics DBMSClickHouse® is a real-time analytics DBMS',
+    language: 'Go',
+    archived: false,
+    avatar_url: 'https://avatars.githubusercontent.com/u/54801242?v=4',
+    updated_at: '2024-09-01T10:12:20Z',
+    repo_id: 60246359,
+    html_url: 'https://github.com/ClickHouse/ClickHouse',
+    default_branch: 'master',
+    repo_name: 'ClickHouse',
+    watchers_count: 36484,
+    homepage: 'https://clickhouse.com',
+  },
+  {
+    owner_name: 'ClickHouse',
+    stargazers_count: 36484,
+    open_issues_count: 3896,
+    created_at: '2016-06-02T08:28:18Z',
+    description:
+      'ClickHouse® is a real-time analytics DBMSClickHouse® is a real-time analytics DBMSClickHouse® is a real-time analytics DBMSClickHouse® is a real-time analytics DBMSClickHouse® is a real-time analytics DBMS',
+    language: 'Go',
+    archived: false,
+    avatar_url: 'https://avatars.githubusercontent.com/u/54801242?v=4',
+    updated_at: '2024-09-01T10:12:20Z',
+    repo_id: 60246359,
+    html_url: 'https://github.com/ClickHouse/ClickHouse',
+    default_branch: 'master',
+    repo_name: 'ClickHouse',
+    watchers_count: 36484,
+    homepage: 'https://clickhouse.com',
+  },
+  {
+    owner_name: 'ClickHouse',
+    stargazers_count: 36484,
+    open_issues_count: 3896,
+    created_at: '2016-06-02T08:28:18Z',
+    description:
+      'ClickHouse® is a real-time analytics DBMSClickHouse® is a real-time analytics DBMSClickHouse® is a real-time analytics DBMSClickHouse® is a real-time analytics DBMSClickHouse® is a real-time analytics DBMS',
+    language: 'Go',
+    archived: false,
+    avatar_url: 'https://avatars.githubusercontent.com/u/54801242?v=4',
+    updated_at: '2024-09-01T10:12:20Z',
+    repo_id: 60246359,
+    html_url: 'https://github.com/ClickHouse/ClickHouse',
+    default_branch: 'master',
+    repo_name: 'ClickHouse',
+    watchers_count: 36484,
+    homepage: 'https://clickhouse.com',
+  },
+  {
+    owner_name: 'ClickHouse',
+    stargazers_count: 36484,
+    open_issues_count: 3896,
+    created_at: '2016-06-02T08:28:18Z',
+    description:
+      'ClickHouse® is a real-time analytics DBMSClickHouse® is a real-time analytics DBMSClickHouse® is a real-time analytics DBMSClickHouse® is a real-time analytics DBMSClickHouse® is a real-time analytics DBMS',
+    language: 'Go',
+    archived: false,
+    avatar_url: 'https://avatars.githubusercontent.com/u/54801242?v=4',
+    updated_at: '2024-09-01T10:12:20Z',
+    repo_id: 60246359,
+    html_url: 'https://github.com/ClickHouse/ClickHouse',
+    default_branch: 'master',
+    repo_name: 'ClickHouse',
+    watchers_count: 36484,
+    homepage: 'https://clickhouse.com',
+  },
+]
+
+export default function RepoSearch() {
   const [repos, setRepos] = useState<IRepoAtDashboard[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const { email } = useUser()
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const res = await getReposByKey(email, searchKey)
-        setRepos(res)
-      } catch (error) {
-        console.error(error)
-      } finally {
-        setIsLoading(false)
-      }
-    }
-    fetchData()
-  }, [])
+  // useEffect(() => {
+  //   const fetchData = async () => {
+  //     try {
+  //       const res = await getReposByKey(email, searchKey)
+  //       setRepos(res)
+  //     } catch (error) {
+  //       console.error(error)
+  //     } finally {
+  //       setIsLoading(false)
+  //     }
+  //   }
+  //   fetchData()
+  // }, [])
 
   return (
-    <div
-      className={clsx(
-        'border-[2px] border-slate-300/70 rounded-lg flex flex-col items-center justify-start gap-y-2',
-        'bg-white drop-shadow-lg dark:bg-slate-300 dark:border-slate-800 dark:text-white',
-        'h-[300px] w-full',
-      )}
-    >
-      <div className='w-full text-left px-4 py-3 text-xl xl:text-lg text-slate-500'>{title}</div>
-      {!isLoading && repos.length > 0 && (
-        <div className='w-full px-3 grid grid-rows-5 flex-1'>
-          {repos.map(e => (
-            <Repo {...e} key={`${searchKey}-repo-${e.full_name}`} searchKey={searchKey} />
-          ))}
-        </div>
-      )}
-      {!isLoading && repos.length === 0 && (
-        <div className='w-full h-full flex flex-col items-center justify-center gap-y-2'>
-          <div className='text-slate-300 dark:text-slate-500'>No data available now</div>
-        </div>
-      )}
-      {isLoading && (
-        <div className='w-full h-full flex flex-col gap-y-1'>
-          <div className='bg-slate-300/60 h-10 w-[95%] rounded-md animate-pulse mx-auto'></div>
-          <div className='bg-slate-300/60 h-10 w-[95%] rounded-md animate-pulse mx-auto'></div>
-          <div className='bg-slate-300/60 h-10 w-[95%] rounded-md animate-pulse mx-auto'></div>
-          <div className='bg-slate-300/60 h-10 w-[95%] rounded-md animate-pulse mx-auto'></div>
-          <div className='bg-slate-300/60 h-10 w-[95%] rounded-md animate-pulse mx-auto'></div>
-        </div>
-      )}
-    </div>
+    <Card className='flex flex-col h-[320px]'>
+      <CardHeader className='items-start pb-0 gap-y-0'>
+        <CardTitle className='text-xl'>Recent Activity</CardTitle>
+        <CardDescription>Your latest starred repositories</CardDescription>
+      </CardHeader>
+      <CardContent className='flex-1 pb-0 overflow-y-scroll flex flex-col gap-y-2 py-4'>
+        {fakeData.map(e => (
+          <Repo {...e} searchKey='' key={`${e.repo_id}`} />
+        ))}
+      </CardContent>
+    </Card>
   )
 }

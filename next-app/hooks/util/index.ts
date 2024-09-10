@@ -1,4 +1,5 @@
 import useMedia from './useMedia'
 import useRepoDetail from './useRepoDetail'
+import useFetch from './useFetch'
 
-export { useMedia, useRepoDetail }
+export { useMedia, useRepoDetail, useFetch }

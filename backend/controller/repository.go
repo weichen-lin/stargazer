@@ -55,6 +55,8 @@ func handleRepositoryErr(err error, ctx *gin.Context) {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "UnAuthorized"})
 	case db.ErrRepositoryNotFound:
 		ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+	case db.ErrInvalidSortKey, db.ErrInvalidSortOrder:
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	default:
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "server is not response now"})
 	}
@@ -144,6 +146,32 @@ func (c *Controller) GetTopics(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{
 		"data": topics,
 	})
+}
 
-	return
+type GetRepositoriesByKeyQueries struct {
+	Key   string `form:"key" binding:"required"`
+	Order string `form:"order" binding:"required"`
+}
+
+func (c *Controller) GetRepositoriesByKey(ctx *gin.Context) {
+	var queries GetRepositoriesByKeyQueries
+	if err := ctx.ShouldBindQuery(&queries); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	data, err := c.db.GetRepositoriesOrderBy(ctx, &db.SortParams{
+		Key:   queries.Key,
+		Order: queries.Order,
+	})
+
+	if err != nil {
+		fmt.Println(err)
+		handleRepositoryErr(err, ctx)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"data": data,
+	})
 }

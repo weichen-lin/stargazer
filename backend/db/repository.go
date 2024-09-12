@@ -67,7 +67,7 @@ func (db *Database) GetRepository(ctx context.Context, repo_id int64) (*domain.R
 
 	record, ok := result.(*neo4j.Record)
 	if !ok {
-		return nil, fmt.Errorf("error at converting users records to []*neo4j.Record")
+		return nil, fmt.Errorf("error at converting users records to *neo4j.Record")
 	}
 
 	repoMap := record.AsMap()
@@ -442,4 +442,159 @@ func (db *Database) GetAllRepositoryTopics(ctx context.Context) ([]*TopicResult,
 	}
 
 	return topics, nil
+}
+
+type SortKey string
+
+type SortOrder string
+
+const (
+	// 最後更新時間
+	SortKeyUpdatedAt SortKey = "updated_at"
+
+	// StarGazer 建立時間
+	SortKeyExternalCreatedAt SortKey = "created_at"
+
+	// 最後修改時間
+	SortKeyLastModifiedAt SortKey = "last_modified_at"
+
+	// 最後同步到的時間
+	SortKeyLastSyncedAt SortKey = "last_synced_at"
+
+	// 星星數
+	SortKeyStargazersCount SortKey = "stargazers_count"
+
+	// 關注人數
+	SortKeyWatchersCount SortKey = "watchers_count"
+)
+
+var sortKeyMap = map[SortKey]string{
+	SortKeyUpdatedAt:         "r.updated_at",
+	SortKeyExternalCreatedAt: "s.created_at",
+	SortKeyLastModifiedAt:    "s.last_modified_at",
+	SortKeyLastSyncedAt:      "s.last_synced_at",
+	SortKeyStargazersCount:   "r.stargazers_count",
+	SortKeyWatchersCount:     "r.watchers_count",
+}
+
+const (
+	SortOrderDESC SortOrder = "DESC"
+	SortOrderASC  SortOrder = "ASC"
+)
+
+var sortOrderMap = map[SortOrder]string{
+	SortOrderDESC: "DESC",
+	SortOrderASC:  "ASC",
+}
+
+type SortParams struct {
+	Key   string
+	Order string
+}
+
+var ErrInvalidSortKey = errors.New("invalid sort key")
+var ErrInvalidSortOrder = errors.New("invalid sort order")
+
+func (db *Database) GetRepositoriesOrderBy(ctx context.Context, params *SortParams) ([]*domain.RepositoryEntity, error) {
+	email, ok := EmailFromContext(ctx)
+	if !ok {
+		return nil, ErrNotFoundEmailAtContext
+	}
+
+	sortKey, exists := sortKeyMap[SortKey(params.Key)]
+	if !exists {
+		return []*domain.RepositoryEntity{}, ErrInvalidSortKey
+	}
+
+	sortOrder, exists := sortOrderMap[SortOrder(params.Order)]
+	if !exists {
+		return []*domain.RepositoryEntity{}, ErrInvalidSortOrder
+	}
+
+	query := fmt.Sprintf(`
+			MATCH (u:User {email: $email})-[s:STARS { is_delete: false }]-(r:Repository)
+			RETURN {
+				repo_id: r.repo_id,
+				repo_name: r.repo_name,
+				owner_name: r.owner_name,
+				avatar_url: r.avatar_url,
+				html_url: r.html_url,
+				homepage: r.homepage,
+				description: r.description,
+				created_at: r.created_at,
+				updated_at: r.updated_at,
+				stargazers_count: r.stargazers_count,
+				language: r.language,
+				watchers_count: r.watchers_count,
+				open_issues_count: r.open_issues_count,
+				default_branch: r.default_branch,
+				archived: r.archived,
+				topics: r.topics,
+				external_created_at: s.created_at,
+				last_synced_at: s.last_synced_at,
+				last_modified_at: s.last_modified_at
+			} as repo
+			ORDER BY %s %s
+			LIMIT 5
+			`, sortKey, sortOrder)
+
+	session := db.Driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
+	defer session.Close(context.Background())
+
+	results, err := session.ExecuteRead(context.Background(), func(tx neo4j.ManagedTransaction) (any, error) {
+		result, err := tx.Run(context.Background(), query,
+			map[string]interface{}{
+				"email": email,
+			})
+
+		if err != nil {
+			fmt.Println("error at read repo: ", err)
+			return nil, err
+		}
+		record, err := result.Collect(context.Background())
+		return record, err
+	})
+
+	if err != nil {
+		return []*domain.RepositoryEntity{}, nil
+	}
+
+	records, ok := results.([]*neo4j.Record)
+	if !ok {
+		return nil, fmt.Errorf("error at converting repos records to []*neo4j.Record")
+	}
+
+	repos := make([]*domain.RepositoryEntity, len(records))
+
+	for i, r := range records {
+		record := r.AsMap()
+
+		repoMap := record["repo"].(map[string]interface{})
+
+		entity := &domain.RepositoryEntity{
+			RepoID:            getInt64(repoMap["repo_id"]),
+			RepoName:          getString(repoMap["repo_name"]),
+			OwnerName:         getString(repoMap["owner_name"]),
+			AvatarURL:         getString(repoMap["avatar_url"]),
+			HtmlURL:           getString(repoMap["html_url"]),
+			Homepage:          getString(repoMap["homepage"]),
+			Description:       getString(repoMap["description"]),
+			CreatedAt:         getString(repoMap["created_at"]),
+			UpdatedAt:         getString(repoMap["updated_at"]),
+			StargazersCount:   getInt64(repoMap["stargazers_count"]),
+			WatchersCount:     getInt64(repoMap["watchers_count"]),
+			OpenIssuesCount:   getInt64(repoMap["open_issues_count"]),
+			Language:          getString(repoMap["language"]),
+			DefaultBranch:     getString(repoMap["default_branch"]),
+			Archived:          getBool(repoMap["archived"]),
+			Topics:            getStringArray(repoMap["topics"]),
+			ExternalCreatedAt: getTimeString(repoMap["external_created_at"]),
+			LastSyncedAt:      getTimeString(repoMap["last_synced_at"]),
+			LastModifiedAt:    getTimeString(repoMap["last_modified_at"]),
+		}
+
+		repos[i] = entity
+	}
+
+	return repos, nil
 }

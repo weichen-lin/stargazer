@@ -235,3 +235,35 @@ func TestGetAllRepositoryTopics(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 2, len(results))
 }
+
+func TestGetRepositoriesOrderBy(t *testing.T) {
+	user, ctx := createFakeUser(t)
+
+	for i := 0; i < 10; i++ {
+		repo := createRepositoryAtFakeUser(t, user)
+		require.NotEmpty(t, repo)
+	}
+
+	t.Run("test sort key and sort order validate", func(t *testing.T) {
+		_, err := db.GetRepositoriesOrderBy(ctx, &SortParams{
+			Key:   "test-invalid-sort-key",
+			Order: "DESC",
+		})
+		require.ErrorIs(t, err, ErrInvalidSortKey)
+
+		_, err = db.GetRepositoriesOrderBy(ctx, &SortParams{
+			Key:   "updated_at",
+			Order: "adsasda",
+		})
+		require.ErrorIs(t, err, ErrInvalidSortOrder)
+	})
+
+	t.Run("test limit repos activate", func(t *testing.T) {
+		repos, err := db.GetRepositoriesOrderBy(ctx, &SortParams{
+			Key:   "updated_at",
+			Order: "DESC",
+		})
+		require.NoError(t, err)
+		require.Equal(t, 5, len(repos))
+	})
+}

@@ -111,6 +111,7 @@ func Test_CrontabCRUD(t *testing.T) {
 		triggeredTime, _ := getTime(12)
 
 		checkUpdatedTime, err := time.Parse(time.RFC3339, response.UpdatedAt)
+		require.NoError(t, err)
 
 		require.Equal(t, triggeredTime.Format(time.RFC3339), response.TriggeredAt)
 		require.WithinDuration(t, updatedTime, checkUpdatedTime, time.Second*3)

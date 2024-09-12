@@ -449,16 +449,10 @@ type SortKey string
 type SortOrder string
 
 const (
-	// 最後更新時間
-	SortKeyUpdatedAt SortKey = "updated_at"
-
 	// StarGazer 建立時間
 	SortKeyExternalCreatedAt SortKey = "created_at"
 
-	// 最後修改時間
-	SortKeyLastModifiedAt SortKey = "last_modified_at"
-
-	// 最後同步到的時間
+	// StarGaze4 最後同步到的時間
 	SortKeyLastSyncedAt SortKey = "last_synced_at"
 
 	// 星星數
@@ -469,9 +463,7 @@ const (
 )
 
 var sortKeyMap = map[SortKey]string{
-	SortKeyUpdatedAt:         "r.updated_at",
 	SortKeyExternalCreatedAt: "s.created_at",
-	SortKeyLastModifiedAt:    "s.last_modified_at",
 	SortKeyLastSyncedAt:      "s.last_synced_at",
 	SortKeyStargazersCount:   "r.stargazers_count",
 	SortKeyWatchersCount:     "r.watchers_count",

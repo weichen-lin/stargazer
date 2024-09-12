@@ -252,7 +252,7 @@ func TestGetRepositoriesOrderBy(t *testing.T) {
 		require.ErrorIs(t, err, ErrInvalidSortKey)
 
 		_, err = db.GetRepositoriesOrderBy(ctx, &SortParams{
-			Key:   "updated_at",
+			Key:   "created_at",
 			Order: "adsasda",
 		})
 		require.ErrorIs(t, err, ErrInvalidSortOrder)
@@ -260,7 +260,7 @@ func TestGetRepositoriesOrderBy(t *testing.T) {
 
 	t.Run("test limit repos activate", func(t *testing.T) {
 		repos, err := db.GetRepositoriesOrderBy(ctx, &SortParams{
-			Key:   "updated_at",
+			Key:   "created_at",
 			Order: "DESC",
 		})
 		require.NoError(t, err)

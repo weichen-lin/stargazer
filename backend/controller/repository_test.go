@@ -300,7 +300,7 @@ func Test_GetRepositoryBySortParams(t *testing.T) {
 		require.Equal(t, http.StatusBadRequest, w.Code)
 
 		w = httptest.NewRecorder()
-		req, _ = http.NewRequest("GET", "/repository/sort?key=updated_at&order=aa", nil)
+		req, _ = http.NewRequest("GET", "/repository/sort?key=created_at&order=aa", nil)
 		req.Header.Set("Authorization", token)
 
 		r.ServeHTTP(w, req)
@@ -314,7 +314,7 @@ func Test_GetRepositoryBySortParams(t *testing.T) {
 		}
 
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("GET", "/repository/sort?key=updated_at&order=DESC", nil)
+		req, _ := http.NewRequest("GET", "/repository/sort?key=created_at&order=DESC", nil)
 		req.Header.Set("Authorization", token)
 
 		r.ServeHTTP(w, req)

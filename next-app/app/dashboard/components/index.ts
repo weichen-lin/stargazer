@@ -1,7 +1,7 @@
 import LanguageDistribution from './pie-chart'
 import TopicsCloud from './topic-cloud'
 
-import RepoSearch from './repo_search'
+import RepoSearch from './repo-search'
 import { TotalLoading, ReposLoading } from './loadings'
 import Loading from './loading'
 

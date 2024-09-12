@@ -9,7 +9,7 @@ import { colorConfig, getLanguageColor, Language } from './config'
 import { PieChart as PieChartIcon, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useFetch } from '@/hooks/util'
-import { ILanguageDistribution } from '@/client/repository-client'
+import { ILanguageDistribution } from '@/client/repository'
 
 export default function LanguageDistribution() {
   const { data, isLoading } = useFetch<ILanguageDistribution[]>({

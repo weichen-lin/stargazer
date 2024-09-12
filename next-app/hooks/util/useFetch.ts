@@ -15,6 +15,11 @@ const instance = axios.create({
   },
 })
 
+interface IRunProps {
+  params?: Record<string, string>
+  payload?: any
+}
+
 export default function useFetch<T>(props: useFetchProps<T>) {
   const { config, initialRun } = props
   const { url, method, params, data: payload, headers } = config
@@ -24,7 +29,7 @@ export default function useFetch<T>(props: useFetchProps<T>) {
   const [statusCode, setStatusCode] = useState<number | null>(null)
   const [data, setData] = useState<T | null>(null)
 
-  const run = useCallback(async () => {
+  const run = useCallback(async ({ params, payload }: IRunProps) => {
     try {
       setIsLoading(true)
       setError(null)
@@ -54,7 +59,7 @@ export default function useFetch<T>(props: useFetchProps<T>) {
   }, [])
 
   useEffect(() => {
-    if (initialRun) run()
+    if (initialRun) run({ params, payload })
   }, [])
 
   return { statusCode, error, isLoading, data, run }

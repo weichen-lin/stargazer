@@ -4,7 +4,7 @@ import Wordcloud from '@visx/wordcloud/lib/Wordcloud'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { generateRandomColors } from './helper'
 import { useFetch } from '@/hooks/util'
-import { ITopics } from '@/client/repository-client'
+import { ITopics } from '@/client/repository'
 import { PieChart as PieChartIcon, Plus } from 'lucide-react'
 
 export interface WordData {
@@ -32,10 +32,13 @@ export default function TopicsCloud() {
   })
 
   const words =
-    data?.map(e => ({
-      text: e.name,
-      value: e.repos.length,
-    })) ?? []
+    data
+      ?.sort((a, b) => b.repos.length - a.repos.length)
+      .slice(0, 50)
+      .map(e => ({
+        text: e.name,
+        value: e.repos.length,
+      })) ?? []
 
   const fontScale = scaleLog({
     domain: [Math.min(...words.map(w => w.value)), Math.max(...words.map(w => w.value))],

@@ -452,9 +452,6 @@ const (
 	// StarGazer 建立時間
 	SortKeyExternalCreatedAt SortKey = "created_at"
 
-	// StarGaze4 最後同步到的時間
-	SortKeyLastSyncedAt SortKey = "last_synced_at"
-
 	// 星星數
 	SortKeyStargazersCount SortKey = "stargazers_count"
 
@@ -464,7 +461,6 @@ const (
 
 var sortKeyMap = map[SortKey]string{
 	SortKeyExternalCreatedAt: "s.created_at",
-	SortKeyLastSyncedAt:      "s.last_synced_at",
 	SortKeyStargazersCount:   "r.stargazers_count",
 	SortKeyWatchersCount:     "r.watchers_count",
 }

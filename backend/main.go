@@ -44,6 +44,7 @@ func main() {
 		repo.GET("/topics", c.GetTopics)
 		repo.GET("/:id", c.GetRepository)
 		repo.GET("/language-distribution", c.GetUserLanguageDistribution)
+		repo.GET("/sort", c.GetRepositoriesByKey)
 	}
 
 	crontab := r.Group("/crontab", m.JWTAuth())

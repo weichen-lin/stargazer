@@ -1,6 +1,6 @@
-'use server'
+import BaseClient from '@/client/base-client'
+import { z } from 'zod'
 
-import BaseClient from './base-client'
 export interface ILanguageDistribution {
   language: string
   count: number
@@ -10,6 +10,10 @@ export interface ITopics {
   name: string
   repos: number[]
 }
+
+export const SortKeySchema = z.enum(['created_at', 'stargazers_count', 'watchers_count'])
+
+export type SortKey = z.infer<typeof SortKeySchema>
 
 class RepositoryClient extends BaseClient {
   constructor(email: string) {
@@ -22,6 +26,10 @@ class RepositoryClient extends BaseClient {
 
   getTopics() {
     return this.get<{ data: ITopics[] }>('/repository/topics')
+  }
+
+  getReposWithSortKey(sortkey: SortKey) {
+    return this.get<{ data: any[] }>(`/repository/sort?key=${sortkey}&order=DESC`)
   }
 }
 

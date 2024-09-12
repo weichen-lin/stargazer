@@ -17,8 +17,6 @@ export default function Dashboard() {
       <TopicsCloud />
       <Crontab />
       <RepoSearch />
-      <RepoSearch />
-      <RepoSearch />
     </div>
   )
 }

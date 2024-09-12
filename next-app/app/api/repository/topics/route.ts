@@ -1,5 +1,5 @@
 import { GetUser } from '@/actions'
-import RepositoryClient from '@/client/repository-client'
+import { RepositoryClient } from '@/client/repository'
 
 export const dynamic = 'force-dynamic' // defaults to auto
 export async function GET() {

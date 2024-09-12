@@ -273,3 +273,59 @@ func Test_GetRepositoryByPageAndLanguages(t *testing.T) {
 		}
 	})
 }
+
+func Test_GetRepositoryBySortParams(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	r := gin.Default()
+
+	r.GET("/repository/sort", NewTestJWTAuth(), testController.GetRepositoriesByKey)
+
+	user, token := createUserWithToken(t)
+
+	t.Run("Unauthorized request", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("GET", "/repository/sort", nil)
+
+		r.ServeHTTP(w, req)
+
+		require.Equal(t, http.StatusUnauthorized, w.Code)
+	})
+
+	t.Run("Test invalid query", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("GET", "/repository/sort?key=1aasd&order=aa", nil)
+		req.Header.Set("Authorization", token)
+
+		r.ServeHTTP(w, req)
+		require.Equal(t, http.StatusBadRequest, w.Code)
+
+		w = httptest.NewRecorder()
+		req, _ = http.NewRequest("GET", "/repository/sort?key=updated_at&order=aa", nil)
+		req.Header.Set("Authorization", token)
+
+		r.ServeHTTP(w, req)
+		require.Equal(t, http.StatusBadRequest, w.Code)
+	})
+
+	t.Run("Test real result", func(t *testing.T) {
+		for i := 0; i < 10; i++ {
+			repo := createRepository(t, user)
+			require.NotEmpty(t, repo)
+		}
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("GET", "/repository/sort?key=updated_at&order=DESC", nil)
+		req.Header.Set("Authorization", token)
+
+		r.ServeHTTP(w, req)
+		require.Equal(t, http.StatusOK, w.Code)
+
+		var response struct {
+			Data []*domain.Repository `json:"data"`
+		}
+		err := json.NewDecoder(w.Body).Decode(&response)
+		require.NoError(t, err)
+
+		require.Equal(t, len(response.Data), 5)
+	})
+}

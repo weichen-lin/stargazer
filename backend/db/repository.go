@@ -488,8 +488,8 @@ var sortOrderMap = map[SortOrder]string{
 }
 
 type SortParams struct {
-	Key   SortKey
-	Order SortOrder
+	Key   string
+	Order string
 }
 
 var ErrInvalidSortKey = errors.New("invalid sort key")

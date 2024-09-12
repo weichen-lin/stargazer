@@ -239,28 +239,31 @@ func TestGetAllRepositoryTopics(t *testing.T) {
 func TestGetRepositoriesOrderBy(t *testing.T) {
 	user, ctx := createFakeUser(t)
 
-	repo1 := createRepositoryAtFakeUser(t, user)
-	require.NotEmpty(t, repo1)
+	for i := 0; i < 10; i++ {
+		repo := createRepositoryAtFakeUser(t, user)
+		require.NotEmpty(t, repo)
+	}
 
-	repo2 := createRepositoryAtFakeUser(t, user)
-	require.NotEmpty(t, repo2)
+	t.Run("test sort key and sort order validate", func(t *testing.T) {
+		_, err := db.GetRepositoriesOrderBy(ctx, &SortParams{
+			Key:   "test-invalid-sort-key",
+			Order: "DESC",
+		})
+		require.ErrorIs(t, err, ErrInvalidSortKey)
 
-	_, err := db.GetRepositoriesOrderBy(ctx, &SortParams{
-		Key:   "test-invalid-sort-key",
-		Order: "DESC",
+		_, err = db.GetRepositoriesOrderBy(ctx, &SortParams{
+			Key:   "updated_at",
+			Order: "adsasda",
+		})
+		require.ErrorIs(t, err, ErrInvalidSortOrder)
 	})
-	require.ErrorIs(t, err, ErrInvalidSortKey)
 
-	_, err = db.GetRepositoriesOrderBy(ctx, &SortParams{
-		Key:   "updated_at",
-		Order: "adsasda",
+	t.Run("test limit repos activate", func(t *testing.T) {
+		repos, err := db.GetRepositoriesOrderBy(ctx, &SortParams{
+			Key:   "updated_at",
+			Order: "DESC",
+		})
+		require.NoError(t, err)
+		require.Equal(t, 5, len(repos))
 	})
-	require.ErrorIs(t, err, ErrInvalidSortOrder)
-
-	repos, err := db.GetRepositoriesOrderBy(ctx, &SortParams{
-		Key:   "updated_at",
-		Order: "DESC",
-	})
-	require.NoError(t, err)
-	require.Len(t, repos, 2)
 }

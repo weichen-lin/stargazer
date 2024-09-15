@@ -8,6 +8,7 @@ import { PieChart as PieChartIcon, Plus } from 'lucide-react'
 import { SortKey, IRepository } from '@/client/repository'
 import { useFetch } from '@/hooks/util'
 import Repo from './repo'
+import { Badge } from '@/components/ui/badge'
 
 const CardInfoMap: {
   [key in SortKey]: { title: string; short: string; description: string; icon: JSX.Element }
@@ -53,7 +54,12 @@ export default function RepoSearch() {
     <Card className='flex flex-col h-[320px] w-full max-w-[380px] md:max-w-none'>
       <CardHeader className='items-start pb-0 gap-y-0'>
         <CardTitle className='text-xl flex gap-x-4 justify-between w-full'>
-          {CardInfoMap[sortKey].title}
+          <div className='flex items-center gap-x-3'>
+            <div>{CardInfoMap[sortKey].title}</div>
+            <div>
+              <Badge variant='secondary'>from your stars</Badge>
+            </div>
+          </div>
           <Select
             value={sortKey}
             onValueChange={e => {
@@ -62,7 +68,7 @@ export default function RepoSearch() {
             disabled={isLoading}
           >
             <SelectTrigger className='w-[180px]'>
-              <SelectValue placeholder='Select a fruit' />
+              <SelectValue />
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>

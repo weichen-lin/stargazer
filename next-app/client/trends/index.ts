@@ -1,40 +1,6 @@
-'use server'
-
 import { load } from 'cheerio'
 import axios, { AxiosInstance } from 'axios'
-
-export type DateRange = 'daily' | 'weekly' | 'monthly'
-
-export const dateRangeeMap: { [key in DateRange]: string } = {
-  daily: 'today',
-  weekly: 'this week',
-  monthly: 'this month',
-}
-
-export interface ITrendRepository {
-  owner_name: string
-  repo_name: string
-  html_url: string
-  description: string
-  language: string
-  stargazers_count: number
-  get_stars: number
-}
-
-export interface ITrendDeveloper {
-  avatar_url: string
-  name: string
-  sub_name: string
-  html_url: string
-  repo_name: string
-  description: string
-}
-
-export const sinceMap: { [key in DateRange]: string } = {
-  daily: 'today',
-  weekly: 'this week',
-  monthly: 'this month',
-}
+import { DateRange, ITrendRepository, ITrendDeveloper } from './type'
 
 class TrendsClient {
   private readonly _axios!: AxiosInstance
@@ -49,8 +15,20 @@ class TrendsClient {
     })
   }
 
-  async getTrendRepos(): Promise<ITrendRepository[]> {
-    const res = await this._axios.get('/trending')
+  async getTrendRepos({
+    since = 'daily',
+    language,
+  }: {
+    since: DateRange
+    language: string | null
+  }): Promise<ITrendRepository[]> {
+    const route = language ? `/trending/${language}` : '/trending'
+
+    const res = await this._axios.get(route, {
+      params: {
+        since,
+      },
+    })
 
     const html = await res.data
 
@@ -94,8 +72,12 @@ class TrendsClient {
     return trendRepos
   }
 
-  async getTrendDevelopers(): Promise<ITrendDeveloper[]> {
-    const res = await this._axios.get('/trending/developers')
+  async getTrendDevelopers({ since = 'daily' }: { since: DateRange }): Promise<ITrendDeveloper[]> {
+    const res = await this._axios.get('/trending/developers', {
+      params: {
+        since,
+      },
+    })
 
     const html = await res.data
 

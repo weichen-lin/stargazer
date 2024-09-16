@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button'
 import { ExternalLink } from 'lucide-react'
 import { RocketIcon } from '@radix-ui/react-icons'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { ITrendDeveloper } from '@/client/trends'
+import { ITrendDeveloper } from '@/client/trends/type'
 
 export default function TrendDeveloper(props: ITrendDeveloper) {
   const { avatar_url, name, sub_name, html_url, repo_name, description } = props

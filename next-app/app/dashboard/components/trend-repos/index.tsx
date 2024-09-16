@@ -2,28 +2,14 @@
 
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { StarFilledIcon, EyeOpenIcon, RocketIcon } from '@radix-ui/react-icons'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { PieChart as PieChartIcon, Plus } from 'lucide-react'
-import { SortKey, IRepository } from '@/client/repository'
 import { useFetch } from '@/hooks/util'
-import { DateRange, sinceMap } from '@/client/trends'
+import { DateRange, dateRangeMap } from '@/client/trends/type'
 import LanguageSelector from './language-selector'
 import { Badge } from '@/components/ui/badge'
 import TrendRepository from './trending-repo'
-
-const fakeData = [
-  {
-    repo_name: 'ecapture',
-    owner_name: 'gojue',
-    html_url: 'https://github.com/gojue/ecapture',
-    description:
-      'Capturing SSL/TLS plaintext without a CA certificate using eBPF. Supported on Linux/Android kernels for amd64/arm64.',
-    stargazers_count: 10674,
-    language: 'C',
-    get_stars: 514,
-  },
-]
+import { ITrendRepository } from '@/client/trends/type'
 
 function capitalizeFirstLetter(s: string) {
   return s.charAt(0).toUpperCase() + s.slice(1)
@@ -31,16 +17,26 @@ function capitalizeFirstLetter(s: string) {
 
 export default function TrendRepos() {
   const [since, setSince] = useState<DateRange>('daily')
-  // const { isLoading, run } = useFetch<IRepository[]>({
-  //   initialRun: false,
-  //   config: {
-  //     url: '/repository/sort',
-  //     method: 'GET',
-  //     params: {
-  //       key: sortKey,
-  //     },
-  //   },
-  // })
+  const [language, setLanguage] = useState<string | null>(null)
+  const { isLoading, run, data } = useFetch<ITrendRepository[]>({
+    initialRun: false,
+    config: {
+      url: '/trending',
+      method: 'GET',
+      params: {
+        since,
+        language,
+      },
+    },
+  })
+
+  const selectLanguage = (e: string | null) => {
+    setLanguage(e)
+  }
+
+  useEffect(() => {
+    run({ params: { since, language: language ?? '' } })
+  }, [language, since])
 
   return (
     <Card className='flex flex-col h-[320px] w-full max-w-[380px] md:max-w-none'>
@@ -54,18 +50,19 @@ export default function TrendRepos() {
           </div>
         </CardTitle>
         <CardDescription className='flex gap-x-3'>
-          <LanguageSelector />
+          <LanguageSelector selected={language} onChange={selectLanguage} disabled={isLoading} />
           <Select
             value={since}
             onValueChange={e => {
               setSince(e as DateRange)
             }}
+            disabled={isLoading}
           >
             <SelectTrigger className='w-[180px]'>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {Object.entries(sinceMap).map(([key, value]) => (
+              {Object.entries(dateRangeMap).map(([key, value]) => (
                 <SelectItem value={key} key={`select-item-${key}`}>
                   {capitalizeFirstLetter(value)}
                 </SelectItem>
@@ -75,12 +72,14 @@ export default function TrendRepos() {
         </CardDescription>
       </CardHeader>
       <CardContent className='flex-1 pb-0 overflow-y-auto flex flex-col gap-y-2 py-4'>
-        {fakeData.map(repo => (
-          <TrendRepository key={`trend_repo_${repo.owner_name}_${repo.repo_name}`} {...repo} date_range={since} />
-        ))}
-        {/* {!isLoading && data && data.length > 0 && data.map(repo => <Repo key={`repo_${repo.repo_id}`} {...repo} />)}
-        {!isLoading && data && data.length === 0 && <EmptyContent />} */}
-        {false && <Loading />}
+        {!isLoading &&
+          data &&
+          data.length > 0 &&
+          data.map(repo => (
+            <TrendRepository key={`trend_repo_${repo.owner_name}_${repo.repo_name}`} {...repo} date_range={since} />
+          ))}
+        {!isLoading && data && data.length === 0 && <EmptyContent />}
+        {isLoading && <Loading />}
       </CardContent>
     </Card>
   )

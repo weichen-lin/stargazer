@@ -756,10 +756,6 @@ export const GitHubSelectLanguages: { label: string; value: string }[] = [
     value: 'HTML',
   },
   {
-    label: 'jinja',
-    value: 'Jinja',
-  },
-  {
     label: 'http',
     value: 'HTTP',
   },
@@ -1046,10 +1042,6 @@ export const GitHubSelectLanguages: { label: string; value: string }[] = [
   {
     label: 'mdx',
     value: 'MDX',
-  },
-  {
-    label: 'wikitext',
-    value: 'Wikitext',
   },
   {
     label: 'mercury',
@@ -2094,10 +2086,6 @@ export const GitHubSelectLanguages: { label: string; value: string }[] = [
   {
     label: 'zap',
     value: 'ZAP',
-  },
-  {
-    label: 'zeek',
-    value: 'Zeek',
   },
   {
     label: 'zenscript',

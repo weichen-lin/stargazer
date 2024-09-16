@@ -36,7 +36,7 @@ const CardInfoMap: {
 export default function RepoSearch() {
   const [sortKey, setSortKey] = useState<SortKey>('created_at')
   const { data, isLoading, run } = useFetch<IRepository[]>({
-    initialRun: true,
+    initialRun: false,
     config: {
       url: '/repository/sort',
       method: 'GET',

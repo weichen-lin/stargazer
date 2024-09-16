@@ -1,7 +1,7 @@
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Star, ExternalLink, StarsIcon } from 'lucide-react'
-import { ITrendRepository, DateRange, sinceMap } from '@/client/trends'
+import { ITrendRepository, DateRange, dateRangeMap } from '@/client/trends/type'
 
 export default function TrendReposiory(props: ITrendRepository & { date_range: DateRange }) {
   const { html_url, owner_name, repo_name, description, language, stargazers_count, get_stars, date_range } = props
@@ -33,7 +33,7 @@ export default function TrendReposiory(props: ITrendRepository & { date_range: D
       <div className='flex items-center justify-start gap-x-1 p-1 text-slate-700 text-sm'>
         <StarsIcon className='w-4 h-4 mr-1' />
         <span>{get_stars}</span>
-        <span>{sinceMap[date_range]}</span>
+        <span>{dateRangeMap[date_range]}</span>
       </div>
     </div>
   )

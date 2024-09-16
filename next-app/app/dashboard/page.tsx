@@ -13,10 +13,10 @@ export default function Dashboard() {
         'lg:content-around',
       )}
     >
-      {/* <LanguageDistribution />
+      <LanguageDistribution />
       <TopicsCloud />
       <Crontab />
-      <RepoSearch /> */}
+      <RepoSearch />
       <TrendRepos />
       <TrendDevelopers />
     </div>

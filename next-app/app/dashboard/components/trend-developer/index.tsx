@@ -63,7 +63,9 @@ export default function TrendDevelopers() {
             </SelectTrigger>
             <SelectContent>
               {Object.entries(sinceMap).map(([key, value]) => (
-                <SelectItem value={key}>{capitalizeFirstLetter(value)}</SelectItem>
+                <SelectItem value={key} key={`select-item-${key}`}>
+                  {capitalizeFirstLetter(value)}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>

@@ -36,10 +36,6 @@ export const sinceMap: { [key in DateRange]: string } = {
   monthly: 'this month',
 }
 
-export function getDateRange(s: DateRange) {
-  return sinceMap[s]
-}
-
 class TrendsClient {
   private readonly _axios!: AxiosInstance
   private readonly _baseUrl: string = 'https://github.com'

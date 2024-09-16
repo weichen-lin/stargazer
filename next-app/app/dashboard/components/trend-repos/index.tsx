@@ -44,12 +44,10 @@ export default function TrendRepos() {
         <CardTitle className='text-xl flex gap-x-4 justify-between w-full'>
           <div className='flex items-center gap-x-3'>
             <div>Trending Repositories</div>
-            <div className='mb-1'>
-              <Badge variant='secondary'>from GitHub</Badge>
-            </div>
+            <Badge variant='secondary'>from GitHub</Badge>
           </div>
         </CardTitle>
-        <CardDescription className='flex gap-x-3'>
+        <CardDescription className='flex flex-col gap-2 md:flex-row lg:flex-col 2xl:flex-row'>
           <LanguageSelector selected={language} onChange={selectLanguage} disabled={isLoading} />
           <Select
             value={since}

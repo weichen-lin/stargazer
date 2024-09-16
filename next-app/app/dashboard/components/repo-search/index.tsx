@@ -9,6 +9,7 @@ import { SortKey, IRepository } from '@/client/repository'
 import { useFetch } from '@/hooks/util'
 import Repo from './repo'
 import { Badge } from '@/components/ui/badge'
+import clsx from 'clsx'
 
 const CardInfoMap: {
   [key in SortKey]: { title: string; short: string; description: string; icon: JSX.Element }
@@ -53,12 +54,15 @@ export default function RepoSearch() {
   return (
     <Card className='flex flex-col h-[320px] w-full max-w-[380px] md:max-w-none'>
       <CardHeader className='items-start pb-0 gap-y-0'>
-        <CardTitle className='text-xl flex gap-x-4 justify-between w-full'>
+        <CardTitle
+          className={clsx(
+            'text-xl flex gap-2 justify-between w-full',
+            'flex-col md:flex-row lg:flex-col 2xl:flex-row 2xl:items-center',
+          )}
+        >
           <div className='flex items-center gap-x-3'>
             <div>{CardInfoMap[sortKey].title}</div>
-            <div>
-              <Badge variant='secondary'>from your stars</Badge>
-            </div>
+            <Badge variant='secondary'>from your stars</Badge>
           </div>
           <Select
             value={sortKey}

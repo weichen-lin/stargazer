@@ -2,23 +2,7 @@ import { Button } from '@/components/ui/button'
 import { ExternalLink } from 'lucide-react'
 import { RocketIcon } from '@radix-ui/react-icons'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-
-interface ITrendDeveloper {
-  avatar_url: string
-  name: string
-  sub_name: string
-  html_url: string
-  repo_name: string
-  description: string
-}
-
-export type DateRange = 'daily' | 'weekly' | 'monthly'
-
-export const sinceMap: { [key in DateRange]: string } = {
-  daily: 'today',
-  weekly: 'this week',
-  monthly: 'this month',
-}
+import { ITrendDeveloper } from '@/client/trends'
 
 export default function TrendDeveloper(props: ITrendDeveloper) {
   const { avatar_url, name, sub_name, html_url, repo_name, description } = props

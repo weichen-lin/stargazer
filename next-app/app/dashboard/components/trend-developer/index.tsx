@@ -7,8 +7,9 @@ import { StarFilledIcon, EyeOpenIcon, RocketIcon } from '@radix-ui/react-icons'
 import { PieChart as PieChartIcon, Plus } from 'lucide-react'
 import { SortKey, IRepository } from '@/client/repository'
 import { useFetch } from '@/hooks/util'
-import TrendDeveloper, { DateRange, sinceMap } from './trending-developer'
 import { Badge } from '@/components/ui/badge'
+import { DateRange, sinceMap } from '@/client/trends'
+import TrendDeveloper from './trending-developer'
 
 const fakeData = [
   {

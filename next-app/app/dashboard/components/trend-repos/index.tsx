@@ -7,9 +7,10 @@ import { StarFilledIcon, EyeOpenIcon, RocketIcon } from '@radix-ui/react-icons'
 import { PieChart as PieChartIcon, Plus } from 'lucide-react'
 import { SortKey, IRepository } from '@/client/repository'
 import { useFetch } from '@/hooks/util'
-import TrendRepository, { DateRange, sinceMap } from './trending-repo'
+import { DateRange, sinceMap } from '@/client/trends'
 import LanguageSelector from './language-selector'
 import { Badge } from '@/components/ui/badge'
+import TrendRepository from './trending-repo'
 
 const fakeData = [
   {

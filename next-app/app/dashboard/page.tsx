@@ -1,7 +1,7 @@
 'use client'
 
 import clsx from 'clsx'
-import { Crontab, RepoSearch, LanguageDistribution, TopicsCloud } from './components'
+import { Crontab, RepoSearch, LanguageDistribution, TopicsCloud, TrendRepos, TrendDevelopers } from './components'
 
 export default function Dashboard() {
   return (
@@ -17,6 +17,8 @@ export default function Dashboard() {
       <TopicsCloud />
       <Crontab />
       <RepoSearch />
+      <TrendRepos />
+      <TrendDevelopers />
     </div>
   )
 }

@@ -1,13 +1,8 @@
 import LanguageDistribution from './pie-chart'
 import TopicsCloud from './topic-cloud'
-
 import RepoSearch from './repo-search'
-import { TotalLoading, ReposLoading } from './loadings'
-import Loading from './loading'
+import Crontab from './crontab'
+import TrendRepos from './trend-repos'
+import TrendDevelopers from './trend-developer'
 
-import { Crontab } from './crontab'
-
-export { Crontab, RepoSearch }
-export { TotalLoading, ReposLoading }
-export { Loading, LanguageDistribution }
-export { TopicsCloud }
+export { LanguageDistribution, TopicsCloud, Crontab, RepoSearch, TrendRepos, TrendDevelopers }

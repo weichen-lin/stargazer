@@ -1,5 +1,6 @@
 import BaseClient from '@/client/base-client'
 import { z } from 'zod'
+import { IRepository } from './type'
 
 export interface ILanguageDistribution {
   language: string
@@ -30,6 +31,10 @@ class RepositoryClient extends BaseClient {
 
   getReposWithSortKey(sortkey: SortKey) {
     return this.get<{ data: any[] }>(`/repository/sort?key=${sortkey}&order=DESC`)
+  }
+
+  fullTextSearch(query: string) {
+    return this.get<IRepository[]>(`/repository/full-text-search?query=${query}`)
   }
 }
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { ISuggestion } from '@/actions/neo4j/repos'
+import { IRepository } from '@/client/repository'
 import { motion } from 'framer-motion'
 import clsx from 'clsx'
 import { useRepoDetail } from '@/hooks/util'
@@ -23,11 +23,11 @@ function FullTextIndex(text: string, target: string): number[] | null {
   return result.length === q.length ? result : null
 }
 
-const FullTextSearchResult = (props: ISuggestion & { query: string; close: () => void }) => {
-  const { repo_id, avatar_url, full_name, description, query, close } = props
+const FullTextSearchResult = (props: IRepository & { query: string; close: () => void }) => {
+  const { repo_id, avatar_url, repo_name, description, query, close } = props
   const { setRepoID, setOpen } = useRepoDetail()
 
-  const full_name_index = FullTextIndex(full_name, query)
+  const full_name_index = FullTextIndex(repo_name, query)
   const description_index = FullTextIndex(description ?? '', query)
 
   return (
@@ -45,11 +45,11 @@ const FullTextSearchResult = (props: ISuggestion & { query: string; close: () =>
       }}
     >
       <div className='flex gap-x-2 items-center'>
-        <img src={avatar_url} alt={full_name} className='w-6 h-6 rounded-md' />
-        <div className='font-semibold text-blue-700 line-clamp-2'>
+        <img src={avatar_url} alt={repo_name} className='w-6 h-6 rounded-md' />
+        <div className='text-blue-700 line-clamp-2'>
           {full_name_index ? (
             <>
-              {full_name.split('').map((char, i) => {
+              {repo_name.split('').map((char, i) => {
                 if (full_name_index.includes(i)) {
                   return (
                     <span className='bg-yellow-100' key={`char_full_name_${i}`}>
@@ -61,7 +61,7 @@ const FullTextSearchResult = (props: ISuggestion & { query: string; close: () =>
               })}
             </>
           ) : (
-            full_name
+            repo_name
           )}
         </div>
       </div>

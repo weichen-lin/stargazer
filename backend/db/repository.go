@@ -586,3 +586,96 @@ func (db *Database) GetRepositoriesOrderBy(ctx context.Context, params *SortPara
 
 	return repos, nil
 }
+
+func (db *Database) FullTextSearch(ctx context.Context, query string) ([]*domain.RepositoryEntity, error) {
+	email, ok := EmailFromContext(ctx)
+	if !ok {
+		return nil, ErrNotFoundEmailAtContext
+	}
+
+	session := db.Driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
+	defer session.Close(context.Background())
+
+	result, err := session.ExecuteRead(context.Background(), func(tx neo4j.ManagedTransaction) (any, error) {
+		result, err := tx.Run(context.Background(), `
+			CALL db.index.fulltext.queryNodes("REPOSITORY_FULL_TEXT_SEARCH", $query) YIELD node, score
+			MATCH (User {
+				email: $email
+			})-[s:STARS]-(node)
+			RETURN {
+				repo_id: node.repo_id,
+				repo_name: node.repo_name,
+				owner_name: node.owner_name,
+				avatar_url: node.avatar_url,
+				html_url: node.html_url,
+				homepage: node.homepage,
+				description: node.description,
+				created_at: node.created_at,
+				updated_at: node.updated_at,
+				stargazers_count: node.stargazers_count,
+				language: node.language,
+				watchers_count: node.watchers_count,
+				open_issues_count: node.open_issues_count,
+				default_branch: node.default_branch,
+				archived: node.archived,
+				topics: node.topics,
+				external_created_at: s.created_at,
+				last_synced_at: s.last_synced_at,
+				last_modified_at: s.last_modified_at
+			} AS data
+			LIMIT 5
+			`,
+			map[string]interface{}{
+				"email": email,
+				"query": query,
+			})
+
+		if err != nil {
+			fmt.Println("error at read repo: ", err)
+			return nil, err
+		}
+		record, err := result.Collect(context.Background())
+		return record, err
+	})
+
+	if err != nil {
+		return []*domain.RepositoryEntity{}, nil
+	}
+
+	records, ok := result.([]*neo4j.Record)
+	if !ok {
+		return nil, fmt.Errorf("error at converting users records to []*neo4j.Record")
+	}
+
+	repos := make([]*domain.RepositoryEntity, len(records))
+
+	for i, record := range records {
+		recordMap := record.Values[0].(map[string]interface{})
+
+		entity := &domain.RepositoryEntity{
+			RepoID:            getInt64(recordMap["repo_id"]),
+			RepoName:          getString(recordMap["repo_name"]),
+			OwnerName:         getString(recordMap["owner_name"]),
+			AvatarURL:         getString(recordMap["avatar_url"]),
+			HtmlURL:           getString(recordMap["html_url"]),
+			Homepage:          getString(recordMap["homepage"]),
+			Description:       getString(recordMap["description"]),
+			CreatedAt:         getString(recordMap["created_at"]),
+			UpdatedAt:         getString(recordMap["updated_at"]),
+			StargazersCount:   getInt64(recordMap["stargazers_count"]),
+			WatchersCount:     getInt64(recordMap["watchers_count"]),
+			OpenIssuesCount:   getInt64(recordMap["open_issues_count"]),
+			Language:          getString(recordMap["language"]),
+			DefaultBranch:     getString(recordMap["default_branch"]),
+			Archived:          getBool(recordMap["archived"]),
+			Topics:            getStringArray(recordMap["topics"]),
+			ExternalCreatedAt: getTimeString(recordMap["external_created_at"]),
+			LastSyncedAt:      getTimeString(recordMap["last_synced_at"]),
+			LastModifiedAt:    getTimeString(recordMap["last_modified_at"]),
+		}
+
+		repos[i] = entity
+	}
+
+	return repos, nil
+}

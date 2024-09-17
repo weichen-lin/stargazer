@@ -175,3 +175,29 @@ func (c *Controller) GetRepositoriesByKey(ctx *gin.Context) {
 		"data": data,
 	})
 }
+
+type FullTextSearchQuery struct {
+	Query string `form:"query" binding:"required"`
+}
+
+func (c *Controller) FullTextSearchWithQuery(ctx *gin.Context) {
+	var q FullTextSearchQuery
+	if err := ctx.ShouldBindQuery(&q); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if q.Query == "" {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "not contains query string"})
+		return
+	}
+
+	repos, err := c.db.FullTextSearch(ctx, q.Query)
+
+	if err != nil {
+		handleRepositoryErr(err, ctx)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, repos)
+}

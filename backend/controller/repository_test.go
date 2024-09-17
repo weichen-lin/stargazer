@@ -329,3 +329,48 @@ func Test_GetRepositoryBySortParams(t *testing.T) {
 		require.Equal(t, len(response.Data), 5)
 	})
 }
+
+func Test_FullTextSearchByQuery(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	r := gin.Default()
+
+	r.GET("/repository/full-text-search", NewTestJWTAuth(), testController.FullTextSearchWithQuery)
+
+	user, token := createUserWithToken(t)
+
+	t.Run("Unauthorized request", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("GET", "/repository/full-text-search", nil)
+
+		r.ServeHTTP(w, req)
+
+		require.Equal(t, http.StatusUnauthorized, w.Code)
+	})
+
+	t.Run("Test empty query", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("GET", "/repository/full-text-search?query=", nil)
+		req.Header.Set("Authorization", token)
+
+		r.ServeHTTP(w, req)
+		require.Equal(t, http.StatusBadRequest, w.Code)
+	})
+
+	t.Run("Test real result", func(t *testing.T) {
+		for i := 0; i < 10; i++ {
+			repo := createRepository(t, user)
+			require.NotEmpty(t, repo)
+		}
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("GET", "/repository/full-text-search?query=et", nil)
+		req.Header.Set("Authorization", token)
+
+		r.ServeHTTP(w, req)
+		require.Equal(t, http.StatusOK, w.Code)
+
+		var response []*domain.Repository
+		err := json.NewDecoder(w.Body).Decode(&response)
+		require.NoError(t, err)
+	})
+}

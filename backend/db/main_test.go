@@ -20,7 +20,11 @@ func NewTestDatabase() *Database {
 		"neo4j://localhost:7687",
 		neo4j.BasicAuth("neo4j", "password", ""),
 	)
+	if err != nil {
+		panic(err)
+	}
 
+	err = InitFullTextIndex(driver)
 	if err != nil {
 		panic(err)
 	}

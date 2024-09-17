@@ -41,7 +41,7 @@ func InitFullTextIndex(driver neo4j.DriverWithContext) error {
 	_, err := session.ExecuteWrite(context.Background(), func(transaction neo4j.ManagedTransaction) (interface{}, error) {
 		_, err := transaction.Run(context.Background(),
 			"CREATE FULLTEXT INDEX REPOSITORY_FULL_TEXT_SEARCH IF NOT EXISTS "+
-				"FOR (r:Repository) ON EACH [r.full_name, r.description]",
+				"FOR (r:Repository) ON EACH [r.repo_name, r.description]",
 			map[string]interface{}{},
 		)
 

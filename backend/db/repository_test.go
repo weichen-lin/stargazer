@@ -267,3 +267,14 @@ func TestGetRepositoriesOrderBy(t *testing.T) {
 		require.Equal(t, 5, len(repos))
 	})
 }
+
+func TestFullTextSearch(t *testing.T) {
+	user, ctx := createFakeUser(t)
+	for i := 0; i < 20; i++ {
+		repo := createRepositoryAtFakeUser(t, user)
+		require.NotEmpty(t, repo)
+	}
+
+	_, err := db.FullTextSearch(ctx, "et")
+	require.NoError(t, err)
+}

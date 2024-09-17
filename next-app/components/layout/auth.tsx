@@ -27,7 +27,7 @@ export default async function AuthLayout(props: { children: React.ReactNode }) {
           <div className='w-full h-[1px] border-b-[1px] border-slate-700/10 mb-8'></div>
           <Sidebar />
         </div>
-        <div className='flex-1 flex flex-col pt-[60px] lg:pt-0 overflow-y-auto'>
+        <div className='flex-1 flex flex-col pt-[60px] lg:pt-0 overflow-y-auto overflow-x-hidden'>
           <Menu />
           {children}
         </div>

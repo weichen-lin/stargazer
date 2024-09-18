@@ -1,5 +1,5 @@
 import { GetUser } from '@/actions'
-import { RepositoryClient, SortKeySchema } from '@/client/repository'
+import { RepositoryClient } from '@/client/repository'
 import { type NextRequest } from 'next/server'
 
 export const dynamic = 'force-dynamic' // defaults to auto

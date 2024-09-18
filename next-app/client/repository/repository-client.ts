@@ -21,6 +21,10 @@ class RepositoryClient extends BaseClient {
     super(email)
   }
 
+  getRepoDetail(id: string) {
+    return this.get<IRepository>(`/repository/${id}`)
+  }
+
   getLanguageDistribution() {
     return this.get<ILanguageDistribution[]>('/repository/language-distribution')
   }

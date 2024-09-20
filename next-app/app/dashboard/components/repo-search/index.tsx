@@ -90,7 +90,7 @@ export default function RepoSearch() {
         </CardTitle>
         <CardDescription> {CardInfoMap[sortKey].description}</CardDescription>
       </CardHeader>
-      <CardContent className='flex-1 pb-0 overflow-y-scroll flex flex-col gap-y-2 py-4'>
+      <CardContent className='flex-1 pb-0 overflow-y-auto flex flex-col gap-y-2 py-4'>
         {!isLoading && data && data.length > 0 && data.map(repo => <Repo key={`repo_${repo.repo_id}`} {...repo} />)}
         {!isLoading && data && data.length === 0 && <EmptyContent />}
         {isLoading && <Loading />}

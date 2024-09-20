@@ -3,7 +3,6 @@
 import { ModeToggle } from '@/components/provider'
 import { motion } from 'framer-motion'
 import clsx from 'clsx'
-import { ConfigSetter } from '@/components/dialog'
 import { Search } from '@/components/search'
 import { useMenuName } from './util'
 import { Detail } from '@/components/dialog'

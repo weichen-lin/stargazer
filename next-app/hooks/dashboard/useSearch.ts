@@ -1,8 +1,7 @@
 import { create } from 'zustand'
-import { useState, useRef, useEffect } from 'react'
-import { ISuggestion } from '@/actions/neo4j/repos'
-import { getFullTextSearch } from '@/actions/neo4j'
-import { useUser } from '@/context'
+import { useRef, useEffect } from 'react'
+import { useFetch } from '@/hooks/util'
+import { IRepository } from '@/client/repository'
 
 interface ISearch {
   query: string
@@ -28,18 +27,15 @@ export interface ISearchRepo {
 
 export default function useSearch() {
   const { query, open, setOpen, setQuery } = searchAtom()
-  const { email } = useUser()
-  const [loading, setLoading] = useState(false)
-  const [repos, setRepos] = useState<ISuggestion[]>([])
+  const { data, isLoading, run } = useFetch<IRepository[]>({
+    initialRun: false,
+    config: {
+      url: '/repository/full-text-search',
+      method: 'GET',
+    },
+  })
   const ref = useRef<HTMLInputElement>(null)
   const timeoutRef = useRef<NodeJS.Timeout | null>(null)
-
-  const queryRepos = async (query: string) => {
-    setLoading(true)
-    const repos = await getFullTextSearch(email, query)
-    setRepos(repos)
-    setLoading(false)
-  }
 
   const openDialog = () => {
     setOpen(true)
@@ -79,7 +75,7 @@ export default function useSearch() {
       }
 
       timeoutRef.current = setTimeout(() => {
-        queryRepos(query)
+        run({ params: { query } })
         if (ref) {
           ref.current?.focus()
         }
@@ -95,11 +91,10 @@ export default function useSearch() {
   return {
     query,
     open,
-    repos,
+    data,
     ref,
-    loading,
+    isLoading,
     setOpen,
     setQuery,
-    queryRepos,
   }
 }

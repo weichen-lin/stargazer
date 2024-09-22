@@ -1,35 +1,30 @@
 'use client'
 
 import { DialogTitle } from '@/components/ui/dialog'
-import { IRepoDetail } from '@/actions/neo4j'
-import { CheckCheck, XCircle } from 'lucide-react'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { cn } from '@/lib/utils'
 import { IRepository } from '@/client/repository'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Button } from '@/components/ui/button'
+import { ExternalLink } from 'lucide-react'
 
 export default function Title(props: IRepository) {
-  const { avatar_url, repo_name } = props
+  const { avatar_url, repo_name, owner_name, html_url } = props
 
   return (
-    <DialogTitle className='flex gap-x-2 items-center'>
-      <img width={48} height={48} src={avatar_url} alt={repo_name} />
-      <span className='ml-2 lg:text-2xl text-normal max-w-[220px] truncate'>{repo_name}</span>
-      <TooltipProvider>
-        <Tooltip>
-          {/* <TooltipTrigger asChild>
-            {is_vectorized ? (
-              <CheckCheck className='w-4 h-4 text-green-500 ml-4' />
-            ) : (
-              <XCircle className='w-4 h-4 text-red-500 ml-4' />
-            )}
-          </TooltipTrigger> */}
-          {/* <TooltipContent
-            className={cn('bg-white text-black border-[1px]', is_vectorized ? 'text-green-500' : 'text-red-500')}
-          >
-            {is_vectorized ? 'This repository is vectorized' : 'This repository is not yet vectorized'}
-          </TooltipContent> */}
-        </Tooltip>
-      </TooltipProvider>
+    <DialogTitle className='flex gap-x-4 items-center w-full justify-between'>
+      <div className='flex gap-x-3 items-center'>
+        <Avatar className='w-10 h-10'>
+          <AvatarImage src={avatar_url} alt={repo_name} />
+          <AvatarFallback>{repo_name.substring(0, 2).toUpperCase()}</AvatarFallback>
+        </Avatar>
+        <div className='text-xl'>
+          {owner_name}/{repo_name}
+        </div>
+      </div>
+      <a href={html_url} target='_blank'>
+        <Button size='sm' variant='outline'>
+          <ExternalLink className='w-4 h-4' />
+        </Button>
+      </a>
     </DialogTitle>
   )
 }

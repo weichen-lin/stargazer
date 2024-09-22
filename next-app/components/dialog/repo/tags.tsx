@@ -1,60 +1,76 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
+import { useState } from 'react'
 import MultipleSelector, { Option } from '@/components/ui/multiple-selector'
-import { getTags, getTagsByRepo, createTag, deleteTagByRepo } from '@/actions/neo4j'
-import { useUser } from '@/context'
+import { useFetch } from '@/hooks/util'
+import { ITag } from '@/client/tag'
 
 const Tags = (props: { repo_id: number }) => {
   const { repo_id } = props
-  const { email } = useUser()
-  const [getTagging, setGetTagging] = useState(true)
-  const [currentTags, setCurrentTags] = useState<Option[]>([])
+  const [currentTags, setCurrentTags] = useState<{ value: string; label: string }[]>([])
+  const { isLoading } = useFetch<ITag[]>({
+    initialRun: true,
+    config: {
+      url: `/tags/${repo_id}`,
+      method: 'GET',
+    },
+    onSuccess: data => {
+      const tags: Option[] = Array.isArray(data) ? data.map(tag => ({ value: tag.name, label: tag.name })) : []
+      setCurrentTags(prev => [...tags])
+    },
+  })
 
-  useEffect(() => {
-    const getCurrentTags = async () => {
-      const tags = await getTagsByRepo(email, repo_id)
-      setCurrentTags(tags.map(tag => ({ value: tag.id, label: tag.name })))
-      setGetTagging(false)
-    }
+  const { run: createTag } = useFetch<string>({
+    initialRun: false,
+    config: {
+      url: `/tags`,
+      method: 'POST',
+    },
+  })
 
-    getCurrentTags()
-  }, [])
-
-  const tags: Option[] = currentTags.map(tag => ({ value: tag.value, label: tag.label }))
+  const { run: deleteTag } = useFetch<string>({
+    initialRun: false,
+    config: {
+      url: `/tags`,
+      method: 'DELETE',
+    },
+  })
 
   return (
     <div className='flex w-full flex-col'>
-      {getTagging ? (
-        <div className='w-full h-9 bg-slate-300 rounded-sm animate-pulse'></div>
+      {isLoading ? (
+        <div className='w-full h-9 bg-slate-300/40 rounded-xl animate-pulse'></div>
       ) : (
         <MultipleSelector
           creatable
-          onSearch={async () => {
-            const tags = await getTags(email)
-            return tags
-              .map(tag => ({ value: tag.id, label: tag.name }))
-              .filter(tag => !currentTags.find(t => t.value === tag.value))
-          }}
+          className='rounded-xl border bg-card text-card-foreground shadow'
           onChange={async value => {
             const remove = currentTags.filter(t => !value.find(v => v.value === t.value))
             const add = value.filter(v => !currentTags.find(t => t.value === v.value))
 
             await Promise.all([
               add.map(async tag => {
-                const t = await createTag({ email, name: tag.label, repo_id })
-                if (t) {
-                  setCurrentTags(prev => [...prev, { value: t.id, label: t.name }])
-                }
+                await createTag({
+                  payload: {
+                    name: tag.value,
+                    repo_id,
+                  },
+                })
+                setCurrentTags(prev => [...prev, { value: tag.value, label: tag.value }])
               }),
               remove.map(async tag => {
-                await deleteTagByRepo(email, repo_id, tag.value)
+                await deleteTag({
+                  payload: {
+                    name: tag.value,
+                    repo_id,
+                  },
+                })
                 setCurrentTags(currentTags.filter(t => t.value !== tag.value))
               }),
             ])
           }}
           defaultOptions={[]}
-          value={tags}
+          value={currentTags}
           maxSelected={5}
           placeholder='trying to search tabs...'
           loadingIndicator={<p className='py-2 text-center text-lg leading-10 text-muted-foreground'>loading...</p>}

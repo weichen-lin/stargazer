@@ -1,26 +1,34 @@
 'use client'
 
 import { IRepository } from '@/client/repository'
-import { StarIcon, EyeOpenIcon, CalendarIcon, GitHubLogoIcon } from '@radix-ui/react-icons'
+import { Tag } from 'lucide-react'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
 
 export default function Info(props: IRepository) {
-  const { stargazers_count, open_issues_count, last_modified_at, html_url } = props
+  const { description, topics } = props
 
   return (
-    <div className='grid grid-cols-2 lg:grid-cols-4'>
-      <a className='m-1' href={html_url} target='_blank'>
-        <GitHubLogoIcon />
-      </a>
-      <div className='flex gap-x-2 items-center'>
-        <EyeOpenIcon className='w-4 h-4' />
-        <span>{open_issues_count}</span>
-      </div>
-      <div className='flex gap-x-2 items-center'>
-        <StarIcon className='w-4 h-4' />
-        <span>{stargazers_count}</span>
-      </div>
-      <DayAgo dateString={last_modified_at} />
-    </div>
+    <Card>
+      <CardHeader>
+        <CardTitle>About</CardTitle>
+        <CardDescription>Repository description and details</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <p className='text-gray-700 mb-4'>{description}</p>
+        <div className='flex items-center space-x-2 mb-4'>
+          <Tag className='h-5 w-5 text-gray-400' />
+          <span className='text-sm font-semibold text-gray-700'>Topics:</span>
+        </div>
+        <div className='flex flex-wrap gap-2'>
+          {topics?.map((topic, index) => (
+            <Badge key={index} variant='secondary'>
+              {topic}
+            </Badge>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
   )
 }
 
@@ -32,12 +40,12 @@ function daysAgo(dateString: string) {
   return daysDiff
 }
 
-const DayAgo = ({ dateString }: { dateString: string }) => {
-  const days = daysAgo(dateString)
-  return (
-    <div className='flex gap-x-2 items-center'>
-      <CalendarIcon />
-      <span className='font-thin'>Update {days} days ago</span>
-    </div>
-  )
-}
+// const DayAgo = ({ dateString }: { dateString: string }) => {
+//   const days = daysAgo(dateString)
+//   return (
+//     <div className='flex gap-x-2 items-center'>
+//       <CalendarIcon />
+//       <span className='font-thin'>Update {days} days ago</span>
+//     </div>
+//   )
+// }

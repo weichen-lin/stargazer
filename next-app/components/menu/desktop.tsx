@@ -26,7 +26,6 @@ const DesktopBar = () => {
         <div className='text-xl lg:text-3xl font-semibold w-[200px] pl-3'>{menuName}</div>
         <div className='flex items-center gap-x-4'>
           <Search />
-          {/* <ConfigSetter /> */}
           <ModeToggle />
           {open && <Detail />}
         </div>

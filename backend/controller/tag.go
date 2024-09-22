@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -49,7 +48,6 @@ func (c *Controller) CreateTag(ctx *gin.Context) {
 
 	err = c.db.SaveTag(ctx, tag, body.RepoId)
 	if err != nil {
-		fmt.Println(err.Error())
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}

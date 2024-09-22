@@ -23,6 +23,7 @@ export interface IRepository {
   homepage?: string
   description: string
   created_at: string
+  updated_at: string
   stargazers_count: number
   language: string
   watchers_count: number

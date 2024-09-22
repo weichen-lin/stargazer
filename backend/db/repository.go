@@ -601,7 +601,7 @@ func (db *Database) FullTextSearch(ctx context.Context, query string) ([]*domain
 			CALL db.index.fulltext.queryNodes("REPOSITORY_FULL_TEXT_SEARCH", $query) YIELD node, score
 			MATCH (User {
 				email: $email
-			})-[s:STARS]-(node)
+			})-[s:STARS {is_delete: false}]-(node)
 			RETURN {
 				repo_id: node.repo_id,
 				repo_name: node.repo_name,

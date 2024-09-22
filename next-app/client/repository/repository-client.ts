@@ -21,6 +21,10 @@ class RepositoryClient extends BaseClient {
     super(email)
   }
 
+  syncRepository() {
+    return this.get('/repository/sync-repository')
+  }
+
   getRepoDetail(id: string) {
     return this.get<IRepository>(`/repository/${id}`)
   }

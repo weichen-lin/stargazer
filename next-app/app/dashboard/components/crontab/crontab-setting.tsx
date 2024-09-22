@@ -6,6 +6,7 @@ import { TimePickerInput } from '@/components/ui/timepicker'
 import { useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { syncUserStars, updateCrontabHour } from '@/actions/kafka-service'
+import { useFetch } from '@/hooks/util'
 
 import { useToast } from '@/components/ui/use-toast'
 import { useUser } from '@/context'
@@ -29,6 +30,13 @@ function formatHour(hour: number) {
 
 export default function HourSetting(props: ICrontabSetting) {
   const { hour, update } = props
+  const { isLoading, run: syncRepository } = useFetch<string>({
+    initialRun: false,
+    config: {
+      url: '/repository/sync-repository',
+      method: 'GET',
+    },
+  })
   const { toast } = useToast()
   const { email } = useUser()
 
@@ -39,26 +47,7 @@ export default function HourSetting(props: ICrontabSetting) {
 
   const ref = useRef<HTMLInputElement>(null)
   const [date, setDate] = useState(currentDate)
-  const [syncing, setSyncing] = useState(false)
   const [chaning, setChanging] = useState(false)
-
-  const getStars = async () => {
-    setSyncing(true)
-    const { status, title, message } = await syncUserStars(email)
-    setSyncing(false)
-    if (status === 200) {
-      toast({
-        title,
-        description: message,
-      })
-    } else {
-      toast({
-        title,
-        description: message,
-        variant: 'destructive',
-      })
-    }
-  }
 
   const updateCrontab = async () => {
     setChanging(true)
@@ -80,7 +69,7 @@ export default function HourSetting(props: ICrontabSetting) {
         {hour !== null ? `Everyday at ${formatHour(hour)}` : '--'}
       </span>
       <div className='flex gap-x-2'>
-        <Button loading={syncing} onClick={getStars}>
+        <Button loading={isLoading} onClick={() => syncRepository({})}>
           Start
         </Button>
         <Popover>

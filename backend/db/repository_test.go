@@ -107,6 +107,22 @@ func TestGetRepository(t *testing.T) {
 	require.WithinDuration(t, repo.LastModifiedAt(), expectLastModifiedAt, time.Duration(time.Second*3))
 }
 
+func TestDeleteRepository(t *testing.T) {
+	user, ctx := createFakeUser(t)
+
+	repo := createRepositoryAtFakeUser(t, user)
+	require.NotEmpty(t, repo)
+
+	err := db.DeleteRepository(ctx, 12312312)
+	require.Error(t, err)
+
+	err = db.DeleteRepository(ctx, repo.RepoID())
+	require.NoError(t, err)
+
+	_, err = db.GetRepository(ctx, repo.RepoID())
+	require.ErrorIs(t, err, ErrRepositoryNotFound)
+}
+
 func TestGetRepoLanguageDistribution(t *testing.T) {
 	repo, err := db.GetRepository(context.Background(), 123)
 	require.ErrorIs(t, err, ErrNotFoundEmailAtContext)

@@ -43,6 +43,7 @@ func main() {
 		repo.GET("/sync-repository", c.SyncRepository)
 		repo.GET("/topics", c.GetTopics)
 		repo.GET("/:id", c.GetRepository)
+		repo.DELETE("/:id", c.DeleteRepository)
 		repo.GET("/language-distribution", c.GetUserLanguageDistribution)
 		repo.GET("/sort", c.GetRepositoriesByKey)
 		repo.GET("/full-text-search", c.FullTextSearchWithQuery)

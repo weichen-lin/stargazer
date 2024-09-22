@@ -134,6 +134,66 @@ func Test_GetRepository(t *testing.T) {
 	})
 }
 
+func Test_DeleteRepository(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	r := gin.Default()
+
+	r.GET("/repository/:id", NewTestJWTAuth(), testController.GetRepository)
+	r.DELETE("/repository/:id", NewTestJWTAuth(), testController.DeleteRepository)
+
+	user, token := createUserWithToken(t)
+	repo := createRepository(t, user)
+
+	t.Run("Unauthorized request", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("GET", "/repository/123123", nil)
+
+		r.ServeHTTP(w, req)
+
+		require.Equal(t, http.StatusUnauthorized, w.Code)
+	})
+
+	t.Run("Test not exist repo_id", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("DELETE", "/repository/123123", nil)
+		req.Header.Set("Authorization", token)
+
+		r.ServeHTTP(w, req)
+
+		require.Equal(t, http.StatusNotFound, w.Code)
+	})
+
+	t.Run("Test invalid repo_id format", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("DELETE", "/repository/asdasdasd", nil)
+		req.Header.Set("Authorization", token)
+
+		r.ServeHTTP(w, req)
+
+		require.Equal(t, http.StatusBadRequest, w.Code)
+	})
+
+	t.Run("Test delete repo success", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("DELETE", fmt.Sprintf("/repository/%d", repo.RepoID()), nil)
+		req.Header.Set("Authorization", token)
+
+		r.ServeHTTP(w, req)
+
+		require.Equal(t, http.StatusOK, w.Code)
+	})
+
+	t.Run("Test get repo after delete", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("GET", fmt.Sprintf("/repository/%d", repo.RepoID()), nil)
+		req.Header.Set("Authorization", token)
+
+		r.ServeHTTP(w, req)
+
+		require.Equal(t, http.StatusNotFound, w.Code)
+	})
+}
+
 func Test_GetRepositoryLanguageDistribution(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	r := gin.Default()

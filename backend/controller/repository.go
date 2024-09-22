@@ -89,6 +89,35 @@ func (c *Controller) GetRepository(ctx *gin.Context) {
 	}
 }
 
+func (c *Controller) DeleteRepository(ctx *gin.Context) {
+	id := ctx.Param("id")
+
+	repo_id, err := strconv.ParseInt(id, 10, 64)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid repo_id"})
+		return
+	}
+
+	err = c.db.DeleteRepository(ctx, repo_id)
+
+	switch {
+	case err == nil:
+		ctx.JSON(http.StatusOK, gin.H{
+			"status": "ok",
+		})
+		return
+	case errors.Is(err, db.ErrRepositoryNotFound):
+		ctx.JSON(http.StatusNotFound, gin.H{"error": fmt.Sprintf("repository %d not found", repo_id)})
+		return
+	case errors.Is(err, db.ErrNotFoundEmailAtContext):
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	default:
+		ctx.JSON(http.StatusForbidden, gin.H{"error": ""})
+		return
+	}
+}
+
 func (c *Controller) GetUserLanguageDistribution(ctx *gin.Context) {
 	distribution, err := c.db.GetRepoLanguageDistribution(ctx)
 

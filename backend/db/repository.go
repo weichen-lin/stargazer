@@ -25,7 +25,7 @@ func (db *Database) GetRepository(ctx context.Context, repo_id int64) (*domain.R
 
 	result, err := session.ExecuteRead(context.Background(), func(tx neo4j.ManagedTransaction) (any, error) {
 		result, err := tx.Run(context.Background(), `
-			MATCH (u:User {email: $email})-[s:STARS]-(r:Repository  {repo_id: $repo_id})
+			MATCH (u:User {email: $email})-[s:STARS {is_delete: false}]-(r:Repository  {repo_id: $repo_id})
 			RETURN {
 				repo_id: r.repo_id,
 				repo_name: r.repo_name,
@@ -106,6 +106,54 @@ func (db *Database) GetRepository(ctx context.Context, repo_id int64) (*domain.R
 	}
 
 	return repository, nil
+}
+
+func (db *Database) DeleteRepository(ctx context.Context, repo_id int64) error {
+	email, ok := EmailFromContext(ctx)
+	if !ok {
+		return ErrNotFoundEmailAtContext
+	}
+
+	session := db.Driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
+	defer session.Close(context.Background())
+
+	result, err := session.ExecuteWrite(context.Background(), func(tx neo4j.ManagedTransaction) (any, error) {
+		result, err := tx.Run(context.Background(), `
+			MATCH (u:User {email: $email})-[s:STARS]-(r:Repository  {repo_id: $repo_id})
+			SET s.is_delete = true
+			RETURN r.repo_id as repo_id
+			`,
+			map[string]interface{}{
+				"email":   email,
+				"repo_id": repo_id,
+			})
+
+		if err != nil {
+			return nil, err
+		}
+
+		record, err := result.Single(context.Background())
+		return record, err
+	})
+
+	if err != nil {
+		fmt.Println(err)
+		return ErrRepositoryNotFound
+	}
+
+	record, ok := result.(*neo4j.Record)
+	if !ok {
+		return fmt.Errorf("error at converting users records to *neo4j.Record")
+	}
+
+	repoMap := record.AsMap()
+	_, ok = repoMap["repo_id"].(int64)
+
+	if !ok {
+		return errors.New("failed to convert repo_id after delete")
+	}
+
+	return nil
 }
 
 type LanguageDistribution struct {

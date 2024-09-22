@@ -4,8 +4,10 @@ import { useState, useEffect, useCallback } from 'react'
 import axios, { AxiosRequestConfig, AxiosError } from 'axios'
 
 interface useFetchProps<T> {
-  config: AxiosRequestConfig
+  config: AxiosRequestConfig<T>
   initialRun?: boolean
+  onSuccess?: (res: T) => void
+  onError?: () => void
 }
 
 const instance = axios.create({
@@ -21,7 +23,7 @@ interface IRunProps {
 }
 
 export default function useFetch<T>(props: useFetchProps<T>) {
-  const { config, initialRun } = props
+  const { config, initialRun, onSuccess, onError } = props
   const { url, method, params, data: payload, headers } = config
 
   const [isLoading, setIsLoading] = useState(initialRun ? true : false)
@@ -45,14 +47,17 @@ export default function useFetch<T>(props: useFetchProps<T>) {
 
       setData(response.data)
       setStatusCode(response.status)
+
+      onSuccess && onSuccess(response.data)
     } catch (err) {
       if (err instanceof AxiosError) {
         setError(err.message)
         setStatusCode(err.response?.status || null)
+      } else {
+        setStatusCode(503)
+        setError('Service Unavailable')
       }
-
-      setStatusCode(503)
-      setError('Service Unavailable')
+      onError && onError()
     } finally {
       setIsLoading(false)
     }

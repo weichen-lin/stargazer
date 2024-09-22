@@ -25,6 +25,10 @@ class RepositoryClient extends BaseClient {
     return this.get<IRepository>(`/repository/${id}`)
   }
 
+  deleteRepo(id: string) {
+    return this.delete(`/repository/${id}`)
+  }
+
   getLanguageDistribution() {
     return this.get<ILanguageDistribution[]>('/repository/language-distribution')
   }

@@ -44,6 +44,10 @@ export default function useSearch() {
     }
   }
 
+  const clear = () => {
+    setQuery('')
+  }
+
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
@@ -93,6 +97,7 @@ export default function useSearch() {
     open,
     data,
     ref,
+    clear,
     isLoading,
     setOpen,
     setQuery,

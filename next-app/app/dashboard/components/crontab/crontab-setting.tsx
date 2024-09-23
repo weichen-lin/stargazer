@@ -29,12 +29,19 @@ function formatHour(hour: number) {
 }
 
 export default function HourSetting(props: ICrontabSetting) {
-  const { hour, update } = props
+  const { hour } = props
   const { isLoading, run: syncRepository } = useFetch<string>({
     initialRun: false,
     config: {
       url: '/repository/sync-repository',
       method: 'GET',
+    },
+  })
+  const { isLoading: updateLoading, run: updateCrontab } = useFetch<any>({
+    initialRun: false,
+    config: {
+      url: '/crontab',
+      method: 'PATCH',
     },
   })
   const { toast } = useToast()
@@ -47,21 +54,6 @@ export default function HourSetting(props: ICrontabSetting) {
 
   const ref = useRef<HTMLInputElement>(null)
   const [date, setDate] = useState(currentDate)
-  const [chaning, setChanging] = useState(false)
-
-  const updateCrontab = async () => {
-    setChanging(true)
-    const status = await updateCrontabHour(email, date.getHours())
-    if (status) {
-      update(date)
-      toast({
-        title: 'Success',
-        description: 'Crontab hour updated successfully.',
-      })
-    }
-
-    setChanging(false)
-  }
 
   return (
     <div className='w-full flex justify-between items-center'>
@@ -84,7 +76,13 @@ export default function HourSetting(props: ICrontabSetting) {
               </div>
               <div className='flex gap-x-4'>
                 <TimePickerInput picker='hours' date={date} setDate={setDate} ref={ref} />
-                <Button className='' onClick={updateCrontab} loading={chaning}>
+                <Button
+                  className=''
+                  onClick={() => {
+                    updateCrontab({ params: { hour: `${date.getHours()}` } })
+                  }}
+                  loading={updateLoading}
+                >
                   Update
                 </Button>
               </div>

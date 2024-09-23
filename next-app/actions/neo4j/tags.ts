@@ -22,7 +22,6 @@ export const getTags = async (email: string): Promise<IdName[]> => {
 
     return tags
   } catch (error) {
-    console.error(error)
     return []
   }
 }

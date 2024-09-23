@@ -62,8 +62,9 @@ export default function Home() {
           <div className='flex flex-col'>
             <TypeWritter words={words} cursorClassName='h-7 lg:h-10' />
             <p className='leading-7'>
-              AI is reshaping Star Management beyond Github Stars. Explore limitless potential in AI-driven star
-              management – just the start!
+              Discover the future of star management beyond GitHub Stars. Unlock the full potential of innovative,
+              data-driven solutions that elevate how you manage and track your favorite repositories – this is just the
+              beginning!
             </p>
           </div>
           <Image src='/home.png' width={400} height={400} className='mx-auto' alt='home pic' />

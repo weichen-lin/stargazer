@@ -48,7 +48,7 @@ func (c *Controller) SyncRepository(ctx *gin.Context) {
 
 	getUserStarsLimiter.Set(user.Email(), true, time.Minute*30)
 
-	// c.kabaka.Publish("star-syncer", []byte(`{"email":"`+user.Email()+`","page":1}`))
+	c.kabaka.Publish("star-syncer", []byte(`{"email":"`+user.Email()+`","page":1}`))
 
 	ctx.JSON(http.StatusOK, "ok")
 }

@@ -19,7 +19,7 @@ const parseTime = (s: string | null): Date | null => {
 }
 
 export default function Crontab() {
-  const { data, isLoading } = useFetch<ICrontab>({
+  const { data, isLoading, run } = useFetch<ICrontab>({
     initialRun: true,
     config: {
       url: '/crontab',
@@ -54,13 +54,22 @@ export default function Crontab() {
           </div>
         )}
         {isLoading && <CrontabLoading />}
-        {!isLoading && !data && <EmptyContent />}
+        {!isLoading && !data && <EmptyContent onCreate={() => run({})} />}
       </CardContent>
     </Card>
   )
 }
 
-const EmptyContent = () => {
+const EmptyContent = (props: { onCreate: () => void }) => {
+  const { onCreate } = props
+  const { isLoading, run } = useFetch<ICrontab>({
+    initialRun: false,
+    config: {
+      url: '/crontab',
+      method: 'POST',
+    },
+  })
+
   return (
     <div className='w-full flex flex-col items-center justify-center mt-4'>
       <div className='w-32 h-32 relative'>
@@ -70,7 +79,13 @@ const EmptyContent = () => {
         </div>
       </div>
       <p className='text-center text-gray-500 mb-4'>No avaliable crontab yet.</p>
-      <Button>
+      <Button
+        loading={isLoading}
+        onClick={async () => {
+          await run({})
+          onCreate()
+        }}
+      >
         Create
         <Plus className='w-4 h-4 ml-2' />
       </Button>

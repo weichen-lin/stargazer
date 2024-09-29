@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	"github.com/weichen-lin/stargazer/domain"
 )
@@ -55,7 +56,7 @@ func Test_CrontabCRUD(t *testing.T) {
 	})
 
 	t.Run("Test create crontab and then check crontab exist, final test update", func(t *testing.T) {
-		_, token := createUserWithToken(t)
+		user, token := createUserWithToken(t)
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest("POST", "/crontab", nil)
 		req.Header.Set("Authorization", token)
@@ -86,6 +87,9 @@ func Test_CrontabCRUD(t *testing.T) {
 		err = json.NewDecoder(w.Body).Decode(&response)
 		require.NoError(t, err)
 
+		id := testController.scheduler.GetJob(user.Email())
+		require.Equal(t, uuid.Nil, id)
+
 		require.Equal(t, "", response.TriggeredAt)
 		require.Equal(t, "", response.UpdatedAt)
 		require.Equal(t, validTime, response.CreatedAt)
@@ -105,6 +109,9 @@ func Test_CrontabCRUD(t *testing.T) {
 
 		err = json.NewDecoder(w.Body).Decode(&response)
 		require.NoError(t, err)
+
+		id = testController.scheduler.GetJob(user.Email())
+		require.NotEqual(t, uuid.Nil, id)
 
 		updatedTime := time.Now()
 

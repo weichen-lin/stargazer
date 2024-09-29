@@ -147,6 +147,9 @@ func GetRepositoryTopics(database *db.Database, msg kabaka.Message, writer *kaba
 	}
 
 	results, err := database.GetAllRepositoryTopics(ctx)
+	if err != nil {
+		return err
+	}
 
 	topicsMap := make(map[string][]int64)
 

@@ -12,12 +12,20 @@ import (
 	"github.com/patrickmn/go-cache"
 	"github.com/weichen-lin/stargazer/db"
 	"github.com/weichen-lin/stargazer/util"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/propagation"
 )
 
 var getUserStarsLimiter = cache.New(20*time.Minute, 10*time.Minute)
 var getTopicsLimiter = cache.New(5*time.Minute, 5*time.Minute)
 
 func (c *Controller) SyncRepository(ctx *gin.Context) {
+	otelCtx := otel.GetTextMapPropagator().Extract(ctx, propagation.HeaderCarrier(ctx.Request.Header))
+
+	tracer := otel.Tracer("")
+	_, span := tracer.Start(otelCtx, "sync-repository")
+	defer span.End()
+
 	user, err := c.db.GetUser(ctx)
 
 	if err != nil {
@@ -40,7 +48,7 @@ func (c *Controller) SyncRepository(ctx *gin.Context) {
 
 	getUserStarsLimiter.Set(user.Email(), true, time.Minute*30)
 
-	c.kabaka.Publish("star-syncer", []byte(`{"email":"`+user.Email()+`","page":1}`))
+	// c.kabaka.Publish("star-syncer", []byte(`{"email":"`+user.Email()+`","page":1}`))
 
 	ctx.JSON(http.StatusOK, "ok")
 }
@@ -165,16 +173,16 @@ func (c *Controller) GetTopics(ctx *gin.Context) {
 		})
 	}
 
-	topics, _ := util.StarGazerTopicCache.GetTopics(user.Email())
-
-	if _, found := getTopicsLimiter.Get(user.Email()); !found {
-		c.kabaka.Publish("topic-syncer", []byte(`{"email":"`+user.Email()+`"}`))
-		getTopicsLimiter.Set(user.Email(), true, time.Minute*5)
-	}
+	topics, exists := util.StarGazerTopicCache.GetTopics(user.Email())
 
 	ctx.JSON(http.StatusOK, gin.H{
 		"data": topics,
 	})
+
+	if _, found := getTopicsLimiter.Get(user.Email()); !found && !exists {
+		c.kabaka.Publish("topic-syncer", []byte(`{"email":"`+user.Email()+`"}`))
+		getTopicsLimiter.Set(user.Email(), true, time.Minute*5)
+	}
 }
 
 type GetRepositoriesByKeyQueries struct {

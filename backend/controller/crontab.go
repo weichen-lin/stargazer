@@ -68,6 +68,12 @@ func getTime(hour int) (time.Time, error) {
 }
 
 func (c *Controller) UpdateCrontab(ctx *gin.Context) {
+	user, err := c.db.GetUser(ctx)
+	if err != nil {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	}
+
 	var query UpdateQuery
 	if err := ctx.ShouldBindQuery(&query); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -91,6 +97,9 @@ func (c *Controller) UpdateCrontab(ctx *gin.Context) {
 	crontab.UpdateVersion()
 
 	err = c.db.SaveCrontab(ctx, crontab)
+
+	c.scheduler.Update(user.Email(), parsedTime.Hour())
+
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

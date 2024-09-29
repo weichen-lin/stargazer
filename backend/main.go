@@ -29,6 +29,8 @@ func main() {
 
 	c := controller.NewController(logger)
 
+	initOtel()
+
 	r := gin.Default()
 
 	r.HEAD("/health", func(c *gin.Context) {

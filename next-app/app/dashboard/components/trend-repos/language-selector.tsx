@@ -39,7 +39,6 @@ export default function LanguageSelector({
                   key={language.value}
                   value={language.value}
                   onSelect={currentValue => {
-                    console.log({ currentValue })
                     onChange(currentValue === selected ? null : currentValue)
                     setOpen(false)
                   }}

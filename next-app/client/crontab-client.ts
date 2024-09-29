@@ -19,6 +19,14 @@ class CrontabClient extends BaseClient {
   getCrontab() {
     return this.get<ICrontab>('/crontab')
   }
+
+  createCronTab() {
+    return this.post<any, ICrontab>('/crontab', null)
+  }
+
+  updateCronTab(hour: string) {
+    return this.patch(`/crontab?hour=${hour}`, null)
+  }
 }
 
 export default CrontabClient

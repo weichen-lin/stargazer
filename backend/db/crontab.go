@@ -142,3 +142,49 @@ func (db *Database) SaveCrontab(ctx context.Context, crontab *domain.Crontab) er
 
 	return nil
 }
+
+type CrontabInfo struct {
+	Email       string `json:"email"`
+	TriggeredAt string `json:"triggered_at"`
+}
+
+func (db *Database) GetAllCrontab() []*CrontabInfo {
+	session := db.Driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
+	defer session.Close(context.Background())
+
+	result, err := session.ExecuteRead(context.Background(), func(tx neo4j.ManagedTransaction) (any, error) {
+		result, err := tx.Run(context.Background(), `
+			MATCH (u:User)-[]->(c:Crontab)
+			RETURN u.email as email, c.triggered_at as triggered_at
+			ORDER by c.created_at DESC
+			`,
+			map[string]interface{}{})
+
+		if err != nil {
+			return nil, err
+		}
+
+		record, err := result.Collect(context.Background())
+		return record, err
+	})
+
+	if err != nil {
+		return nil
+	}
+
+	records, ok := result.([]*neo4j.Record)
+	if !ok {
+		return nil
+	}
+
+	crontabs := make([]*CrontabInfo, 0, len(records))
+
+	for _, record := range records {
+		crontabs = append(crontabs, &CrontabInfo{
+			Email:       getString(record.Values[0]),
+			TriggeredAt: getString(record.Values[1]),
+		})
+	}
+
+	return crontabs
+}

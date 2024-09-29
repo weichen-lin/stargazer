@@ -7,19 +7,24 @@ import (
 )
 
 type Controller struct {
-	db     *db.Database
-	kabaka *kabaka.Kabaka
+	db        *db.Database
+	kabaka    *kabaka.Kabaka
+	scheduler *Scheduler
 }
 
 func NewController(logger kabaka.Logger) *Controller {
 
 	db := db.NewDatabase()
-	kbk := kabaka.NewKabaka(&kabaka.Config{
+	scheduler := NewScheduler()
+
+	cronjobs := db.GetAllCrontab()
+
+	bk := kabaka.NewKabaka(&kabaka.Config{
 		Logger: logger,
 	})
 
 	starSyncerHandleFunc := func(msg *kabaka.Message) error {
-		err := util.GetGithubRepos(db, *msg, kbk)
+		err := util.GetGithubRepos(db, *msg, bk)
 
 		if err != nil {
 			return err
@@ -29,18 +34,31 @@ func NewController(logger kabaka.Logger) *Controller {
 	}
 
 	topicHandlerFunc := func(msg *kabaka.Message) error {
-		_ = util.GetRepositoryTopics(db, *msg, kbk)
+		util.GetRepositoryTopics(db, *msg, bk)
 		return nil
 	}
 
-	kbk.CreateTopic("star-syncer")
-	kbk.CreateTopic("topic-syncer")
+	bk.CreateTopic("star-syncer")
+	bk.CreateTopic("topic-syncer")
 
-	kbk.Subscribe("star-syncer", starSyncerHandleFunc)
-	kbk.Subscribe("topic-syncer", topicHandlerFunc)
+	bk.Subscribe("star-syncer", starSyncerHandleFunc)
+	bk.Subscribe("topic-syncer", topicHandlerFunc)
+
+	for _, cronjob := range cronjobs {
+		if cronjob.TriggeredAt != "" {
+
+			fn := func() error {
+				bk.Publish("star-syncer", []byte(`{"email":"`+cronjob.Email+`","page":1}`))
+				return nil
+			}
+
+			scheduler.AddJob(cronjob, fn)
+		}
+	}
 
 	return &Controller{
-		db:     db,
-		kabaka: kbk,
+		db:        db,
+		kabaka:    bk,
+		scheduler: scheduler,
 	}
 }

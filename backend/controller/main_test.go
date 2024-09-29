@@ -10,12 +10,15 @@ import (
 	"github.com/go-faker/faker/v4"
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 	"github.com/stretchr/testify/require"
+	"github.com/weichen-lin/kabaka"
 	"github.com/weichen-lin/stargazer/db"
 	"github.com/weichen-lin/stargazer/domain"
 	"github.com/weichen-lin/stargazer/util"
 )
 
 var testDB *db.Database
+var testscheular *Scheduler
+var testKabaka *kabaka.Kabaka
 var testController *Controller
 var testJWTSecretKey = "secretfor32stringsecretfor32stringsecretfor32stringsecretfor32stringsecretfor32stringsecretfor32string"
 var testJWTMaker util.Maker
@@ -84,15 +87,43 @@ func createUserWithToken(t *testing.T) (*domain.User, string) {
 
 func TestMain(m *testing.M) {
 	testDB = NewTestDatabase()
+	testscheular = NewScheduler()
+	testKabaka = kabaka.NewKabaka(&kabaka.Config{
+		Logger: nil,
+	})
 
 	testController = &Controller{
-		db: testDB,
+		db:        testDB,
+		scheduler: testscheular,
+		kabaka:    testKabaka,
 	}
 
 	var err error
 	testJWTMaker, err = util.NewJWTMaker(testJWTSecretKey)
 	if err != nil {
 		panic(err)
+	}
+
+	starSyncerHandleFunc := func(msg *kabaka.Message) error {
+		return nil
+	}
+
+	testKabaka.CreateTopic("star-syncer")
+
+	testKabaka.Subscribe("star-syncer", starSyncerHandleFunc)
+
+	cronjobs := testDB.GetAllCrontab()
+
+	for _, cronjob := range cronjobs {
+		if cronjob.TriggeredAt != "" {
+
+			fn := func() error {
+				testKabaka.Publish("star-syncer", []byte(`{"email":"`+cronjob.Email+`","page":1}`))
+				return nil
+			}
+
+			testscheular.AddJob(cronjob, fn)
+		}
 	}
 
 	gin.SetMode(gin.TestMode)

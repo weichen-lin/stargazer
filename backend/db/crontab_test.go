@@ -10,31 +10,12 @@ import (
 )
 
 func Test_SaveCrontab(t *testing.T) {
-	entity := &domain.UserEntity{
-		Name:              "Test 123",
-		Email:             "john.doe.123@example.com",
-		Image:             "https://example.comhaha/avatar.jpg",
-		AccessToken:       "abc123123123123",
-		Provider:          "github",
-		ProviderAccountId: "123412312312356",
-		Scope:             "read:user,user:email",
-		AuthType:          "oauth",
-		TokenType:         "bearer",
-	}
-
-	user := domain.FromUserEntity(entity)
-
-	err := db.CreateUser(user)
-	require.NoError(t, err)
+	_, ctx := createFakeUser(t)
 
 	crontab := domain.NewCrontab()
 
-	err = db.SaveCrontab(context.Background(), crontab)
+	err := db.SaveCrontab(context.Background(), crontab)
 	require.ErrorIs(t, err, ErrNotFoundEmailAtContext)
-
-	ctx, err := WithEmail(context.Background(), entity.Email)
-	require.NoError(t, err)
-	require.NotEmpty(t, ctx)
 
 	err = db.SaveCrontab(ctx, crontab)
 	require.NoError(t, err)
@@ -43,6 +24,17 @@ func Test_SaveCrontab(t *testing.T) {
 	require.NoError(t, err)
 	err = db.SaveCrontab(ctx, crontab)
 	require.Error(t, err)
+
+	_, ctx = createFakeUser(t)
+	err = db.SaveCrontab(ctx, crontab)
+	require.NoError(t, err)
+
+	_, ctx = createFakeUser(t)
+	err = db.SaveCrontab(ctx, crontab)
+	require.NoError(t, err)
+
+	crontabs := db.GetAllCrontab()
+	require.NotEmpty(t, crontabs)
 }
 
 func Test_GetCrontab(t *testing.T) {

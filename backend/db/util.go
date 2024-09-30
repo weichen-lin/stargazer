@@ -3,9 +3,11 @@ package db
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/mail"
 	"time"
 
+	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 	"github.com/weichen-lin/stargazer/domain"
 )
 
@@ -32,6 +34,26 @@ func WithEmail(ctx context.Context, email string) (context.Context, error) {
 func EmailFromContext(ctx context.Context) (string, bool) {
 	email, ok := ctx.Value("email").(string)
 	return email, ok
+}
+
+func (db *Database) removeAllRecord() {
+	session := db.Driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
+	defer session.Close(context.Background())
+
+	record, err := session.ExecuteWrite(context.Background(), func(tx neo4j.ManagedTransaction) (any, error) {
+		_, err := tx.Run(context.Background(), `
+			MATCH (n) DETACH DELETE n
+			`,
+			map[string]interface{}{})
+
+		if err != nil {
+			return nil, err
+		}
+		return nil, nil
+	})
+
+	fmt.Println(err)
+	fmt.Println(record)
 }
 
 func getInt64(v interface{}) int64 {

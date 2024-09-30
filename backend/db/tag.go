@@ -36,17 +36,15 @@ func (db *Database) SaveTag(ctx context.Context, tag *domain.Tag, repo_id int64)
 				created_at: $created_at,
 				updated_at: $updated_at
 			}
-			ON MATCH SET t += {
-				name: $name,
-				updated_at: $updated_at
-			}
+			ON MATCH SET t.updated_at = $updated_at
 			MERGE (u)-[:HAS_TAG]->(t)
-			WITH t
-			MATCH (u)-[s:STARS]-(r:Repository {repo_id: $repo_id})
-			SET s.last_modified_at = datetime()
-			WITH t, r
+			WITH u, t
+			MATCH (r:Repository {repo_id: $repo_id})
+			MERGE (u)-[s:STARS]->(r)
+			ON MATCH SET s.last_modified_at = datetime()
+			ON CREATE SET s.last_modified_at = datetime()
 			MERGE (r)-[:TAGGED_BY]->(t)
-			RETURN DISTINCT t.created_at as created_at
+			RETURN t.created_at AS created_at
 			`,
 			map[string]interface{}{
 				"email":      email,

@@ -126,15 +126,9 @@ func TestFromFolderEntity(t *testing.T) {
 }
 
 func TestToFolderEntity(t *testing.T) {
-	now := time.Now()
-	folder := &Folder{
-		name:      "Test Folder",
-		isPublic:  true,
-		createdAt: now,
-		updatedAt: now,
-	}
+	folder := NewFolder("Test Folder")
 
-	entity := ToFolderEntity(folder)
+	entity := folder.ToFolderEntity()
 
 	require.Equal(t, folder.Name(), entity.Name, "Entity name should match")
 	require.Equal(t, folder.IsPublic(), entity.IsPublic, "Entity IsPublic should match")

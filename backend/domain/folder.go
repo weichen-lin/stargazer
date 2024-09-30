@@ -80,6 +80,15 @@ func (f *Folder) SetUpdatedAt(s string) error {
 	return nil
 }
 
+func (f *Folder) ToFolderEntity() *FolderEntity {
+	return &FolderEntity{
+		Name:      f.Name(),
+		IsPublic:  f.IsPublic(),
+		CreatedAt: f.CreatedAt().Format(time.RFC3339),
+		UpdatedAt: f.UpdatedAt().Format(time.RFC3339),
+	}
+}
+
 func FromFolderEntity(folderEntity *FolderEntity) (*Folder, error) {
 	folder := &Folder{}
 
@@ -101,15 +110,6 @@ func FromFolderEntity(folderEntity *FolderEntity) (*Folder, error) {
 	folder.SetIsPublic(folderEntity.IsPublic)
 
 	return folder, nil
-}
-
-func ToFolderEntity(folder *Folder) *FolderEntity {
-	return &FolderEntity{
-		Name:      folder.Name(),
-		IsPublic:  folder.IsPublic(),
-		CreatedAt: folder.CreatedAt().Format(time.RFC3339),
-		UpdatedAt: folder.UpdatedAt().Format(time.RFC3339),
-	}
 }
 
 func NewFolder(name string) *Folder {

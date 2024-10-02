@@ -119,7 +119,6 @@ const ErrorMsg = ({ status }: { status: number }) => {
 
 const Progressing = (props: ISchema) => {
   const { current, total } = props
-  console.log({ current, total })
   const value = total === 0 ? 0 : (current / total) * 100
   return (
     <div className='w-full flex justify-center gap-x-2 items-center'>

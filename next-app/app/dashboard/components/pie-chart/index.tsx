@@ -88,10 +88,6 @@ const EmptyContent = () => {
         </div>
       </div>
       <p className='text-center text-gray-500 mb-4'>No data yet.</p>
-      <Button>
-        Start Sync
-        <Plus className='w-4 h-4 ml-2' />
-      </Button>
     </div>
   )
 }

@@ -2,6 +2,7 @@ package controller
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -100,12 +101,14 @@ func Test_CrontabCRUD(t *testing.T) {
 		require.Equal(t, http.StatusOK, w.Code)
 
 		w = httptest.NewRecorder()
-		req, _ = http.NewRequest("PATCH", "/crontab?hour=12", nil)
+
+		newTriggeredAt := time.Now().UTC()
+		req, _ = http.NewRequest("PATCH", fmt.Sprintf("/crontab?triggered_at=%s", newTriggeredAt.Format(time.RFC3339)), nil)
 		req.Header.Set("Authorization", token)
 
 		r.ServeHTTP(w, req)
 
-		require.Equal(t, w.Code, http.StatusOK)
+		require.Equal(t, http.StatusOK, w.Code)
 
 		err = json.NewDecoder(w.Body).Decode(&response)
 		require.NoError(t, err)
@@ -113,15 +116,24 @@ func Test_CrontabCRUD(t *testing.T) {
 		id = testController.scheduler.GetJob(user.Email())
 		require.NotEqual(t, uuid.Nil, id)
 
-		updatedTime := time.Now()
+		job := testController.scheduler.GetJobInfo(id)
+		require.NotNil(t, job)
 
-		triggeredTime, _ := getTime(12)
+		nextRun, err := job.NextRun()
+		require.NoError(t, err)
+
+		location := newTriggeredAt.Location()
+		nextRun = nextRun.In(location)
+
+		require.Equal(t, newTriggeredAt.Hour(), nextRun.Hour())
+
+		updatedTime := time.Now()
 
 		checkUpdatedTime, err := time.Parse(time.RFC3339, response.UpdatedAt)
 		require.NoError(t, err)
 
-		require.Equal(t, triggeredTime.Format(time.RFC3339), response.TriggeredAt)
-		require.WithinDuration(t, updatedTime, checkUpdatedTime, time.Second*3)
+		require.Equal(t, newTriggeredAt.Format(time.RFC3339), response.TriggeredAt)
+		require.WithinDuration(t, updatedTime, checkUpdatedTime, time.Second*2)
 		require.Equal(t, validTime, response.CreatedAt)
 		require.Equal(t, int64(2), response.Version)
 		require.Equal(t, "new", response.Status)

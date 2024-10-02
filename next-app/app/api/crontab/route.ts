@@ -38,15 +38,15 @@ export async function PATCH(req: NextRequest) {
   const client = new CrontabClient(email)
   const params = req.nextUrl.searchParams
 
-  const hour = params.get('hour') as string
+  const triggered_at = params.get('triggered_at') as string
 
-  if (!hour) {
+  if (!triggered_at) {
     return new Response('error', {
       status: 400,
     })
   }
 
-  const data = await client.updateCronTab(hour)
+  const data = await client.updateCronTab(triggered_at)
 
   try {
     return Response.json(data)

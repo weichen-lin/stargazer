@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 
@@ -50,21 +49,7 @@ func (c *Controller) CreateCrontab(ctx *gin.Context) {
 }
 
 type UpdateQuery struct {
-	Hour int `form:"hour" binding:"required,min=0,max=23"`
-}
-
-func getTime(hour int) (time.Time, error) {
-	if hour < 0 || hour > 23 {
-		return time.Time{}, fmt.Errorf("小時數必須介於 0 到 23 之間")
-	}
-
-	now := time.Now()
-
-	year, month, day := now.Date()
-
-	t := time.Date(year, month, day, hour, 0, 0, 0, time.Local)
-
-	return t, nil
+	TriggeredAt time.Time `form:"triggered_at" json:"time" binding:"required" time_format:"2006-01-02T15:04:05Z07:00"`
 }
 
 func (c *Controller) UpdateCrontab(ctx *gin.Context) {
@@ -86,20 +71,24 @@ func (c *Controller) UpdateCrontab(ctx *gin.Context) {
 		return
 	}
 
-	parsedTime, err := getTime(query.Hour)
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, err.Error())
-	}
-
 	now := time.Now()
-	crontab.SetTriggeredAt(parsedTime.Format(time.RFC3339))
+
+	crontab.SetTriggeredAt(query.TriggeredAt.Format(time.RFC3339))
 	crontab.SetUpdatedAt(now.Format(time.RFC3339))
 	crontab.UpdateVersion()
 
 	err = c.db.SaveCrontab(ctx, crontab)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 
-	c.scheduler.Update(user.Email(), parsedTime.Hour())
+	fn := func() error {
+		err := c.kabaka.Publish("star-syncer", []byte(`{"email":"`+user.Email()+`","page":1}`))
+		return err
+	}
 
+	err = c.scheduler.Update(user.Email(), query.TriggeredAt, fn)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

@@ -88,6 +88,7 @@ func createUserWithToken(t *testing.T) (*domain.User, string) {
 
 func createFolder(t *testing.T, user *domain.User) *domain.Folder {
 	folder, err := domain.NewFolder(faker.Name())
+	require.NoError(t, err)
 	require.NotEmpty(t, folder)
 
 	ctx, err := db.WithEmail(context.Background(), user.Email())

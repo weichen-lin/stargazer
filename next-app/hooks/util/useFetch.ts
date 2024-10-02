@@ -7,7 +7,7 @@ interface useFetchProps<T> {
   config: AxiosRequestConfig<T>
   initialRun?: boolean
   onSuccess?: (res: T) => void
-  onError?: () => void
+  onError?: (err: any) => void
 }
 
 const instance = axios.create({
@@ -27,7 +27,7 @@ export default function useFetch<T>(props: useFetchProps<T>) {
   const { url, method, params, data: payload, headers } = config
 
   const [isLoading, setIsLoading] = useState(initialRun ? true : false)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<any>(null)
   const [statusCode, setStatusCode] = useState<number | null>(null)
   const [data, setData] = useState<T | null>(null)
 
@@ -51,13 +51,8 @@ export default function useFetch<T>(props: useFetchProps<T>) {
       onSuccess && onSuccess(response.data)
     } catch (err) {
       if (err instanceof AxiosError) {
-        setError(err.message)
-        setStatusCode(err.response?.status || null)
-      } else {
-        setStatusCode(503)
-        setError('Service Unavailable')
+        onError && onError(err.response?.data)
       }
-      onError && onError()
     } finally {
       setIsLoading(false)
     }

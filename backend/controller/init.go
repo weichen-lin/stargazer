@@ -1,6 +1,8 @@
 package controller
 
 import (
+	"fmt"
+
 	"github.com/weichen-lin/kabaka"
 	"github.com/weichen-lin/stargazer/db"
 	"github.com/weichen-lin/stargazer/util"
@@ -46,13 +48,15 @@ func NewController(logger kabaka.Logger) *Controller {
 
 	for _, cronjob := range cronjobs {
 		if cronjob.TriggeredAt != "" {
-
 			fn := func() error {
 				bk.Publish("star-syncer", []byte(`{"email":"`+cronjob.Email+`","page":1}`))
 				return nil
 			}
 
-			scheduler.AddJob(cronjob, fn)
+			err := scheduler.AddJob(cronjob, fn)
+			if err != nil {
+				fmt.Println(err)
+			}
 		}
 	}
 

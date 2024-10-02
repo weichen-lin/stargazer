@@ -38,7 +38,12 @@ export default function Crontab() {
       <CardContent className='flex-1 pb-0 flex flex-col gap-y-2 py-1'>
         {!isLoading && data && (
           <div className='items-center justify-center mt-8'>
-            <HourSetting hour={triggerAt?.getHours() ?? null} update={e => {}} />
+            <HourSetting
+              triggered_at={triggerAt}
+              update={() => {
+                run({})
+              }}
+            />
             <div className='flex flex-col items-start justify-start gap-y-3 w-full mt-2'>
               <div className='flex flex-col h-12 gap-y-1'>
                 <div className='text-slate-300 dark:text-slate-500'>Status</div>

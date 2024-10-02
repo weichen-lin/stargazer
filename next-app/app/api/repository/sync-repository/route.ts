@@ -1,5 +1,6 @@
 import { GetUser } from '@/actions'
 import { RepositoryClient } from '@/client/repository'
+import { isAxiosError } from 'axios'
 
 export const dynamic = 'force-dynamic'
 export async function GET() {
@@ -12,7 +13,13 @@ export async function GET() {
 
     return Response.json({ status: 'ok' })
   } catch (error) {
-    return new Response('error', {
+    if (isAxiosError(error)) {
+      return new Response(JSON.stringify(error.response?.data), {
+        status: error.response?.status,
+      })
+    }
+
+    return new Response('unknown error', {
       status: 400,
     })
   }

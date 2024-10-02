@@ -75,9 +75,7 @@ export default function TopicsCloud() {
                     transform={`translate(${w.x}, ${w.y}) rotate(${w.rotate})`}
                     fontSize={w.size}
                     fontFamily={w.font}
-                    onMouseEnter={e => {
-                      console.log(e)
-                    }}
+                    onMouseEnter={e => {}}
                   >
                     {w.text}
                   </Text>

@@ -24,8 +24,8 @@ class CrontabClient extends BaseClient {
     return this.post<any, ICrontab>('/crontab', null)
   }
 
-  updateCronTab(hour: string) {
-    return this.patch(`/crontab?hour=${hour}`, null)
+  updateCronTab(triggered_at: string) {
+    return this.patch(`/crontab?triggered_at=${triggered_at}`, null)
   }
 }
 

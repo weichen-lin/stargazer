@@ -5,15 +5,13 @@ import { Clock } from 'lucide-react'
 import { TimePickerInput } from '@/components/ui/timepicker'
 import { useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { syncUserStars, updateCrontabHour } from '@/actions/kafka-service'
 import { useFetch } from '@/hooks/util'
-
 import { useToast } from '@/components/ui/use-toast'
-import { useUser } from '@/context'
+import moment from 'moment'
 
 interface ICrontabSetting {
-  hour: number | null
-  update: (date: Date) => void
+  triggered_at: Date | null
+  update: () => void
 }
 
 function formatHour(hour: number) {
@@ -29,12 +27,26 @@ function formatHour(hour: number) {
 }
 
 export default function HourSetting(props: ICrontabSetting) {
-  const { hour } = props
+  const { triggered_at, update } = props
   const { isLoading, run: syncRepository } = useFetch<string>({
     initialRun: false,
     config: {
       url: '/repository/sync-repository',
       method: 'GET',
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Scheduled: Catch up',
+        description: 'Start Sync Repository, You will receive a notification when it is done',
+      })
+    },
+    onError: error => {
+      console.log(error)
+      toast({
+        title: 'Action Restricted',
+        description: `You can only use this service after ${error?.expires ?? ''}. Please try again later.`,
+        variant: 'destructive',
+      })
     },
   })
   const { isLoading: updateLoading, run: updateCrontab } = useFetch<any>({
@@ -43,27 +55,27 @@ export default function HourSetting(props: ICrontabSetting) {
       url: '/crontab',
       method: 'PATCH',
     },
+    onSuccess: data => {
+      const newDate = moment(data.triggered_at).toDate()
+      setDate(newDate)
+      toast({
+        title: 'Scheduled: Catch up',
+        description: 'Update Crontab Hour Successfully',
+      })
+    },
   })
   const { toast } = useToast()
-  const { email } = useUser()
-
-  const currentDate = new Date()
-  if (hour) {
-    currentDate.setHours(hour)
-  }
 
   const ref = useRef<HTMLInputElement>(null)
-  const [date, setDate] = useState(currentDate)
+  const [date, setDate] = useState(triggered_at ?? new Date())
+  const [settingDate, setSettingDate] = useState(triggered_at ?? new Date())
 
   return (
     <div className='w-full flex justify-between items-center'>
       <span className='text-slate-500 dark:text-slate-700'>
-        {hour !== null ? `Everyday at ${formatHour(hour)}` : '--'}
+        {triggered_at !== null ? `Everyday at ${formatHour(date.getHours())}` : '--'}
       </span>
       <div className='flex gap-x-2'>
-        <Button loading={isLoading} onClick={() => syncRepository({})}>
-          Start
-        </Button>
         <Popover>
           <PopoverTrigger>
             <div className='px-2 py-[6px] border-slate-700 border-[1px] rounded-md'>Setting</div>
@@ -75,11 +87,12 @@ export default function HourSetting(props: ICrontabSetting) {
                 <span>Set Crontab Hour</span>
               </div>
               <div className='flex gap-x-4'>
-                <TimePickerInput picker='hours' date={date} setDate={setDate} ref={ref} />
+                <TimePickerInput picker='hours' date={settingDate} setDate={setSettingDate} ref={ref} />
                 <Button
                   className=''
                   onClick={() => {
-                    updateCrontab({ params: { hour: `${date.getHours()}` } })
+                    const dateString = moment(settingDate).utc().format('YYYY-MM-DDTHH:mm:ss[Z]')
+                    updateCrontab({ params: { triggered_at: dateString } })
                   }}
                   loading={updateLoading}
                 >
@@ -89,6 +102,9 @@ export default function HourSetting(props: ICrontabSetting) {
             </div>
           </PopoverContent>
         </Popover>
+        <Button loading={isLoading} onClick={() => syncRepository({})}>
+          Start
+        </Button>
       </div>
     </div>
   )

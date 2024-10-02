@@ -43,7 +43,6 @@ func (s *Scheduler) GetJob(email string) uuid.UUID {
 	}
 
 	return jobId
-
 }
 
 func (s *Scheduler) AddJob(info *db.CrontabInfo, fn func() error) error {
@@ -55,11 +54,18 @@ func (s *Scheduler) AddJob(info *db.CrontabInfo, fn func() error) error {
 		return err
 	}
 
+	utcTime := t.UTC()
+
+	now := time.Now()
+	location := now.Location()
+
+	localTime := utcTime.In(location)
+
 	j, err := s.centraller.NewJob(
 		gocron.DailyJob(
 			1,
 			gocron.NewAtTimes(
-				gocron.NewAtTime(uint(t.Hour()), 0, 0),
+				gocron.NewAtTime(uint(localTime.Hour()), 0, 0),
 			),
 		),
 		gocron.NewTask(func() {
@@ -75,7 +81,7 @@ func (s *Scheduler) AddJob(info *db.CrontabInfo, fn func() error) error {
 	return nil
 }
 
-func (s *Scheduler) Update(email string, hour int) error {
+func (s *Scheduler) Update(email string, triggered_at time.Time, fn func() error) error {
 	s.Lock()
 	defer s.Unlock()
 
@@ -85,14 +91,22 @@ func (s *Scheduler) Update(email string, hour int) error {
 		s.centraller.RemoveJob(id)
 	}
 
+	utcTime := triggered_at.UTC()
+
+	now := time.Now()
+	location := now.Location()
+
+	localTime := utcTime.In(location)
+
 	j, err := s.centraller.NewJob(
 		gocron.DailyJob(
 			1,
 			gocron.NewAtTimes(
-				gocron.NewAtTime(uint(hour), 0, 0),
+				gocron.NewAtTime(uint(localTime.Hour()), 0, 0),
 			),
 		),
 		gocron.NewTask(func() {
+			fn()
 		}),
 	)
 	if err != nil {
@@ -103,8 +117,29 @@ func (s *Scheduler) Update(email string, hour int) error {
 	return nil
 }
 
-func (s *Scheduler) GetAll() map[string]uuid.UUID {
+func (s *Scheduler) Remove(email string) {
 	s.Lock()
 	defer s.Unlock()
-	return s.jobs
+
+	id, exists := s.jobs[email]
+
+	if exists {
+		s.centraller.RemoveJob(id)
+		delete(s.jobs, email)
+	}
+}
+
+func (s *Scheduler) GetJobInfo(id uuid.UUID) gocron.Job {
+	s.Lock()
+	defer s.Unlock()
+
+	jobs := s.centraller.Jobs()
+
+	for _, job := range jobs {
+		if job.ID() == id {
+			return job
+		}
+	}
+
+	return nil
 }

@@ -4,17 +4,20 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 )
 
 func TestNewFolder(t *testing.T) {
 	name := "Test Folder"
-	folder := NewFolder(name)
+	folder, err := NewFolder(name)
+	require.NoError(t, err)
 
 	parsedTime, err := ParseTime(time.Now().Format(time.RFC3339))
 	require.NoError(t, err)
 
 	require.NotNil(t, folder, "NewFolder should not return nil")
+	require.NotNil(t, folder.id, "New folder should have a UUID")
 	require.Equal(t, name, folder.Name(), "Folder name should match")
 	require.False(t, folder.IsPublic(), "New folder should not be public by default")
 	require.False(t, folder.CreatedAt().IsZero(), "CreatedAt should not be zero")
@@ -22,12 +25,25 @@ func TestNewFolder(t *testing.T) {
 	require.Equal(t, parsedTime, folder.CreatedAt())
 	require.Equal(t, parsedTime, folder.UpdatedAt())
 
-	folder2 := NewFolder("")
+	folder2, err := NewFolder("")
+	require.Error(t, err)
 	require.Nil(t, folder2)
 }
 
+func TestFolder_SetId(t *testing.T) {
+	folder, err := NewFolder("Test Folder")
+	require.NoError(t, err)
+
+	err = folder.SetId("invalid-id")
+	require.Error(t, err)
+
+	err = folder.SetId(uuid.New().String())
+	require.NoError(t, err)
+}
+
 func TestFolder_SetName(t *testing.T) {
-	folder := NewFolder("Initial Name")
+	folder, err := NewFolder("Initial Name")
+	require.NoError(t, err)
 
 	tests := []struct {
 		name     string
@@ -54,7 +70,8 @@ func TestFolder_SetName(t *testing.T) {
 }
 
 func TestFolder_SetIsPublic(t *testing.T) {
-	folder := NewFolder("Test Folder")
+	folder, err := NewFolder("Test Folder")
+	require.NoError(t, err)
 
 	folder.SetIsPublic(true)
 	require.True(t, folder.IsPublic(), "Folder should be public")
@@ -64,10 +81,11 @@ func TestFolder_SetIsPublic(t *testing.T) {
 }
 
 func TestFolder_SetCreatedAt(t *testing.T) {
-	folder := NewFolder("Test Folder")
+	folder, err := NewFolder("Test Folder")
+	require.NoError(t, err)
 
 	validTime := time.Now().Format(time.RFC3339)
-	err := folder.SetCreatedAt(validTime)
+	err = folder.SetCreatedAt(validTime)
 	require.NoError(t, err, "SetCreatedAt() should not return an error for valid time")
 
 	err = folder.SetCreatedAt("")
@@ -78,10 +96,11 @@ func TestFolder_SetCreatedAt(t *testing.T) {
 }
 
 func TestFolder_SetUpdatedAt(t *testing.T) {
-	folder := NewFolder("Test Folder")
+	folder, err := NewFolder("Test Folder")
+	require.NoError(t, err)
 
 	validTime := time.Now().Format(time.RFC3339)
-	err := folder.SetUpdatedAt(validTime)
+	err = folder.SetUpdatedAt(validTime)
 	require.NoError(t, err, "SetUpdatedAt() should not return an error for valid time")
 
 	err = folder.SetUpdatedAt("")
@@ -94,6 +113,7 @@ func TestFolder_SetUpdatedAt(t *testing.T) {
 func TestFromFolderEntity(t *testing.T) {
 	now := time.Now().Format(time.RFC3339)
 	entity := &FolderEntity{
+		Id:        uuid.New().String(),
 		Name:      "Test Folder",
 		IsPublic:  true,
 		CreatedAt: now,
@@ -108,6 +128,11 @@ func TestFromFolderEntity(t *testing.T) {
 	require.Equal(t, entity.IsPublic, folder.IsPublic(), "Folder IsPublic should match")
 	require.Equal(t, entity.CreatedAt, folder.CreatedAt().Format(time.RFC3339), "Folder CreatedAt should match")
 	require.Equal(t, entity.UpdatedAt, folder.UpdatedAt().Format(time.RFC3339), "Folder UpdatedAt should match")
+
+	entity.Id = "invalid-id"
+	_, err = FromFolderEntity(entity)
+	require.Error(t, err, "FromFolderEntity() should return an error for invalid uuid")
+	entity.Id = uuid.New().String()
 
 	entity.Name = ""
 	_, err = FromFolderEntity(entity)
@@ -126,10 +151,12 @@ func TestFromFolderEntity(t *testing.T) {
 }
 
 func TestToFolderEntity(t *testing.T) {
-	folder := NewFolder("Test Folder")
+	folder, err := NewFolder("Test Folder")
+	require.NoError(t, err)
 
 	entity := folder.ToFolderEntity()
 
+	require.Equal(t, folder.Id().String(), entity.Id, "Entity Id should match")
 	require.Equal(t, folder.Name(), entity.Name, "Entity name should match")
 	require.Equal(t, folder.IsPublic(), entity.IsPublic, "Entity IsPublic should match")
 	require.Equal(t, folder.CreatedAt().Format(time.RFC3339), entity.CreatedAt, "Entity CreatedAt should match")

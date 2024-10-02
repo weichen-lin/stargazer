@@ -146,7 +146,7 @@ func TestMain(m *testing.M) {
 
 	code := m.Run()
 
-	defer db.removeAllRecord()
+	db.removeAllRecord()
 
 	os.Exit(code)
 }

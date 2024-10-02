@@ -3,7 +3,6 @@ package db
 import (
 	"context"
 	"errors"
-	"fmt"
 	"net/mail"
 	"time"
 
@@ -40,7 +39,7 @@ func (db *Database) removeAllRecord() {
 	session := db.Driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	defer session.Close(context.Background())
 
-	record, err := session.ExecuteWrite(context.Background(), func(tx neo4j.ManagedTransaction) (any, error) {
+	_, _ = session.ExecuteWrite(context.Background(), func(tx neo4j.ManagedTransaction) (any, error) {
 		_, err := tx.Run(context.Background(), `
 			MATCH (n) DETACH DELETE n
 			`,
@@ -51,9 +50,6 @@ func (db *Database) removeAllRecord() {
 		}
 		return nil, nil
 	})
-
-	fmt.Println(err)
-	fmt.Println(record)
 }
 
 func getInt64(v interface{}) int64 {

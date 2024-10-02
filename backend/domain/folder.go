@@ -3,9 +3,12 @@ package domain
 import (
 	"errors"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type Folder struct {
+	id        uuid.UUID
 	name      string
 	isPublic  bool
 	createdAt time.Time
@@ -13,10 +16,15 @@ type Folder struct {
 }
 
 type FolderEntity struct {
+	Id        string `json:"id"`
 	Name      string `json:"name"`
 	IsPublic  bool   `json:"is_public"`
 	CreatedAt string `json:"created_at"`
 	UpdatedAt string `json:"updated_at"`
+}
+
+func (f *Folder) Id() uuid.UUID {
+	return f.id
 }
 
 func (f *Folder) Name() string {
@@ -33,6 +41,16 @@ func (f *Folder) CreatedAt() time.Time {
 
 func (f *Folder) UpdatedAt() time.Time {
 	return f.updatedAt
+}
+
+func (f *Folder) SetId(id string) error {
+	uuid, err := uuid.Parse(id)
+	if err != nil {
+		return err
+	}
+
+	f.id = uuid
+	return nil
 }
 
 func (f *Folder) SetName(name string) error {
@@ -82,6 +100,7 @@ func (f *Folder) SetUpdatedAt(s string) error {
 
 func (f *Folder) ToFolderEntity() *FolderEntity {
 	return &FolderEntity{
+		Id:        f.id.String(),
 		Name:      f.Name(),
 		IsPublic:  f.IsPublic(),
 		CreatedAt: f.CreatedAt().Format(time.RFC3339),
@@ -92,7 +111,12 @@ func (f *Folder) ToFolderEntity() *FolderEntity {
 func FromFolderEntity(folderEntity *FolderEntity) (*Folder, error) {
 	folder := &Folder{}
 
-	err := folder.SetName(folderEntity.Name)
+	err := folder.SetId(folderEntity.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	err = folder.SetName(folderEntity.Name)
 	if err != nil {
 		return nil, err
 	}
@@ -112,12 +136,13 @@ func FromFolderEntity(folderEntity *FolderEntity) (*Folder, error) {
 	return folder, nil
 }
 
-func NewFolder(name string) *Folder {
+func NewFolder(name string) (*Folder, error) {
 	folder := &Folder{}
+	folder.id = uuid.New()
 
 	err := folder.SetName(name)
 	if err != nil {
-		return nil
+		return nil, err
 	}
 
 	folder.SetIsPublic(false)
@@ -126,5 +151,5 @@ func NewFolder(name string) *Folder {
 	folder.SetCreatedAt(now.Format(time.RFC3339))
 	folder.SetUpdatedAt(now.Format(time.RFC3339))
 
-	return folder
+	return folder, nil
 }

@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"context"
 	"net/http"
 	"os"
 	"testing"
@@ -80,6 +81,20 @@ func createUserWithToken(t *testing.T) (*domain.User, string) {
 	require.NoError(t, err)
 
 	return user, token
+}
+
+func createFolder(t *testing.T, user *domain.User) *domain.Folder {
+	folder, err := domain.NewFolder(faker.Name())
+	require.NotEmpty(t, folder)
+
+	ctx, err := db.WithEmail(context.Background(), user.Email())
+	require.NoError(t, err)
+	require.NotEmpty(t, ctx)
+
+	err = testDB.SaveFolder(ctx, folder)
+	require.NoError(t, err)
+
+	return folder
 }
 
 func TestMain(m *testing.M) {

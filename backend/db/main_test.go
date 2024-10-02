@@ -144,5 +144,9 @@ func createRepositoryAtFakeUser(t *testing.T, user *domain.User) *domain.Reposit
 func TestMain(m *testing.M) {
 	db = NewTestDatabase()
 
-	os.Exit(m.Run())
+	code := m.Run()
+
+	// db.removeAllRecord()
+
+	os.Exit(code)
 }

@@ -5,13 +5,13 @@ import { Loading, Empty } from './status'
 import Repo from './repo'
 
 export default function Results() {
-  const { isSearching, results } = useStars()
+  const { isLoading, results } = useStars()
 
-  if (isSearching) {
+  if (isLoading) {
     return <Loading />
   }
 
-  if (results.length === 0) {
+  if (!results || results.length === 0) {
     return <Empty />
   }
 

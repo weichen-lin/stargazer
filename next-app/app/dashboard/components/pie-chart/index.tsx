@@ -7,7 +7,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
 import { colorConfig, getLanguageColor, Language } from './config'
 import { PieChart as PieChartIcon, Plus } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import { useFetch } from '@/hooks/util'
 import { ILanguageDistribution } from '@/client/repository'
 

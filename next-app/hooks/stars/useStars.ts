@@ -2,7 +2,9 @@
 
 import { create } from 'zustand'
 import { Option } from '@/components/ui/multiple-selector'
-import type { Repository } from '@/actions/neo4j'
+import { useFetch } from '@/hooks/util'
+import { IRepoSearchWithLanguage, IRepository } from '@/client/repository'
+import { useCallback } from 'react'
 
 interface SelectState {
   selected: Option[]
@@ -13,8 +15,8 @@ interface SelectState {
   setCount: (count: number) => void
   page: number
   setPage: (page: number) => void
-  results: Repository[]
-  setResults: (results: Repository[]) => void
+  results: IRepository[]
+  setResults: (results: IRepository[]) => void
 }
 
 const selectState = create<SelectState>(set => ({
@@ -31,38 +33,40 @@ const selectState = create<SelectState>(set => ({
 }))
 
 const useStars = () => {
-  const { selected, setSelected, count, setCount, page, setPage, isSearching, setIsSearching, results, setResults } =
-    selectState()
+  const { selected, setSelected, count, setCount, page, setPage, setIsSearching, results, setResults } = selectState()
 
-  const search = async (page: number) => {
-    if (selected.length === 0) return
-    try {
-      setIsSearching(true)
-      setPage(page)
-      const results = await fetch('/api/repos', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          page: page,
-          languages: selected.map(({ value }) => value),
-          limit: 20,
-        }),
-      })
+  const { data, isLoading, run } = useFetch<IRepoSearchWithLanguage>({
+    initialRun: false,
+    config: {
+      url: '/repository',
+      method: 'GET',
+    },
+    onSuccess: data => {
+      setResults(data.data)
+      setCount(data.total)
+    },
+  })
 
-      const { total, repos } = await results.json()
-      setResults(repos)
-      setCount(total)
-    } catch (error) {
-      console.error(error)
-    } finally {
-      setIsSearching(false)
-    }
-  }
+  const search = useCallback(
+    async (page: number) => {
+      if (selected.length === 0) return
+      try {
+        setPage(page)
+        await run({
+          params: { languages: selected.map(e => e.value).join(','), page: page.toString(), limit: '20' },
+        })
+      } catch (error) {
+        console.error(error)
+      } finally {
+      }
+    },
+    [selected, run, setCount, setIsSearching, setPage],
+  )
 
   return {
     selected,
     setSelected,
-    isSearching,
+    isLoading,
     count,
     results,
     search,

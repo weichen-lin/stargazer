@@ -30,7 +30,7 @@ export default function GridRepo(props: IRepository & { index: number }) {
       animate={{ opacity: 1, y: 0, transition: { delay: index * 0.05 } }}
       className={clsx(
         'shadow-md bg-white dark:bg-slate-700/30 w-[365px] p-3 flex flex-col rounded-md h-[170px]',
-        'border-[1px] dark:border-slate-100/30 border-slate-500/10 mx-auto relative overflow-hidden',
+        'border-[1px] dark:border-slate-100/30 border-slate-500/10 mx-auto relative md:overflow-hidden',
       )}
       onHoverStart={() => setIsHover(true)}
       onHoverEnd={() => setIsHover(false)}
@@ -52,6 +52,23 @@ export default function GridRepo(props: IRepository & { index: number }) {
           >
             {language}
           </Badge>
+          <div className='flex gap-x-2 md:hidden'>
+            <a href={html_url} target='_blank'>
+              <Button size='sm' variant='outline'>
+                <ExternalLink className='w-4 h-4' />
+              </Button>
+            </a>
+            <Button
+              size='sm'
+              variant='outline'
+              onClick={() => {
+                setRepoID(repo_id)
+                setOpen(true)
+              }}
+            >
+              <DoorOpen className='w-4 h-4' />
+            </Button>
+          </div>
           <DayAgo dateString={updated_at} />
         </div>
         <div className='grid grid-cols-2'>

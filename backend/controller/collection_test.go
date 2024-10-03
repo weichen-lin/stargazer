@@ -10,22 +10,24 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-faker/faker/v4"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	"github.com/weichen-lin/stargazer/db"
 	"github.com/weichen-lin/stargazer/domain"
 )
 
-func Test_GetFolder(t *testing.T) {
+func Test_GetCollection(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	r := gin.Default()
 
-	r.GET("/folder", NewTestJWTAuth(), testController.GetFolder)
+	r.GET("/collection", NewTestJWTAuth(), testController.GetCollections)
+	r.GET("/collection/:id", NewTestJWTAuth(), testController.GetCollection)
 
 	user, token := createUserWithToken(t)
 
 	t.Run("Unauthorized request", func(t *testing.T) {
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("GET", "/folder", nil)
+		req, _ := http.NewRequest("GET", "/collection", nil)
 
 		r.ServeHTTP(w, req)
 
@@ -34,14 +36,14 @@ func Test_GetFolder(t *testing.T) {
 
 	t.Run("Test invalid query", func(t *testing.T) {
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("GET", "/folder?invalid=asda", nil)
+		req, _ := http.NewRequest("GET", "/collection?invalid=asda", nil)
 		req.Header.Set("Authorization", token)
 
 		r.ServeHTTP(w, req)
 		require.Equal(t, http.StatusBadRequest, w.Code)
 
 		w = httptest.NewRecorder()
-		req, _ = http.NewRequest("GET", "/folder?id=", nil)
+		req, _ = http.NewRequest("GET", "/collection/asdasd", nil)
 		req.Header.Set("Authorization", token)
 
 		r.ServeHTTP(w, req)
@@ -49,18 +51,18 @@ func Test_GetFolder(t *testing.T) {
 	})
 
 	t.Run("Test real result", func(t *testing.T) {
-		folder := createFolder(t, user)
+		collection := createCollection(t, user)
 
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("GET", fmt.Sprintf("/folder?id=%s", "invalid-id"), nil)
+		req, _ := http.NewRequest("GET", fmt.Sprintf("/collection/%s", uuid.New().String()), nil)
 		req.Header.Set("Authorization", token)
 
 		r.ServeHTTP(w, req)
 		require.Equal(t, http.StatusNotFound, w.Code)
 
-		var response *domain.FolderEntity
+		var response *domain.CollectionEntity
 		w = httptest.NewRecorder()
-		req, _ = http.NewRequest("GET", fmt.Sprintf("/folder?id=%s", folder.Id().String()), nil)
+		req, _ = http.NewRequest("GET", fmt.Sprintf("/collection/%s", collection.Id().String()), nil)
 		req.Header.Set("Authorization", token)
 
 		r.ServeHTTP(w, req)
@@ -68,31 +70,32 @@ func Test_GetFolder(t *testing.T) {
 		require.NoError(t, err)
 
 		require.Equal(t, http.StatusOK, w.Code)
-		require.Equal(t, folder.Id().String(), response.Id)
-		require.Equal(t, folder.Name(), response.Name)
+		require.Equal(t, collection.Id().String(), response.Id)
+		require.Equal(t, collection.Name(), response.Name)
 	})
 }
 
-func Test_CreateAndRemoveFolder(t *testing.T) {
+func Test_CreateAndRemoveCollection(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	r := gin.Default()
 
-	r.GET("/folder", NewTestJWTAuth(), testController.GetFolder)
-	r.POST("/folder", NewTestJWTAuth(), testController.CreateFolder)
-	r.DELETE("/folder", NewTestJWTAuth(), testController.DeleteFolder)
+	r.GET("/collection", NewTestJWTAuth(), testController.GetCollections)
+	r.GET("/collection/:id", NewTestJWTAuth(), testController.GetCollection)
+	r.POST("/collection", NewTestJWTAuth(), testController.CreateCollection)
+	r.DELETE("/collection", NewTestJWTAuth(), testController.DeleteCollection)
 
 	user, token := createUserWithToken(t)
 
 	t.Run("Unauthorized request", func(t *testing.T) {
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("POST", "/folder", nil)
+		req, _ := http.NewRequest("POST", "/collection", nil)
 
 		r.ServeHTTP(w, req)
 
 		require.Equal(t, http.StatusUnauthorized, w.Code)
 
 		w = httptest.NewRecorder()
-		req, _ = http.NewRequest("DELETE", "/folder", nil)
+		req, _ = http.NewRequest("DELETE", "/collection", nil)
 
 		r.ServeHTTP(w, req)
 
@@ -104,14 +107,28 @@ func Test_CreateAndRemoveFolder(t *testing.T) {
 		require.NoError(t, err)
 
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("POST", "/folder", bytes.NewBuffer(body))
+		req, _ := http.NewRequest("POST", "/collection", bytes.NewBuffer(body))
 		req.Header.Set("Authorization", token)
 
 		r.ServeHTTP(w, req)
 		require.Equal(t, http.StatusBadRequest, w.Code)
 
 		w = httptest.NewRecorder()
-		req, _ = http.NewRequest("DELETE", "/folder?name=", bytes.NewBuffer(body))
+		req, _ = http.NewRequest("DELETE", "/collection", bytes.NewBuffer(body))
+		req.Header.Set("Authorization", token)
+
+		r.ServeHTTP(w, req)
+		require.Equal(t, http.StatusBadRequest, w.Code)
+
+		w = httptest.NewRecorder()
+		req, _ = http.NewRequest("GET", "/collection?page=asda&limit=1", bytes.NewBuffer(body))
+		req.Header.Set("Authorization", token)
+
+		r.ServeHTTP(w, req)
+		require.Equal(t, http.StatusBadRequest, w.Code)
+
+		w = httptest.NewRecorder()
+		req, _ = http.NewRequest("GET", "/collection?page=1&limit=asd", bytes.NewBuffer(body))
 		req.Header.Set("Authorization", token)
 
 		r.ServeHTTP(w, req)
@@ -119,38 +136,38 @@ func Test_CreateAndRemoveFolder(t *testing.T) {
 	})
 
 	t.Run("Test real result", func(t *testing.T) {
-		folder := createFolder(t, user)
+		collection := createCollection(t, user)
 
-		duplicateBody, err := json.Marshal(&CreateFolderRequest{
-			Name: folder.Name(),
+		duplicateBody, err := json.Marshal(&CreateCollectionRequest{
+			Name: collection.Name(),
 		})
 		require.NoError(t, err)
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("POST", "/folder", bytes.NewBuffer(duplicateBody))
+		req, _ := http.NewRequest("POST", "/collection", bytes.NewBuffer(duplicateBody))
 		req.Header.Set("Authorization", token)
 
 		r.ServeHTTP(w, req)
 		require.Equal(t, http.StatusConflict, w.Code)
 
 		test_name := faker.Name()
-		body, err := json.Marshal(&CreateFolderRequest{
+		body, err := json.Marshal(&CreateCollectionRequest{
 			Name: test_name,
 		})
 		require.NoError(t, err)
 
 		w = httptest.NewRecorder()
-		req, _ = http.NewRequest("POST", "/folder", bytes.NewBuffer(body))
+		req, _ = http.NewRequest("POST", "/collection", bytes.NewBuffer(body))
 		req.Header.Set("Authorization", token)
 
 		r.ServeHTTP(w, req)
 		require.Equal(t, http.StatusCreated, w.Code)
 
-		var response *domain.FolderEntity
+		var response *domain.CollectionEntity
 		err = json.NewDecoder(w.Body).Decode(&response)
 		require.NoError(t, err)
 
 		w = httptest.NewRecorder()
-		req, _ = http.NewRequest("GET", fmt.Sprintf("/folder?id=%s", response.Id), nil)
+		req, _ = http.NewRequest("GET", fmt.Sprintf("/collection/%s", response.Id), nil)
 		req.Header.Set("Authorization", token)
 
 		r.ServeHTTP(w, req)
@@ -159,47 +176,69 @@ func Test_CreateAndRemoveFolder(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, response.Name, test_name)
 
-		body, err = json.Marshal(&DeleteFolderRequest{
+		body, err = json.Marshal(&DeleteCollectionRequest{
 			Id: response.Id,
 		})
 		require.NoError(t, err)
 
 		w = httptest.NewRecorder()
-		req, _ = http.NewRequest("DELETE", "/folder", bytes.NewBuffer(body))
+		req, _ = http.NewRequest("DELETE", "/collection", bytes.NewBuffer(body))
 		req.Header.Set("Authorization", token)
 
 		r.ServeHTTP(w, req)
 		require.Equal(t, http.StatusOK, w.Code)
 
 		w = httptest.NewRecorder()
-		req, _ = http.NewRequest("GET", fmt.Sprintf("/folder?id=%s", response.Id), nil)
+		req, _ = http.NewRequest("GET", fmt.Sprintf("/collection/%s", response.Id), nil)
 		req.Header.Set("Authorization", token)
 
 		r.ServeHTTP(w, req)
 		require.Equal(t, http.StatusNotFound, w.Code)
 	})
+
+	t.Run("Test get collections", func(t *testing.T) {
+		user, token := createUserWithToken(t)
+
+		for i := 0; i < 25; i++ {
+			createCollection(t, user)
+		}
+
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("GET", "/collection?page=1&limit=20", nil)
+		req.Header.Set("Authorization", token)
+
+		r.ServeHTTP(w, req)
+		require.Equal(t, http.StatusOK, w.Code)
+
+		var response *db.CollectionSearchResult
+		err := json.NewDecoder(w.Body).Decode(&response)
+		require.NoError(t, err)
+
+		require.Len(t, response.Data, 20)
+		require.Equal(t, int64(25), response.Total)
+	})
 }
 
-func Test_AddAndRemoveRepoIntoFolder(t *testing.T) {
+func Test_AddAndRemoveRepoIntoCollection(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	r := gin.Default()
 
-	r.GET("/folder/repos", NewTestJWTAuth(), testController.GetReposInFolder)
-	r.POST("/folder/repos", NewTestJWTAuth(), testController.AddRepoIntoFolder)
-	r.DELETE("/folder/repos", NewTestJWTAuth(), testController.RemoveRepoFromFolder)
+	r.GET("/collection/repos", NewTestJWTAuth(), testController.GetReposInCollection)
+	r.POST("/collection/repos", NewTestJWTAuth(), testController.AddRepoIntoCollection)
+	r.DELETE("/collection/repos", NewTestJWTAuth(), testController.RemoveRepoFromCollection)
 
 	user, token := createUserWithToken(t)
 
 	t.Run("Unauthorized request", func(t *testing.T) {
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("POST", "/folder/repos", nil)
+		req, _ := http.NewRequest("POST", "/collection/repos", nil)
 
 		r.ServeHTTP(w, req)
 
 		require.Equal(t, http.StatusUnauthorized, w.Code)
 
 		w = httptest.NewRecorder()
-		req, _ = http.NewRequest("DELETE", "/folder/repos", nil)
+		req, _ = http.NewRequest("DELETE", "/collection/repos", nil)
 
 		r.ServeHTTP(w, req)
 
@@ -211,14 +250,14 @@ func Test_AddAndRemoveRepoIntoFolder(t *testing.T) {
 		require.NoError(t, err)
 
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("POST", "/folder/repos", bytes.NewBuffer(body))
+		req, _ := http.NewRequest("POST", "/collection/repos", bytes.NewBuffer(body))
 		req.Header.Set("Authorization", token)
 
 		r.ServeHTTP(w, req)
 		require.Equal(t, http.StatusBadRequest, w.Code)
 
 		w = httptest.NewRecorder()
-		req, _ = http.NewRequest("DELETE", "/folder/repos", bytes.NewBuffer(body))
+		req, _ = http.NewRequest("DELETE", "/collection/repos", bytes.NewBuffer(body))
 		req.Header.Set("Authorization", token)
 
 		r.ServeHTTP(w, req)
@@ -226,7 +265,7 @@ func Test_AddAndRemoveRepoIntoFolder(t *testing.T) {
 	})
 
 	t.Run("Test real result", func(t *testing.T) {
-		folder := createFolder(t, user)
+		collection := createCollection(t, user)
 
 		repos := make([]int64, 25)
 		for i := 0; i < 25; i++ {
@@ -234,21 +273,21 @@ func Test_AddAndRemoveRepoIntoFolder(t *testing.T) {
 			repos[i] = repo.RepoID()
 		}
 
-		body, err := json.Marshal(&FolderRepoRequest{
-			Id:      folder.Id().String(),
+		body, err := json.Marshal(&CollectionRepoRequest{
+			Id:      collection.Id().String(),
 			RepoIds: repos,
 		})
 		require.NoError(t, err)
 
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("POST", "/folder/repos", bytes.NewBuffer(body))
+		req, _ := http.NewRequest("POST", "/collection/repos", bytes.NewBuffer(body))
 		req.Header.Set("Authorization", token)
 
 		r.ServeHTTP(w, req)
 		require.Equal(t, http.StatusCreated, w.Code)
 
 		w = httptest.NewRecorder()
-		req, _ = http.NewRequest("GET", fmt.Sprintf("/folder/repos?id=%s&page=1&limit=20", folder.Id().String()), nil)
+		req, _ = http.NewRequest("GET", fmt.Sprintf("/collection/repos?id=%s&page=1&limit=20", collection.Id().String()), nil)
 		req.Header.Set("Authorization", token)
 
 		r.ServeHTTP(w, req)
@@ -262,14 +301,14 @@ func Test_AddAndRemoveRepoIntoFolder(t *testing.T) {
 		require.Equal(t, response.Total, int64(25))
 
 		w = httptest.NewRecorder()
-		req, _ = http.NewRequest("DELETE", "/folder/repos", bytes.NewBuffer(body))
+		req, _ = http.NewRequest("DELETE", "/collection/repos", bytes.NewBuffer(body))
 		req.Header.Set("Authorization", token)
 
 		r.ServeHTTP(w, req)
 		require.Equal(t, http.StatusOK, w.Code)
 
 		w = httptest.NewRecorder()
-		req, _ = http.NewRequest("GET", fmt.Sprintf("/folder/repos?id=%s&page=1&limit=20", folder.Id().String()), nil)
+		req, _ = http.NewRequest("GET", fmt.Sprintf("/collection/repos?id=%s&page=1&limit=20", collection.Id().String()), nil)
 		req.Header.Set("Authorization", token)
 
 		r.ServeHTTP(w, req)

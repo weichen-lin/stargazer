@@ -3,7 +3,7 @@ import { usePathname } from 'next/navigation'
 const Bars = [
   { name: 'Dashboard', path: 'dashboard' },
   { name: 'My Stars', path: 'stars' },
-  { name: 'Start Chat', path: 'chats' },
+  { name: 'Collections', path: 'collections' },
 ]
 
 function getFirstPath(pathname: string): string | null {

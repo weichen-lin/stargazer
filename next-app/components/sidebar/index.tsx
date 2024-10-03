@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion'
 import clsx from 'clsx'
 import Link from 'next/link'
-import { StarIcon, ChatBubbleIcon, ExitIcon, DashboardIcon } from '@radix-ui/react-icons'
+import { StarIcon, ExitIcon, DashboardIcon, MixIcon } from '@radix-ui/react-icons'
 import { Button } from '@/components/ui/button'
 import { signOut } from 'next-auth/react'
 import { useUser } from '@/context/user'
@@ -12,7 +12,7 @@ import { usePathname } from 'next/navigation'
 const Bars = [
   { name: 'Dashboard', icon: <DashboardIcon />, path: 'dashboard' },
   { name: 'My Stars', icon: <StarIcon />, path: 'stars' },
-  { name: 'Start Chat', icon: <ChatBubbleIcon />, path: 'chats' },
+  { name: 'Collections', icon: <MixIcon />, path: 'collections' },
 ]
 
 export default function Sidebar() {

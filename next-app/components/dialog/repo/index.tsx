@@ -52,7 +52,6 @@ export default function Detail() {
         )}
         <Footer />
       </DialogContent>
-      <Footer />
     </Dialog>
   )
 }

@@ -48,6 +48,16 @@ class RepositoryClient extends BaseClient {
   fullTextSearch(query: string) {
     return this.get<IRepository[]>(`/repository/full-text-search?query=${query}`)
   }
+
+  getReposWithLanguage(languages: string, page: string, limit: string) {
+    const params = new URLSearchParams({
+      languages,
+      page,
+      limit,
+    })
+
+    return this.get<{ total: number; data: IRepository[] }>('/repository', params)
+  }
 }
 
 export default RepositoryClient

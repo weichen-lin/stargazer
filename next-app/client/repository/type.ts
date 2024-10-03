@@ -35,3 +35,8 @@ export interface IRepository {
   last_synced_at: string
   last_modified_at: string
 }
+
+export interface IRepoSearchWithLanguage {
+  total: number
+  data: IRepository[]
+}

@@ -5,9 +5,9 @@ import { Loading, Empty } from './status'
 import Repo from './repo'
 
 export default function Results() {
-  const { isLoading, results } = useStars()
+  const { isSearching, results } = useStars()
 
-  if (isLoading) {
+  if (isSearching) {
     return <Loading />
   }
 
@@ -16,7 +16,7 @@ export default function Results() {
   }
 
   return (
-    <div className={`w-full h-full md:grid md:grid-cols-2 xl:grid-cols-3 3xl:grid-cols-4 gap-4 py-4 flex flex-col`}>
+    <div className='w-full h-full md:grid md:grid-cols-2 xl:grid-cols-3 3xl:grid-cols-4 gap-4 py-4 flex flex-col content-start'>
       {results.map((item, index) => (
         <Repo key={item.repo_id} {...item} index={index} />
       ))}

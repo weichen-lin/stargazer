@@ -39,7 +39,7 @@ export default function TrendRepos() {
   }, [language, since])
 
   return (
-    <Card className='flex flex-col h-[320px] w-full max-w-[380px] md:max-w-none'>
+    <Card className='flex flex-col h-[320px] w-full max-w-[380px] md:max-w-none overflow-x-hidden'>
       <CardHeader className='items-start pb-0 gap-y-0'>
         <CardTitle className='text-xl flex gap-x-4 justify-between w-full'>
           <div className='flex items-center gap-x-3'>

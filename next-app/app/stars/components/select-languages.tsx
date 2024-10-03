@@ -1,6 +1,6 @@
 'use client'
 
-import MultipleSelector, { Option } from '@/components/ui/multiple-selector'
+import MultipleSelector from '@/components/ui/multiple-selector'
 import { useStars } from '@/hooks/stars'
 import { Button } from '@/components/ui/button'
 import { FixPagination } from '@/components/tab'
@@ -45,6 +45,7 @@ const SelectLanguage = () => {
           search(1)
         }}
         className='w-20 h-10 mb-2'
+        disabled={isLoading || selected.length === 0}
       >
         Search
       </Button>

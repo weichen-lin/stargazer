@@ -1,18 +1,21 @@
 'use client'
 
-import clsx from 'clsx'
+import { cn } from '@/lib/utils'
+import { Operator, Collections } from './components'
 
-export default function Dashboard() {
+export default function CollectionPage() {
   return (
     <div
-      className={clsx(
-        'flex flex-col items-center dark:bg-black',
-        'w-full flex-1 overflow-y-auto px-[2.5%] 3xl:py-8 gap-y-3',
-        'lg:grid lg:grid-cols-2 lg:gap-x-3 lg:gap-y-3 xl:grid-cols-3 xl:gap-x-3 xl:gap-y-3',
-        'lg:content-around',
+      className={cn(
+        'flex flex-col items-start dark:bg-black',
+        'w-full flex-1 3xl:py-8 gap-y-3',
+        'lg:content-around p-6',
       )}
     >
-      123
+      <div className='md:pl-3'>
+        <Operator />
+      </div>
+      <Collections />
     </div>
   )
 }

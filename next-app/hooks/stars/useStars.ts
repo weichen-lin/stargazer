@@ -33,9 +33,10 @@ const selectState = create<SelectState>(set => ({
 }))
 
 const useStars = () => {
-  const { selected, setSelected, count, setCount, page, setPage, setIsSearching, results, setResults } = selectState()
+  const { selected, setSelected, count, setCount, page, setPage, isSearching, setIsSearching, results, setResults } =
+    selectState()
 
-  const { data, isLoading, run } = useFetch<IRepoSearchWithLanguage>({
+  const { run } = useFetch<IRepoSearchWithLanguage>({
     initialRun: false,
     config: {
       url: '/repository',
@@ -51,6 +52,7 @@ const useStars = () => {
     async (page: number) => {
       if (selected.length === 0) return
       try {
+        setIsSearching(true)
         setPage(page)
         await run({
           params: { languages: selected.map(e => e.value).join(','), page: page.toString(), limit: '20' },
@@ -58,6 +60,7 @@ const useStars = () => {
       } catch (error) {
         console.error(error)
       } finally {
+        setIsSearching(false)
       }
     },
     [selected, run, setCount, setIsSearching, setPage],
@@ -66,7 +69,7 @@ const useStars = () => {
   return {
     selected,
     setSelected,
-    isLoading,
+    isSearching,
     count,
     results,
     search,

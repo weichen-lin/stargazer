@@ -65,5 +65,15 @@ func main() {
 		tag.DELETE("/", c.DeleteTag)
 	}
 
+	collection := r.Group("/collection", m.JWTAuth())
+	{
+		collection.GET("/", c.GetCollections)
+		collection.GET("/:id", c.GetCollection)
+		collection.POST("/", c.CreateCollection)
+		collection.DELETE("/", c.DeleteCollection)
+		collection.POST("/repo", c.AddRepoIntoCollection)
+		collection.DELETE("/repo", c.RemoveRepoFromCollection)
+	}
+
 	r.Run(":" + port)
 }

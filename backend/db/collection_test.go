@@ -8,22 +8,22 @@ import (
 	"github.com/weichen-lin/stargazer/domain"
 )
 
-func Test_SaveFolder(t *testing.T) {
+func Test_SaveCollection(t *testing.T) {
 	user, ctx := createFakeUser(t)
 
-	folder, err := domain.NewFolder(faker.Name())
+	collection, err := domain.NewCollection(faker.Name())
 	require.NoError(t, err)
 
-	err = db.SaveFolder(ctx, folder)
+	err = db.SaveCollection(ctx, collection)
 	require.NoError(t, err)
 
-	checkFolder, err := db.GetFolderById(ctx, folder.Id().String())
+	checkCollection, err := db.GetCollectionById(ctx, collection.Id().String())
 	require.NoError(t, err)
-	require.Equal(t, folder.Id(), checkFolder.Id())
+	require.Equal(t, collection.Id(), checkCollection.Id())
 
-	checkFolder, err = db.GetFolderByName(ctx, folder.Name())
+	checkCollection, err = db.GetCollectionByName(ctx, collection.Name())
 	require.NoError(t, err)
-	require.Equal(t, folder.Name(), checkFolder.Name())
+	require.Equal(t, collection.Name(), checkCollection.Name())
 
 	total := 25
 
@@ -34,23 +34,23 @@ func Test_SaveFolder(t *testing.T) {
 		repoIds[i] = repo.RepoID()
 	}
 
-	err = db.AddRepoToFolder(ctx, checkFolder, repoIds)
+	err = db.AddRepoToCollection(ctx, checkCollection, repoIds)
 	require.NoError(t, err)
 
-	repos, err := db.GetFolderContainRepos(ctx, checkFolder, 1, 20)
+	repos, err := db.GetCollectionContainRepos(ctx, checkCollection, 1, 20)
 	require.NoError(t, err)
 	require.Len(t, repos.Data, 20)
 	require.Equal(t, repos.Total, int64(25))
 
-	repos, err = db.GetFolderContainRepos(ctx, checkFolder, 2, 20)
+	repos, err = db.GetCollectionContainRepos(ctx, checkCollection, 2, 20)
 	require.NoError(t, err)
 	require.Len(t, repos.Data, 5)
 	require.Equal(t, repos.Total, int64(25))
 
-	err = db.DeleteRepoFromFolder(ctx, checkFolder, repoIds)
+	err = db.DeleteRepoFromCollection(ctx, checkCollection, repoIds)
 	require.NoError(t, err)
 
-	repos, err = db.GetFolderContainRepos(ctx, checkFolder, 1, 25)
+	repos, err = db.GetCollectionContainRepos(ctx, checkCollection, 1, 25)
 	require.NoError(t, err)
 	require.Len(t, repos.Data, 0)
 	require.Equal(t, repos.Total, int64(0))
@@ -60,27 +60,27 @@ func Test_SaveFolder(t *testing.T) {
 		repoIds[i] = repo.RepoID()
 	}
 
-	err = db.AddRepoToFolder(ctx, checkFolder, repoIds)
+	err = db.AddRepoToCollection(ctx, checkCollection, repoIds)
 	require.NoError(t, err)
 
-	err = db.DeleteFolder(ctx, folder.Id().String())
+	err = db.DeleteCollection(ctx, collection.Id().String())
 	require.NoError(t, err)
 
-	_, err = db.GetFolderById(ctx, folder.Id().String())
+	_, err = db.GetCollectionById(ctx, collection.Id().String())
 	require.Error(t, err)
 }
 
-func Test_GetFolderByPage(t *testing.T) {
+func Test_GetCollectionByPage(t *testing.T) {
 	_, ctx := createFakeUser(t)
 
 	for i := 0; i < 25; i++ {
-		folder, err := domain.NewFolder(faker.Name())
+		collection, err := domain.NewCollection(faker.Name())
 		require.NoError(t, err)
-		err = db.SaveFolder(ctx, folder)
+		err = db.SaveCollection(ctx, collection)
 		require.NoError(t, err)
 	}
 
-	result, err := db.GetFolders(ctx, &PagingParams{
+	result, err := db.GetCollections(ctx, &PagingParams{
 		Page:  1,
 		Limit: 20,
 	})

@@ -10,15 +10,15 @@ import (
 	"github.com/weichen-lin/stargazer/domain"
 )
 
-var ErrorNotFoundFolder = errors.New("folder not found")
+var ErrorNotFoundCollection = errors.New("collection not found")
 
-func (db *Database) SaveFolder(ctx context.Context, folder *domain.Folder) error {
+func (db *Database) SaveCollection(ctx context.Context, collection *domain.Collection) error {
 	email, ok := EmailFromContext(ctx)
 	if !ok {
 		return ErrNotFoundEmailAtContext
 	}
 
-	entity := folder.ToFolderEntity()
+	entity := collection.ToCollectionEntity()
 
 	session := db.Driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	defer session.Close(context.Background())
@@ -26,21 +26,21 @@ func (db *Database) SaveFolder(ctx context.Context, folder *domain.Folder) error
 	result, err := session.ExecuteWrite(context.Background(), func(tx neo4j.ManagedTransaction) (any, error) {
 		result, err := tx.Run(context.Background(), `
 			MATCH (u:User {email: $email})
-			MERGE (u)-[h:HAS_FOLDER]-(f:Folder {name: $name})
-			ON CREATE SET f += {
+			MERGE (u)-[h:HAS_COLLECT]-(c:Collection {name: $name})
+			ON CREATE SET c += {
 				id: $id,
 				name: $name,
 				is_public: $is_public,
 				created_at: $created_at,
 				updated_at: $updated_at
 			}
-			ON MATCH SET f += {
+			ON MATCH SET c += {
 				name: $name,
 				is_public: $is_public,
 				updated_at: $updated_at
 			}
-			WITH f
-			RETURN elementId(f) as id
+			WITH c
+			RETURN elementId(c) as id
 			`,
 			map[string]interface{}{
 				"email":      email,
@@ -62,12 +62,12 @@ func (db *Database) SaveFolder(ctx context.Context, folder *domain.Folder) error
 		return err
 	}
 
-	tagRecord, ok := result.(*neo4j.Record)
+	collectionRecord, ok := result.(*neo4j.Record)
 	if !ok {
-		return fmt.Errorf("error at converting tag records to *neo4j.Record")
+		return fmt.Errorf("error at converting collection records to *neo4j.Record")
 	}
 
-	record := tagRecord.AsMap()
+	record := collectionRecord.AsMap()
 
 	_, ok = record["id"].(string)
 	if !ok {
@@ -77,7 +77,7 @@ func (db *Database) SaveFolder(ctx context.Context, folder *domain.Folder) error
 	return nil
 }
 
-func (db *Database) GetFolderById(ctx context.Context, id string) (*domain.Folder, error) {
+func (db *Database) GetCollectionById(ctx context.Context, id string) (*domain.Collection, error) {
 	email, ok := EmailFromContext(ctx)
 	if !ok {
 		return nil, ErrNotFoundEmailAtContext
@@ -88,14 +88,14 @@ func (db *Database) GetFolderById(ctx context.Context, id string) (*domain.Folde
 
 	result, err := session.ExecuteRead(context.Background(), func(tx neo4j.ManagedTransaction) (any, error) {
 		result, err := tx.Run(context.Background(), `
-			MATCH (u:User {email: $email})-[h:HAS_FOLDER]-(f:Folder {id: $id})
+			MATCH (u:User {email: $email})-[h:HAS_COLLECT]-(c:Collection {id: $id})
 			RETURN {
-				id: f.id,
-				name: f.name,
-				is_public: f.is_public,
-				created_at: f.created_at,
-				updated_at: f.updated_at
-			} as folder
+				id: c.id,
+				name: c.name,
+				is_public: c.is_public,
+				created_at: c.created_at,
+				updated_at: c.updated_at
+			} as collection
 			`,
 			map[string]interface{}{
 				"email": email,
@@ -113,20 +113,20 @@ func (db *Database) GetFolderById(ctx context.Context, id string) (*domain.Folde
 		return nil, err
 	}
 
-	folderRecord, ok := result.(*neo4j.Record)
+	collectionRecord, ok := result.(*neo4j.Record)
 	if !ok {
 		return nil, fmt.Errorf("error at converting tag records to *neo4j.Record")
 	}
 
-	record := folderRecord.AsMap()
+	record := collectionRecord.AsMap()
 
-	data, ok := record["folder"].(map[string]interface{})
+	data, ok := record["collection"].(map[string]interface{})
 	if !ok {
 		return nil, fmt.Errorf("error convert name from record: %v", record)
 	}
 
-	folder, err := domain.FromFolderEntity(
-		&domain.FolderEntity{
+	collection, err := domain.FromCollectionEntity(
+		&domain.CollectionEntity{
 			Id:        getString(data["id"]),
 			Name:      getString(data["name"]),
 			IsPublic:  getBool(data["is_public"]),
@@ -138,10 +138,10 @@ func (db *Database) GetFolderById(ctx context.Context, id string) (*domain.Folde
 		return nil, err
 	}
 
-	return folder, nil
+	return collection, nil
 }
 
-func (db *Database) GetFolderByName(ctx context.Context, name string) (*domain.Folder, error) {
+func (db *Database) GetCollectionByName(ctx context.Context, name string) (*domain.Collection, error) {
 	email, ok := EmailFromContext(ctx)
 	if !ok {
 		return nil, ErrNotFoundEmailAtContext
@@ -152,14 +152,14 @@ func (db *Database) GetFolderByName(ctx context.Context, name string) (*domain.F
 
 	result, err := session.ExecuteRead(context.Background(), func(tx neo4j.ManagedTransaction) (any, error) {
 		result, err := tx.Run(context.Background(), `
-			MATCH (u:User {email: $email})-[h:HAS_FOLDER]-(f:Folder {name: $name})
+			MATCH (u:User {email: $email})-[h:HAS_COLLECT]-(c:Collection {name: $name})
 			RETURN {
-				id: f.id,
-				name: f.name,
-				is_public: f.is_public,
-				created_at: f.created_at,
-				updated_at: f.updated_at
-			} as folder
+				id: c.id,
+				name: c.name,
+				is_public: c.is_public,
+				created_at: c.created_at,
+				updated_at: c.updated_at
+			} as collection
 			`,
 			map[string]interface{}{
 				"email": email,
@@ -177,20 +177,20 @@ func (db *Database) GetFolderByName(ctx context.Context, name string) (*domain.F
 		return nil, err
 	}
 
-	folderRecord, ok := result.(*neo4j.Record)
+	collectionRecord, ok := result.(*neo4j.Record)
 	if !ok {
-		return nil, fmt.Errorf("error at converting tag records to *neo4j.Record")
+		return nil, fmt.Errorf("error at converting collection records to *neo4j.Record")
 	}
 
-	record := folderRecord.AsMap()
+	record := collectionRecord.AsMap()
 
-	data, ok := record["folder"].(map[string]interface{})
+	data, ok := record["collection"].(map[string]interface{})
 	if !ok {
 		return nil, fmt.Errorf("error convert name from record: %v", record)
 	}
 
-	folder, err := domain.FromFolderEntity(
-		&domain.FolderEntity{
+	collection, err := domain.FromCollectionEntity(
+		&domain.CollectionEntity{
 			Id:        getString(data["id"]),
 			Name:      getString(data["name"]),
 			IsPublic:  getBool(data["is_public"]),
@@ -202,10 +202,10 @@ func (db *Database) GetFolderByName(ctx context.Context, name string) (*domain.F
 		return nil, err
 	}
 
-	return folder, nil
+	return collection, nil
 }
 
-func (db *Database) DeleteFolder(ctx context.Context, id string) error {
+func (db *Database) DeleteCollection(ctx context.Context, id string) error {
 	email, ok := EmailFromContext(ctx)
 	if !ok {
 		return ErrNotFoundEmailAtContext
@@ -216,10 +216,10 @@ func (db *Database) DeleteFolder(ctx context.Context, id string) error {
 
 	result, err := session.ExecuteWrite(context.Background(), func(tx neo4j.ManagedTransaction) (any, error) {
 		result, err := tx.Run(context.Background(), `
-			MATCH (u:User {email: $email})-[h:HAS_FOLDER]-(f:Folder {id: $id})
-			OPTIONAL MATCH (r:Repository)-[i:IS_LOCATE]->(f)
-			DELETE h, i, f
-			RETURN elementId(f) as id
+			MATCH (u:User {email: $email})-[h:HAS_COLLECT]-(c:Collection {id: $id})
+			OPTIONAL MATCH (r:Repository)-[i:IS_LOCATE]->(c)
+			DELETE h, i, c
+			RETURN elementId(c) as id
 			`,
 			map[string]interface{}{
 				"email": email,
@@ -238,12 +238,12 @@ func (db *Database) DeleteFolder(ctx context.Context, id string) error {
 		return err
 	}
 
-	folderRecord, ok := result.([]*neo4j.Record)
+	collectionRecord, ok := result.([]*neo4j.Record)
 	if !ok {
-		return fmt.Errorf("error at converting folder records to *neo4j.Record")
+		return fmt.Errorf("error at converting collection records to *neo4j.Record")
 	}
 
-	for _, record := range folderRecord {
+	for _, record := range collectionRecord {
 		record := record.AsMap()
 
 		_, ok = record["id"].(string)
@@ -260,12 +260,12 @@ type PagingParams struct {
 	Limit int64 `json:"limit"`
 }
 
-type FolderSearchResult struct {
+type CollectionSearchResult struct {
 	Total int64                  `json:"total"`
-	Data  []*domain.FolderEntity `json:"data"`
+	Data  []*domain.CollectionEntity `json:"data"`
 }
 
-func (db *Database) GetFolders(ctx context.Context, params *PagingParams) (*FolderSearchResult, error) {
+func (db *Database) GetCollections(ctx context.Context, params *PagingParams) (*CollectionSearchResult, error) {
 	email, ok := EmailFromContext(ctx)
 	if !ok {
 		return nil, ErrNotFoundEmailAtContext
@@ -276,19 +276,19 @@ func (db *Database) GetFolders(ctx context.Context, params *PagingParams) (*Fold
 
 	result, err := session.ExecuteRead(context.Background(), func(tx neo4j.ManagedTransaction) (any, error) {
 		result, err := tx.Run(context.Background(), `
-			MATCH (u:User {email: $email})-[h:HAS_FOLDER]-(f:Folder)
-			WITH u, COUNT(f) as total
-			MATCH (u)-[h:HAS_FOLDER]-(f)
-			WITH total, h, f
-			ORDER BY f.created_at DESC
+			MATCH (u:User {email: $email})-[h:HAS_COLLECT]-(c:Collection)
+			WITH u, COUNT(c) as total
+			MATCH (u)-[h:HAS_COLLECT]-(c)
+			WITH total, h, c
+			ORDER BY c.created_at DESC
 			SKIP $limit * ($page - 1)
 			LIMIT $limit
 			RETURN total, collect({
-				id: f.id,
-				name: f.name,
-				is_public: f.is_public,
-				created_at: f.created_at,
-				updated_at: f.updated_at
+				id: c.id,
+				name: c.name,
+				is_public: c.is_public,
+				created_at: c.created_at,
+				updated_at: c.updated_at
 			}) as data
 			`,
 			map[string]interface{}{
@@ -311,7 +311,7 @@ func (db *Database) GetFolders(ctx context.Context, params *PagingParams) (*Fold
 
 	record, ok := result.(*neo4j.Record)
 	if !ok {
-		return nil, fmt.Errorf("error at converting folder records to *neo4j.Record")
+		return nil, fmt.Errorf("error at converting collection records to *neo4j.Record")
 	}
 
 	recordMap := record.AsMap()
@@ -326,12 +326,12 @@ func (db *Database) GetFolders(ctx context.Context, params *PagingParams) (*Fold
 		return nil, fmt.Errorf("error convert id from record: %v", record)
 	}
 
-	folders := make([]*domain.FolderEntity, len(data))
+	collections := make([]*domain.CollectionEntity, len(data))
 
 	for i, r := range data {
 		folderMap := r.(map[string]interface{})
 
-		entity := &domain.FolderEntity{
+		entity := &domain.CollectionEntity{
 			Id:        getString(folderMap["id"]),
 			Name:      getString(folderMap["name"]),
 			IsPublic:  getBool(folderMap["is_public"]),
@@ -339,22 +339,22 @@ func (db *Database) GetFolders(ctx context.Context, params *PagingParams) (*Fold
 			UpdatedAt: getString(folderMap["updated_at"]),
 		}
 
-		folders[i] = entity
+		collections[i] = entity
 	}
 
-	return &FolderSearchResult{
-		Data:  folders,
+	return &CollectionSearchResult{
+		Data:  collections,
 		Total: total,
 	}, nil
 }
 
-func (db *Database) AddRepoToFolder(ctx context.Context, folder *domain.Folder, repoIds []int64) error {
+func (db *Database) AddRepoToCollection(ctx context.Context, collection *domain.Collection, repoIds []int64) error {
 	email, ok := EmailFromContext(ctx)
 	if !ok {
 		return ErrNotFoundEmailAtContext
 	}
 
-	entity := folder.ToFolderEntity()
+	entity := collection.ToCollectionEntity()
 
 	session := db.Driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	defer session.Close(context.Background())
@@ -362,19 +362,19 @@ func (db *Database) AddRepoToFolder(ctx context.Context, folder *domain.Folder, 
 	result, err := session.ExecuteWrite(context.Background(), func(tx neo4j.ManagedTransaction) (any, error) {
 		result, err := tx.Run(context.Background(), `
 			MATCH (u:User {email: $email})
-			MERGE (f:Folder {id: $id})
-			ON CREATE SET f += {
+			MERGE (c:Collection {id: $id})
+			ON CREATE SET c += {
 				id: $id,
 				name: $name,
 				created_at: $created_at,
 				updated_at: $updated_at
 			}
-			ON MATCH SET f.updated_at = $updated_at
-			MERGE (u)-[:HAS_FOLDER]->(f)
-			WITH u, f
+			ON MATCH SET c.updated_at = $updated_at
+			MERGE (u)-[:HAS_COLLECT]->(c)
+			WITH u, c
 			MATCH (r:Repository) 
 			WHERE r.repo_id IN $repos
-			MERGE (r)-[i:IS_LOCATE]->(f)
+			MERGE (r)-[i:IS_LOCATE]->(c)
 			ON MATCH SET i.created_at = datetime()
 			ON CREATE SET i.created_at = datetime()
 			RETURN i.created_at AS created_at
@@ -399,12 +399,12 @@ func (db *Database) AddRepoToFolder(ctx context.Context, folder *domain.Folder, 
 		return err
 	}
 
-	tagRecord, ok := result.([]*neo4j.Record)
+	collectionRecord, ok := result.([]*neo4j.Record)
 	if !ok {
-		return fmt.Errorf("error at converting tag records to *neo4j.Record")
+		return fmt.Errorf("error at converting collection records to *neo4j.Record")
 	}
 
-	for _, record := range tagRecord {
+	for _, record := range collectionRecord {
 		r := record.AsMap()
 		_, ok = r["created_at"].(time.Time)
 		if !ok {
@@ -415,25 +415,25 @@ func (db *Database) AddRepoToFolder(ctx context.Context, folder *domain.Folder, 
 	return nil
 }
 
-func (db *Database) DeleteRepoFromFolder(ctx context.Context, folder *domain.Folder, repoIds []int64) error {
+func (db *Database) DeleteRepoFromCollection(ctx context.Context, collection *domain.Collection, repoIds []int64) error {
 	email, ok := EmailFromContext(ctx)
 	if !ok {
 		return ErrNotFoundEmailAtContext
 	}
 
-	entity := folder.ToFolderEntity()
+	entity := collection.ToCollectionEntity()
 
 	session := db.Driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	defer session.Close(context.Background())
 
 	result, err := session.ExecuteWrite(context.Background(), func(tx neo4j.ManagedTransaction) (any, error) {
 		result, err := tx.Run(context.Background(), `
-			MATCH (u:User {email: $email})-[:HAS_FOLDER]->(f:Folder {id: $id})
-			MATCH (r:Repository)-[i:IS_LOCATE]->(f)
+			MATCH (u:User {email: $email})-[:HAS_COLLECT]->(c:Collection {id: $id})
+			MATCH (r:Repository)-[i:IS_LOCATE]->(c)
 			WHERE r.repo_id IN $repos
-			SET f.updated_at = $updated_at
+			SET c.updated_at = $updated_at
 			DELETE i
-			RETURN f.updated_at as updated_at
+			RETURN c.updated_at as updated_at
 			`,
 			map[string]interface{}{
 				"email":      email,
@@ -458,12 +458,12 @@ func (db *Database) DeleteRepoFromFolder(ctx context.Context, folder *domain.Fol
 		return err
 	}
 
-	tagRecord, ok := result.([]*neo4j.Record)
+	collectionRecord, ok := result.([]*neo4j.Record)
 	if !ok {
-		return fmt.Errorf("error at converting folder records to *neo4j.Record")
+		return fmt.Errorf("error at converting collection records to *neo4j.Record")
 	}
 
-	for _, record := range tagRecord {
+	for _, record := range collectionRecord {
 		r := record.AsMap()
 		_, ok = r["updated_at"].(string)
 		if !ok {
@@ -474,7 +474,7 @@ func (db *Database) DeleteRepoFromFolder(ctx context.Context, folder *domain.Fol
 	return nil
 }
 
-func (db *Database) GetFolderContainRepos(ctx context.Context, folder *domain.Folder, page int64, limit int64) (*SearchResult, error) {
+func (db *Database) GetCollectionContainRepos(ctx context.Context, collection *domain.Collection, page int64, limit int64) (*SearchResult, error) {
 	email, ok := EmailFromContext(ctx)
 	if !ok {
 		return nil, ErrNotFoundEmailAtContext
@@ -485,11 +485,11 @@ func (db *Database) GetFolderContainRepos(ctx context.Context, folder *domain.Fo
 
 	result, err := session.ExecuteRead(context.Background(), func(tx neo4j.ManagedTransaction) (any, error) {
 		result, err := tx.Run(context.Background(), `
-			MATCH (u:User {email: $email})-[h:HAS_FOLDER]-(f:Folder {id: $id})
-			MATCH (r:Repository)-[i:IS_LOCATE]->(f)
-			WITH f, COUNT(r) AS total
-			MATCH (r:Repository)-[i:IS_LOCATE]->(f)
-			WITH r, f, i.created_at AS created_at, total
+			MATCH (u:User {email: $email})-[h:HAS_COLLECT]-(c:Collection {id: $id})
+			MATCH (r:Repository)-[i:IS_LOCATE]->(c)
+			WITH c, COUNT(r) AS total
+			MATCH (r:Repository)-[i:IS_LOCATE]->(c)
+			WITH r, c, i.created_at AS created_at, total
 			ORDER BY created_at DESC
 			SKIP $limit * ($page - 1)
 			LIMIT $limit
@@ -517,7 +517,7 @@ func (db *Database) GetFolderContainRepos(ctx context.Context, folder *domain.Fo
 			`,
 			map[string]interface{}{
 				"email": email,
-				"id":    folder.Id().String(),
+				"id":    collection.Id().String(),
 				"limit": limit,
 				"page":  page,
 			})

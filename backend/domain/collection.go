@@ -7,7 +7,7 @@ import (
 	"github.com/google/uuid"
 )
 
-type Folder struct {
+type Collection struct {
 	id        uuid.UUID
 	name      string
 	isPublic  bool
@@ -15,7 +15,7 @@ type Folder struct {
 	updatedAt time.Time
 }
 
-type FolderEntity struct {
+type CollectionEntity struct {
 	Id        string `json:"id"`
 	Name      string `json:"name"`
 	IsPublic  bool   `json:"is_public"`
@@ -23,27 +23,27 @@ type FolderEntity struct {
 	UpdatedAt string `json:"updated_at"`
 }
 
-func (f *Folder) Id() uuid.UUID {
+func (f *Collection) Id() uuid.UUID {
 	return f.id
 }
 
-func (f *Folder) Name() string {
+func (f *Collection) Name() string {
 	return f.name
 }
 
-func (f *Folder) IsPublic() bool {
+func (f *Collection) IsPublic() bool {
 	return f.isPublic
 }
 
-func (f *Folder) CreatedAt() time.Time {
+func (f *Collection) CreatedAt() time.Time {
 	return f.createdAt
 }
 
-func (f *Folder) UpdatedAt() time.Time {
+func (f *Collection) UpdatedAt() time.Time {
 	return f.updatedAt
 }
 
-func (f *Folder) SetId(id string) error {
+func (f *Collection) SetId(id string) error {
 	uuid, err := uuid.Parse(id)
 	if err != nil {
 		return err
@@ -53,7 +53,7 @@ func (f *Folder) SetId(id string) error {
 	return nil
 }
 
-func (f *Folder) SetName(name string) error {
+func (f *Collection) SetName(name string) error {
 	if name == "" {
 		return errors.New("name cannot be empty")
 	}
@@ -66,11 +66,11 @@ func (f *Folder) SetName(name string) error {
 	return nil
 }
 
-func (f *Folder) SetIsPublic(isPublic bool) {
+func (f *Collection) SetIsPublic(isPublic bool) {
 	f.isPublic = isPublic
 }
 
-func (f *Folder) SetCreatedAt(s string) error {
+func (f *Collection) SetCreatedAt(s string) error {
 	if s == "" {
 		return errors.New("created time cannot be empty")
 	}
@@ -84,7 +84,7 @@ func (f *Folder) SetCreatedAt(s string) error {
 	return nil
 }
 
-func (f *Folder) SetUpdatedAt(s string) error {
+func (f *Collection) SetUpdatedAt(s string) error {
 	if s == "" {
 		return errors.New("updated time cannot be empty")
 	}
@@ -98,8 +98,8 @@ func (f *Folder) SetUpdatedAt(s string) error {
 	return nil
 }
 
-func (f *Folder) ToFolderEntity() *FolderEntity {
-	return &FolderEntity{
+func (f *Collection) ToCollectionEntity() *CollectionEntity {
+	return &CollectionEntity{
 		Id:        f.id.String(),
 		Name:      f.Name(),
 		IsPublic:  f.IsPublic(),
@@ -108,48 +108,48 @@ func (f *Folder) ToFolderEntity() *FolderEntity {
 	}
 }
 
-func FromFolderEntity(folderEntity *FolderEntity) (*Folder, error) {
-	folder := &Folder{}
+func FromCollectionEntity(entity *CollectionEntity) (*Collection, error) {
+	collection := &Collection{}
 
-	err := folder.SetId(folderEntity.Id)
+	err := collection.SetId(entity.Id)
 	if err != nil {
 		return nil, err
 	}
 
-	err = folder.SetName(folderEntity.Name)
+	err = collection.SetName(entity.Name)
 	if err != nil {
 		return nil, err
 	}
 
-	err = folder.SetCreatedAt(folderEntity.CreatedAt)
+	err = collection.SetCreatedAt(entity.CreatedAt)
 	if err != nil {
 		return nil, err
 	}
 
-	err = folder.SetUpdatedAt(folderEntity.UpdatedAt)
+	err = collection.SetUpdatedAt(entity.UpdatedAt)
 	if err != nil {
 		return nil, err
 	}
 
-	folder.SetIsPublic(folderEntity.IsPublic)
+	collection.SetIsPublic(entity.IsPublic)
 
-	return folder, nil
+	return collection, nil
 }
 
-func NewFolder(name string) (*Folder, error) {
-	folder := &Folder{}
-	folder.id = uuid.New()
+func NewCollection(name string) (*Collection, error) {
+	collection := &Collection{}
+	collection.id = uuid.New()
 
-	err := folder.SetName(name)
+	err := collection.SetName(name)
 	if err != nil {
 		return nil, err
 	}
 
-	folder.SetIsPublic(false)
+	collection.SetIsPublic(false)
 
 	now := time.Now()
-	folder.SetCreatedAt(now.Format(time.RFC3339))
-	folder.SetUpdatedAt(now.Format(time.RFC3339))
+	collection.SetCreatedAt(now.Format(time.RFC3339))
+	collection.SetUpdatedAt(now.Format(time.RFC3339))
 
-	return folder, nil
+	return collection, nil
 }

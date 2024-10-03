@@ -86,19 +86,19 @@ func createUserWithToken(t *testing.T) (*domain.User, string) {
 	return user, token
 }
 
-func createFolder(t *testing.T, user *domain.User) *domain.Folder {
-	folder, err := domain.NewFolder(faker.Name())
+func createCollection(t *testing.T, user *domain.User) *domain.Collection {
+	collection, err := domain.NewCollection(faker.Name())
 	require.NoError(t, err)
-	require.NotEmpty(t, folder)
+	require.NotEmpty(t, collection)
 
 	ctx, err := db.WithEmail(context.Background(), user.Email())
 	require.NoError(t, err)
 	require.NotEmpty(t, ctx)
 
-	err = testDB.SaveFolder(ctx, folder)
+	err = testDB.SaveCollection(ctx, collection)
 	require.NoError(t, err)
 
-	return folder
+	return collection
 }
 
 func TestMain(m *testing.M) {

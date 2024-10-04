@@ -16,19 +16,30 @@ type GetCollectionQuery struct {
 func (c *Controller) GetCollection(ctx *gin.Context) {
 	id := ctx.Param("id")
 
+	email, ok := db.EmailFromContext(ctx)
+	if !ok {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
 	_, err := uuid.Parse(id)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
 		return
 	}
 
-	collection, err := c.db.GetCollectionById(ctx, id)
+	sharedCollection, err := c.db.GetCollectionById(ctx, id)
 	if err != nil {
 		ctx.JSON(http.StatusNotFound, gin.H{"error": "collection not found"})
 		return
 	}
 
-	ctx.JSON(http.StatusOK, collection.ToCollectionEntity())
+	if sharedCollection.Owner != email && sharedCollection.SharedFrom == nil {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, sharedCollection)
 }
 
 type CreateCollectionRequest struct {
@@ -70,13 +81,13 @@ func (c *Controller) DeleteCollection(ctx *gin.Context) {
 		return
 	}
 
-	collection, err := c.db.GetCollectionById(ctx, body.Id)
+	sharedCollection, err := c.db.GetCollectionById(ctx, body.Id)
 	if err != nil {
 		ctx.JSON(http.StatusNotFound, gin.H{"error": "collection not found"})
 		return
 	}
 
-	err = c.db.DeleteCollection(ctx, collection.Id().String())
+	err = c.db.DeleteCollection(ctx, sharedCollection.Collection.Id)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
@@ -96,11 +107,13 @@ func (c *Controller) AddRepoIntoCollection(ctx *gin.Context) {
 		return
 	}
 
-	collection, err := c.db.GetCollectionById(ctx, body.Id)
+	sharedCollection, err := c.db.GetCollectionById(ctx, body.Id)
 	if err != nil {
 		ctx.JSON(http.StatusNotFound, gin.H{"error": "collection not found"})
 		return
 	}
+
+	collection, _ := domain.FromCollectionEntity(sharedCollection.Collection)
 
 	err = c.db.AddRepoToCollection(ctx, collection, body.RepoIds)
 	if err != nil {
@@ -117,11 +130,13 @@ func (c *Controller) RemoveRepoFromCollection(ctx *gin.Context) {
 		return
 	}
 
-	collection, err := c.db.GetCollectionById(ctx, body.Id)
+	sharedCollection, err := c.db.GetCollectionById(ctx, body.Id)
 	if err != nil {
 		ctx.JSON(http.StatusNotFound, gin.H{"error": "collection not found"})
 		return
 	}
+
+	collection, _ := domain.FromCollectionEntity(sharedCollection.Collection)
 
 	err = c.db.DeleteRepoFromCollection(ctx, collection, body.RepoIds)
 	if err != nil {
@@ -144,11 +159,13 @@ func (c Controller) GetReposInCollection(ctx *gin.Context) {
 		return
 	}
 
-	collection, err := c.db.GetCollectionById(ctx, query.Id)
+	sharedCollection, err := c.db.GetCollectionById(ctx, query.Id)
 	if err != nil {
 		ctx.JSON(http.StatusNotFound, gin.H{"error": "collection not found"})
 		return
 	}
+
+	collection, _ := domain.FromCollectionEntity(sharedCollection.Collection)
 
 	repos, err := c.db.GetCollectionContainRepos(ctx, collection, query.Page, query.Limit)
 	if err != nil {

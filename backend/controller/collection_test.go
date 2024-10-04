@@ -60,7 +60,7 @@ func Test_GetCollection(t *testing.T) {
 		r.ServeHTTP(w, req)
 		require.Equal(t, http.StatusNotFound, w.Code)
 
-		var response *domain.CollectionEntity
+		var response *db.SharedCollection
 		w = httptest.NewRecorder()
 		req, _ = http.NewRequest("GET", fmt.Sprintf("/collection/%s", collection.Id().String()), nil)
 		req.Header.Set("Authorization", token)
@@ -70,8 +70,9 @@ func Test_GetCollection(t *testing.T) {
 		require.NoError(t, err)
 
 		require.Equal(t, http.StatusOK, w.Code)
-		require.Equal(t, collection.Id().String(), response.Id)
-		require.Equal(t, collection.Name(), response.Name)
+		require.Equal(t, collection.Id().String(), response.Collection.Id)
+		require.Equal(t, user.Email(), response.Owner)
+		require.Nil(t, response.SharedFrom)
 	})
 }
 
@@ -172,9 +173,13 @@ func Test_CreateAndRemoveCollection(t *testing.T) {
 
 		r.ServeHTTP(w, req)
 		require.Equal(t, http.StatusOK, w.Code)
-		err = json.NewDecoder(w.Body).Decode(&response)
+
+		var getResponse *db.SharedCollection
+		err = json.NewDecoder(w.Body).Decode(&getResponse)
 		require.NoError(t, err)
-		require.Equal(t, response.Name, test_name)
+		require.Equal(t, response.Id, getResponse.Collection.Id)
+		require.Equal(t, user.Email(), getResponse.Owner)
+		require.Nil(t, getResponse.SharedFrom)
 
 		body, err = json.Marshal(&DeleteCollectionRequest{
 			Id: response.Id,

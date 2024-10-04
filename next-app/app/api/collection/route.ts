@@ -38,3 +38,19 @@ export async function POST(req: NextRequest) {
     })
   }
 }
+
+export async function DELETE(req: NextRequest) {
+  const { email } = await GetUser()
+  const data = await req.json()
+
+  try {
+    const client = new CollectionClient(email)
+
+    const res = await client.deleteCollection(data?.id)
+    return Response.json(res)
+  } catch (error) {
+    return new Response('error', {
+      status: 400,
+    })
+  }
+}

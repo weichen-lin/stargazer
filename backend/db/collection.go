@@ -77,70 +77,6 @@ func (db *Database) SaveCollection(ctx context.Context, collection *domain.Colle
 	return nil
 }
 
-func (db *Database) GetCollectionById(ctx context.Context, id string) (*domain.Collection, error) {
-	email, ok := EmailFromContext(ctx)
-	if !ok {
-		return nil, ErrNotFoundEmailAtContext
-	}
-
-	session := db.Driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
-	defer session.Close(context.Background())
-
-	result, err := session.ExecuteRead(context.Background(), func(tx neo4j.ManagedTransaction) (any, error) {
-		result, err := tx.Run(context.Background(), `
-			MATCH (u:User {email: $email})-[h:HAS_COLLECT]-(c:Collection {id: $id})
-			RETURN {
-				id: c.id,
-				name: c.name,
-				is_public: c.is_public,
-				created_at: c.created_at,
-				updated_at: c.updated_at
-			} as collection
-			`,
-			map[string]interface{}{
-				"email": email,
-				"id":    id,
-			})
-
-		if err != nil {
-			return nil, err
-		}
-		record, err := result.Single(context.Background())
-		return record, err
-	})
-
-	if err != nil {
-		return nil, err
-	}
-
-	collectionRecord, ok := result.(*neo4j.Record)
-	if !ok {
-		return nil, fmt.Errorf("error at converting tag records to *neo4j.Record")
-	}
-
-	record := collectionRecord.AsMap()
-
-	data, ok := record["collection"].(map[string]interface{})
-	if !ok {
-		return nil, fmt.Errorf("error convert name from record: %v", record)
-	}
-
-	collection, err := domain.FromCollectionEntity(
-		&domain.CollectionEntity{
-			Id:        getString(data["id"]),
-			Name:      getString(data["name"]),
-			IsPublic:  getBool(data["is_public"]),
-			CreatedAt: getString(data["created_at"]),
-			UpdatedAt: getString(data["updated_at"]),
-		},
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	return collection, nil
-}
-
 func (db *Database) GetCollectionByName(ctx context.Context, name string) (*domain.Collection, error) {
 	email, ok := EmailFromContext(ctx)
 	if !ok {
@@ -588,4 +524,230 @@ func (db *Database) GetCollectionContainRepos(ctx context.Context, collection *d
 		Data:  repos,
 		Total: total,
 	}, nil
+}
+
+func (db *Database) ShareCollection(ctx context.Context, collection *domain.Collection, shared_to string) error {
+	email, ok := EmailFromContext(ctx)
+	if !ok {
+		return ErrNotFoundEmailAtContext
+	}
+
+	entity := collection.ToCollectionEntity()
+
+	session := db.Driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
+	defer session.Close(context.Background())
+
+	result, err := session.ExecuteWrite(context.Background(), func(tx neo4j.ManagedTransaction) (any, error) {
+		result, err := tx.Run(context.Background(), `
+			MATCH (u:User {email: $email})-[h:HAS_COLLECT]-(c:Collection {id: $id})
+			MATCH (u2:User {email: $shared_to})
+			MERGE (c)-[s:SHARED_WITH]->(u2)
+			ON CREATE SET s.created_at = datetime()
+			ON MATCH SET s.updated_at = datetime()
+			RETURN elementId(s) as id
+			`,
+			map[string]interface{}{
+				"email":      email,
+				"id":         entity.Id,
+				"shared_to":     shared_to,				
+			})
+
+		if err != nil {
+			return nil, err
+		}
+		record, err := result.Single(context.Background())
+		return record, err
+	})
+
+	if err != nil {
+		return err
+	}
+
+	collectionRecord, ok := result.(*neo4j.Record)
+	if !ok {
+		return fmt.Errorf("error at converting collection records to *neo4j.Record")
+	}
+
+	record := collectionRecord.AsMap()
+
+	_, ok = record["id"].(string)
+	if !ok {
+		return fmt.Errorf("error convert name from record: %v", record)
+	}
+
+	return nil
+}
+
+type SharedFrom struct {
+	Email string `json:"email"`
+	Image string `json:"image"`
+	Name string `json:"name"`
+}
+
+type SharedCollection struct {
+	Owner string `json:"owner"`
+	Collection *domain.CollectionEntity `json:"collection"`
+	SharedFrom *SharedFrom `json:"shared_from"`
+}
+
+func (db *Database) GetCollectionById(ctx context.Context, id string) (*SharedCollection, error) {
+	email, ok := EmailFromContext(ctx)
+	if !ok {
+		return nil, ErrNotFoundEmailAtContext
+	}
+
+	session := db.Driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
+	defer session.Close(context.Background())
+
+	result, err := session.ExecuteRead(context.Background(), func(tx neo4j.ManagedTransaction) (any, error) {
+		result, err := tx.Run(context.Background(), `
+			MATCH (c:Collection {id: $id})
+			Optional MATCH (u2:User)-[:HAS_COLLECT]-(c)-[s:SHARED_WITH]->(u:User {email: $email})
+			Optional MATCH (u3 {email: $email})-[:HAS_COLLECT]-(c)
+			RETURN {
+				id: c.id,
+				name: c.name,
+				is_public: c.is_public,
+				created_at: c.created_at,
+				updated_at: c.updated_at
+			} as collection, {
+				email: u2.email,
+				image: u2.image,
+				name: u2.name
+			} as shared_from, {
+				email: u3.email
+			} as owner			 			
+			`,
+			map[string]interface{}{
+				"email": email,
+				"id":    id,
+			})
+
+		if err != nil {
+			return nil, err
+		}
+		record, err := result.Single(context.Background())
+		return record, err
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	collectionRecord, ok := result.(*neo4j.Record)
+	if !ok {
+		return nil, fmt.Errorf("error at converting tag records to *neo4j.Record")
+	}
+
+	record := collectionRecord.AsMap()
+	data, ok := record["collection"].(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("error convert name from record: %v", record)
+	}
+
+	shared := &SharedCollection{
+		Collection: &domain.CollectionEntity{
+			Id:        getString(data["id"]),
+			Name:      getString(data["name"]),
+			IsPublic:  getBool(data["is_public"]),
+			CreatedAt: getString(data["created_at"]),
+			UpdatedAt: getString(data["updated_at"]),
+		},
+		SharedFrom: nil,
+		Owner: getString(record["owner"].(map[string]interface{})["email"]),
+	}
+
+	user, ok := record["shared_from"].(map[string]interface{})
+	if ok && getString(user["email"]) != "" {
+		shared.SharedFrom = &SharedFrom{
+			Email: getString(user["email"]),
+			Image: getString(user["image"]),
+			Name: getString(user["name"]),
+		}
+	}
+
+	return shared, nil
+}
+
+func (db *Database) GetSharedCollections(ctx context.Context) ([]*SharedCollection, error) {
+	email, ok := EmailFromContext(ctx)
+	if !ok {
+		return nil, ErrNotFoundEmailAtContext
+	}
+
+	session := db.Driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
+	defer session.Close(context.Background())
+
+	result, err := session.ExecuteRead(context.Background(), func(tx neo4j.ManagedTransaction) (any, error) {
+		result, err := tx.Run(context.Background(), `
+			MATCH (u:User {email: $email})-[s:SHARED_WITH]-(c:Collection)
+			MATCH (u2:User)-[h:HAS_COLLECT]-(c)
+			RETURN {
+				id: c.id,
+				name: c.name,
+				is_public: c.is_public,
+				created_at: c.created_at,
+				updated_at: c.updated_at
+			} as collection, {
+				email: u2.email,
+				image: u2.image,
+				name: u2.name 
+			} as user
+			`,
+			map[string]interface{}{
+				"email": email,
+			})
+
+		if err != nil {
+			return nil, err
+		}
+		record, err := result.Collect(context.Background())
+		return record, err
+	})
+
+	fmt.Println("error at read shared collections: ", err)
+	if err != nil {
+		return []*SharedCollection{}, nil
+	}
+
+	records, ok := result.([]*neo4j.Record)
+	if !ok {
+		return nil, fmt.Errorf("error at converting collection records to *neo4j.Record")
+	}
+
+	fmt.Println("error at read shared records: ", records)
+
+
+	sharedCollection := make([]*SharedCollection, len(records))
+
+	for i, record := range records {
+		r := record.AsMap()
+
+		collection, ok := r["collection"].(map[string]interface{})
+		if !ok {
+			return nil, fmt.Errorf("error convert name from record: %v", record)
+		}
+
+		user, ok := r["user"].(map[string]interface{})
+		if !ok {
+			return nil, fmt.Errorf("error convert user from record: %v", record)
+		}
+
+		sharedCollection[i] = &SharedCollection{
+			Collection: &domain.CollectionEntity{
+				Id:        getString(collection["id"]),
+				Name:      getString(collection["name"]),
+				IsPublic:  getBool(collection["is_public"]),
+				CreatedAt: getString(collection["created_at"]),
+				UpdatedAt: getString(collection["updated_at"]),
+			},
+			SharedFrom: &SharedFrom{
+				Email: getString(user["email"]),
+				Image: getString(user["image"]),
+				Name: getString(user["name"]),
+			},
+		}
+	}
+
+	return sharedCollection, nil
 }

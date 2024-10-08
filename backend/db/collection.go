@@ -26,16 +26,18 @@ func (db *Database) SaveCollection(ctx context.Context, collection *domain.Colle
 	result, err := session.ExecuteWrite(context.Background(), func(tx neo4j.ManagedTransaction) (any, error) {
 		result, err := tx.Run(context.Background(), `
 			MATCH (u:User {email: $email})
-			MERGE (u)-[h:HAS_COLLECT]-(c:Collection {name: $name})
+			MERGE (u)-[h:HAS_COLLECT]-(c:Collection {id: $id})
 			ON CREATE SET c += {
 				id: $id,
 				name: $name,
+				description: $description,
 				is_public: $is_public,
 				created_at: $created_at,
 				updated_at: $updated_at
 			}
 			ON MATCH SET c += {
 				name: $name,
+				description: $description,
 				is_public: $is_public,
 				updated_at: $updated_at
 			}
@@ -43,12 +45,13 @@ func (db *Database) SaveCollection(ctx context.Context, collection *domain.Colle
 			RETURN elementId(c) as id
 			`,
 			map[string]interface{}{
-				"email":      email,
-				"id":         entity.Id,
-				"name":       entity.Name,
-				"is_public":  entity.IsPublic,
-				"created_at": entity.CreatedAt,
-				"updated_at": entity.UpdatedAt,
+				"email":       email,
+				"id":          entity.Id,
+				"name":        entity.Name,
+				"description": entity.Description,
+				"is_public":   entity.IsPublic,
+				"created_at":  entity.CreatedAt,
+				"updated_at":  entity.UpdatedAt,
 			})
 
 		if err != nil {
@@ -92,6 +95,7 @@ func (db *Database) GetCollectionByName(ctx context.Context, name string) (*doma
 			RETURN {
 				id: c.id,
 				name: c.name,
+				description: c.description,
 				is_public: c.is_public,
 				created_at: c.created_at,
 				updated_at: c.updated_at
@@ -127,11 +131,12 @@ func (db *Database) GetCollectionByName(ctx context.Context, name string) (*doma
 
 	collection, err := domain.FromCollectionEntity(
 		&domain.CollectionEntity{
-			Id:        getString(data["id"]),
-			Name:      getString(data["name"]),
-			IsPublic:  getBool(data["is_public"]),
-			CreatedAt: getString(data["created_at"]),
-			UpdatedAt: getString(data["updated_at"]),
+			Id:          getString(data["id"]),
+			Name:        getString(data["name"]),
+			Description: getString(data["description"]),
+			IsPublic:    getBool(data["is_public"]),
+			CreatedAt:   getString(data["created_at"]),
+			UpdatedAt:   getString(data["updated_at"]),
 		},
 	)
 	if err != nil {
@@ -197,7 +202,7 @@ type PagingParams struct {
 }
 
 type CollectionSearchResult struct {
-	Total int64                  `json:"total"`
+	Total int64                      `json:"total"`
 	Data  []*domain.CollectionEntity `json:"data"`
 }
 
@@ -222,6 +227,7 @@ func (db *Database) GetCollections(ctx context.Context, params *PagingParams) (*
 			RETURN total, collect({
 				id: c.id,
 				name: c.name,
+				description: c.description,
 				is_public: c.is_public,
 				created_at: c.created_at,
 				updated_at: c.updated_at
@@ -265,14 +271,15 @@ func (db *Database) GetCollections(ctx context.Context, params *PagingParams) (*
 	collections := make([]*domain.CollectionEntity, len(data))
 
 	for i, r := range data {
-		folderMap := r.(map[string]interface{})
+		collectionMap := r.(map[string]interface{})
 
 		entity := &domain.CollectionEntity{
-			Id:        getString(folderMap["id"]),
-			Name:      getString(folderMap["name"]),
-			IsPublic:  getBool(folderMap["is_public"]),
-			CreatedAt: getString(folderMap["created_at"]),
-			UpdatedAt: getString(folderMap["updated_at"]),
+			Id:          getString(collectionMap["id"]),
+			Name:        getString(collectionMap["name"]),
+			Description: getString(collectionMap["description"]),
+			IsPublic:    getBool(collectionMap["is_public"]),
+			CreatedAt:   getString(collectionMap["created_at"]),
+			UpdatedAt:   getString(collectionMap["updated_at"]),
 		}
 
 		collections[i] = entity
@@ -302,6 +309,7 @@ func (db *Database) AddRepoToCollection(ctx context.Context, collection *domain.
 			ON CREATE SET c += {
 				id: $id,
 				name: $name,
+				description: $description,
 				created_at: $created_at,
 				updated_at: $updated_at
 			}
@@ -316,12 +324,13 @@ func (db *Database) AddRepoToCollection(ctx context.Context, collection *domain.
 			RETURN i.created_at AS created_at
 			`,
 			map[string]interface{}{
-				"email":      email,
-				"repos":      repoIds,
-				"id":         entity.Id,
-				"name":       entity.Name,
-				"created_at": entity.CreatedAt,
-				"updated_at": entity.UpdatedAt,
+				"email":       email,
+				"repos":       repoIds,
+				"id":          entity.Id,
+				"name":        entity.Name,
+				"description": entity.Description,
+				"created_at":  entity.CreatedAt,
+				"updated_at":  entity.UpdatedAt,
 			})
 
 		if err != nil {
@@ -547,9 +556,9 @@ func (db *Database) ShareCollection(ctx context.Context, collection *domain.Coll
 			RETURN elementId(s) as id
 			`,
 			map[string]interface{}{
-				"email":      email,
-				"id":         entity.Id,
-				"shared_to":     shared_to,				
+				"email":     email,
+				"id":        entity.Id,
+				"shared_to": shared_to,
 			})
 
 		if err != nil {
@@ -581,13 +590,13 @@ func (db *Database) ShareCollection(ctx context.Context, collection *domain.Coll
 type SharedFrom struct {
 	Email string `json:"email"`
 	Image string `json:"image"`
-	Name string `json:"name"`
+	Name  string `json:"name"`
 }
 
 type SharedCollection struct {
-	Owner string `json:"owner"`
+	Owner      string                   `json:"owner"`
 	Collection *domain.CollectionEntity `json:"collection"`
-	SharedFrom *SharedFrom `json:"shared_from"`
+	SharedFrom *SharedFrom              `json:"shared_from"`
 }
 
 func (db *Database) GetCollectionById(ctx context.Context, id string) (*SharedCollection, error) {
@@ -595,6 +604,8 @@ func (db *Database) GetCollectionById(ctx context.Context, id string) (*SharedCo
 	if !ok {
 		return nil, ErrNotFoundEmailAtContext
 	}
+
+	fmt.Println(email, id)
 
 	session := db.Driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
 	defer session.Close(context.Background())
@@ -607,6 +618,7 @@ func (db *Database) GetCollectionById(ctx context.Context, id string) (*SharedCo
 			RETURN {
 				id: c.id,
 				name: c.name,
+				description: c.description,
 				is_public: c.is_public,
 				created_at: c.created_at,
 				updated_at: c.updated_at
@@ -647,14 +659,15 @@ func (db *Database) GetCollectionById(ctx context.Context, id string) (*SharedCo
 
 	shared := &SharedCollection{
 		Collection: &domain.CollectionEntity{
-			Id:        getString(data["id"]),
-			Name:      getString(data["name"]),
-			IsPublic:  getBool(data["is_public"]),
-			CreatedAt: getString(data["created_at"]),
-			UpdatedAt: getString(data["updated_at"]),
+			Id:          getString(data["id"]),
+			Name:        getString(data["name"]),
+			Description: getString(data["description"]),
+			IsPublic:    getBool(data["is_public"]),
+			CreatedAt:   getString(data["created_at"]),
+			UpdatedAt:   getString(data["updated_at"]),
 		},
 		SharedFrom: nil,
-		Owner: getString(record["owner"].(map[string]interface{})["email"]),
+		Owner:      getString(record["owner"].(map[string]interface{})["email"]),
 	}
 
 	user, ok := record["shared_from"].(map[string]interface{})
@@ -662,7 +675,7 @@ func (db *Database) GetCollectionById(ctx context.Context, id string) (*SharedCo
 		shared.SharedFrom = &SharedFrom{
 			Email: getString(user["email"]),
 			Image: getString(user["image"]),
-			Name: getString(user["name"]),
+			Name:  getString(user["name"]),
 		}
 	}
 
@@ -685,6 +698,7 @@ func (db *Database) GetSharedCollections(ctx context.Context) ([]*SharedCollecti
 			RETURN {
 				id: c.id,
 				name: c.name,
+				description: c.description,
 				is_public: c.is_public,
 				created_at: c.created_at,
 				updated_at: c.updated_at
@@ -717,7 +731,6 @@ func (db *Database) GetSharedCollections(ctx context.Context) ([]*SharedCollecti
 
 	fmt.Println("error at read shared records: ", records)
 
-
 	sharedCollection := make([]*SharedCollection, len(records))
 
 	for i, record := range records {
@@ -735,16 +748,17 @@ func (db *Database) GetSharedCollections(ctx context.Context) ([]*SharedCollecti
 
 		sharedCollection[i] = &SharedCollection{
 			Collection: &domain.CollectionEntity{
-				Id:        getString(collection["id"]),
-				Name:      getString(collection["name"]),
-				IsPublic:  getBool(collection["is_public"]),
-				CreatedAt: getString(collection["created_at"]),
-				UpdatedAt: getString(collection["updated_at"]),
+				Id:          getString(collection["id"]),
+				Name:        getString(collection["name"]),
+				Description: getString(collection["description"]),
+				IsPublic:    getBool(collection["is_public"]),
+				CreatedAt:   getString(collection["created_at"]),
+				UpdatedAt:   getString(collection["updated_at"]),
 			},
 			SharedFrom: &SharedFrom{
 				Email: getString(user["email"]),
 				Image: getString(user["image"]),
-				Name: getString(user["name"]),
+				Name:  getString(user["name"]),
 			},
 		}
 	}

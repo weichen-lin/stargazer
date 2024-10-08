@@ -26,7 +26,7 @@ func (db *Database) SaveCollection(ctx context.Context, collection *domain.Colle
 	result, err := session.ExecuteWrite(context.Background(), func(tx neo4j.ManagedTransaction) (any, error) {
 		result, err := tx.Run(context.Background(), `
 			MATCH (u:User {email: $email})
-			MERGE (u)-[h:HAS_COLLECT]-(c:Collection {name: $name})
+			MERGE (u)-[h:HAS_COLLECT]-(c:Collection {id: $id})
 			ON CREATE SET c += {
 				id: $id,
 				name: $name,
@@ -37,6 +37,7 @@ func (db *Database) SaveCollection(ctx context.Context, collection *domain.Colle
 			}
 			ON MATCH SET c += {
 				name: $name,
+				description: $description,
 				is_public: $is_public,
 				updated_at: $updated_at
 			}
@@ -603,6 +604,8 @@ func (db *Database) GetCollectionById(ctx context.Context, id string) (*SharedCo
 	if !ok {
 		return nil, ErrNotFoundEmailAtContext
 	}
+
+	fmt.Println(email, id)
 
 	session := db.Driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
 	defer session.Close(context.Background())

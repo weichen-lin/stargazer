@@ -2,6 +2,7 @@ package controller
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -324,5 +325,91 @@ func Test_AddAndRemoveRepoIntoCollection(t *testing.T) {
 
 		require.Len(t, response.Data, 0)
 		require.Equal(t, response.Total, int64(0))
+	})
+}
+
+func Test_UpdateCollection(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	r := gin.Default()
+
+	r.GET("/collection/:id", NewTestJWTAuth(), testController.GetCollection)
+	r.PATCH("/collection/:id", NewTestJWTAuth(), testController.UpdateCollection)
+
+	user, token := createUserWithToken(t)
+	collection := createCollection(t, user)
+
+	ctx, err := db.WithEmail(context.Background(), user.Email())
+	require.Equal(t, ctx.Value("email"), user.Email())
+	require.NoError(t, err)
+
+	t.Run("Unauthorized request", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest("PATCH", "/collection/123123123", nil)
+
+		r.ServeHTTP(w, req)
+
+		require.Equal(t, http.StatusUnauthorized, w.Code)
+	})
+
+	t.Run("Test invalid body", func(t *testing.T) {
+		invalidMessages := []string{
+			`{"named": "test"}`,
+			`{"nasme": "asdas", "dsescription": "asdasd", "is_public": true}`,
+			`{"desscription": ""}`,
+			`{"is_pusblic": "true"}`,
+			`{"is_public": "true"}`,
+		}
+
+		for _, message := range invalidMessages {
+			body := bytes.NewBufferString(message)
+
+			w := httptest.NewRecorder()
+			req, _ := http.NewRequest("PATCH", fmt.Sprintf("/collection/%s", collection.Id().String()), body)
+			req.Header.Set("Authorization", token)
+
+			r.ServeHTTP(w, req)
+			require.Equal(t, http.StatusBadRequest, w.Code)
+		}
+	})
+
+	t.Run("Test real result", func(t *testing.T) {
+		validMessages := []string{
+			`{"name": "new name"}`,
+			`{"name": "new name", "description": "new description"}`,
+			`{"name": "new name", "is_public": true}`,
+			`{"name": "new name 2", "description": "new description 2", "is_public": false}`,
+		}
+
+		for _, message := range validMessages {
+			var payload UpdateCollectionPayload
+			err := json.Unmarshal([]byte(message), &payload)
+			require.NoError(t, err)
+
+			body := bytes.NewBufferString(message)
+
+			w := httptest.NewRecorder()
+			req, _ := http.NewRequest("PATCH", fmt.Sprintf("/collection/%s", collection.Id()), body)
+			req.Header.Set("Authorization", token)
+
+			r.ServeHTTP(w, req)
+
+			require.Equal(t, http.StatusOK, w.Code)
+
+			var response *domain.CollectionEntity
+			err = json.NewDecoder(w.Body).Decode(&response)
+			require.NoError(t, err)
+
+			require.Equal(t, collection.Id().String(), response.Id)
+			require.Equal(t, payload.Name, response.Name)
+			require.Equal(t, payload.Description, response.Description)
+			require.Equal(t, payload.IsPublic, response.IsPublic)
+
+			sharedCollection, err := testController.db.GetCollectionById(ctx, collection.Id().String())
+			require.NoError(t, err)
+
+			require.Equal(t, response.Name, sharedCollection.Collection.Name)
+			require.Equal(t, response.Description, sharedCollection.Collection.Description)
+			require.Equal(t, response.IsPublic, sharedCollection.Collection.IsPublic)
+		}
 	})
 }

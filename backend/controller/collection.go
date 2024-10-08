@@ -177,8 +177,8 @@ func (c Controller) GetReposInCollection(ctx *gin.Context) {
 }
 
 type SearchCollectionQuery struct {
-	Page  int64  `form:"page" binding:"required"`
-	Limit int64  `form:"limit" binding:"required"`
+	Page  int64 `form:"page" binding:"required"`
+	Limit int64 `form:"limit" binding:"required"`
 }
 
 func (c Controller) GetCollections(ctx *gin.Context) {

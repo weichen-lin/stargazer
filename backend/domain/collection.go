@@ -8,19 +8,21 @@ import (
 )
 
 type Collection struct {
-	id        uuid.UUID
-	name      string
-	isPublic  bool
-	createdAt time.Time
-	updatedAt time.Time
+	id          uuid.UUID
+	name        string
+	description string
+	isPublic    bool
+	createdAt   time.Time
+	updatedAt   time.Time
 }
 
 type CollectionEntity struct {
-	Id        string `json:"id"`
-	Name      string `json:"name"`
-	IsPublic  bool   `json:"is_public"`
-	CreatedAt string `json:"created_at"`
-	UpdatedAt string `json:"updated_at"`
+	Id          string `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	IsPublic    bool   `json:"is_public"`
+	CreatedAt   string `json:"created_at"`
+	UpdatedAt   string `json:"updated_at"`
 }
 
 func (f *Collection) Id() uuid.UUID {
@@ -29,6 +31,10 @@ func (f *Collection) Id() uuid.UUID {
 
 func (f *Collection) Name() string {
 	return f.name
+}
+
+func (f *Collection) Description() string {
+	return f.description
 }
 
 func (f *Collection) IsPublic() bool {
@@ -66,6 +72,16 @@ func (f *Collection) SetName(name string) error {
 	return nil
 }
 
+func (f *Collection) SetDescription(description string) error {
+	if description == f.description {
+		return nil
+	}
+
+	f.description = description
+
+	return nil
+}
+
 func (f *Collection) SetIsPublic(isPublic bool) {
 	f.isPublic = isPublic
 }
@@ -100,11 +116,12 @@ func (f *Collection) SetUpdatedAt(s string) error {
 
 func (f *Collection) ToCollectionEntity() *CollectionEntity {
 	return &CollectionEntity{
-		Id:        f.id.String(),
-		Name:      f.Name(),
-		IsPublic:  f.IsPublic(),
-		CreatedAt: f.CreatedAt().Format(time.RFC3339),
-		UpdatedAt: f.UpdatedAt().Format(time.RFC3339),
+		Id:          f.id.String(),
+		Name:        f.Name(),
+		Description: f.Description(),
+		IsPublic:    f.IsPublic(),
+		CreatedAt:   f.CreatedAt().Format(time.RFC3339),
+		UpdatedAt:   f.UpdatedAt().Format(time.RFC3339),
 	}
 }
 
@@ -120,6 +137,8 @@ func FromCollectionEntity(entity *CollectionEntity) (*Collection, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	collection.SetDescription(entity.Description)
 
 	err = collection.SetCreatedAt(entity.CreatedAt)
 	if err != nil {
@@ -144,6 +163,8 @@ func NewCollection(name string) (*Collection, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	collection.SetDescription("")
 
 	collection.SetIsPublic(false)
 

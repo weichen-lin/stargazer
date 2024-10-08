@@ -19,6 +19,7 @@ func TestNewCollection(t *testing.T) {
 	require.NotNil(t, collection, "NewCollection should not return nil")
 	require.NotNil(t, collection.id, "New Collection should have a UUID")
 	require.Equal(t, name, collection.Name(), "Collection name should match")
+	require.Equal(t, collection.Description(), "")
 	require.False(t, collection.IsPublic(), "New Collection should not be public by default")
 	require.False(t, collection.CreatedAt().IsZero(), "CreatedAt should not be zero")
 	require.False(t, collection.UpdatedAt().IsZero(), "UpdatedAt should be zero for a new collection")
@@ -113,11 +114,12 @@ func TestCollection_SetUpdatedAt(t *testing.T) {
 func TestFromCollectionEntity(t *testing.T) {
 	now := time.Now().Format(time.RFC3339)
 	entity := &CollectionEntity{
-		Id:        uuid.New().String(),
-		Name:      "Test Collection",
-		IsPublic:  true,
-		CreatedAt: now,
-		UpdatedAt: now,
+		Id:          uuid.New().String(),
+		Name:        "Test Collection",
+		Description: "Test Description",
+		IsPublic:    true,
+		CreatedAt:   now,
+		UpdatedAt:   now,
 	}
 
 	collection, err := FromCollectionEntity(entity)
@@ -125,6 +127,7 @@ func TestFromCollectionEntity(t *testing.T) {
 	require.NotNil(t, collection, "FromCollectionEntity() should return a non-nil collection")
 
 	require.Equal(t, entity.Name, collection.Name(), "Collection name should match")
+	require.Equal(t, entity.Description, collection.Description(), "Collection Description should match")
 	require.Equal(t, entity.IsPublic, collection.IsPublic(), "Collection IsPublic should match")
 	require.Equal(t, entity.CreatedAt, collection.CreatedAt().Format(time.RFC3339), "Collection CreatedAt should match")
 	require.Equal(t, entity.UpdatedAt, collection.UpdatedAt().Format(time.RFC3339), "Collection UpdatedAt should match")
@@ -158,6 +161,7 @@ func TestToCollectionrEntity(t *testing.T) {
 
 	require.Equal(t, collection.Id().String(), entity.Id, "Entity Id should match")
 	require.Equal(t, collection.Name(), entity.Name, "Entity name should match")
+	require.Equal(t, collection.Description(), entity.Description, "Entity Description should match")
 	require.Equal(t, collection.IsPublic(), entity.IsPublic, "Entity IsPublic should match")
 	require.Equal(t, collection.CreatedAt().Format(time.RFC3339), entity.CreatedAt, "Entity CreatedAt should match")
 	require.Equal(t, collection.UpdatedAt().Format(time.RFC3339), entity.UpdatedAt, "Entity UpdatedAt should match")

@@ -53,7 +53,7 @@ const FloatingPanel = () => {
         <FloatingPanelLabel htmlFor='note-input'>
           <span className='bg-slate-300 px-2 py-1'>Name</span>
         </FloatingPanelLabel>
-        <FloatingPanelTextarea id='note-input' className='min-h-[80px]' />
+        <FloatingPanelTextarea id='note-input' className='min-h-[80px]' maxLength={20} />
       </FloatingPanelBody>
       <FloatingPanelFooter>
         <FloatingPanelCloseButton />

@@ -257,12 +257,12 @@ export function FloatingPanelLabel({ children, htmlFor, className }: FloatingPan
 interface FloatingPanelTextareaProps {
   className?: string
   id?: string
+  disabled?: boolean
+  maxLength?: number
 }
 
-export function FloatingPanelTextarea({ className, id }: FloatingPanelTextareaProps) {
+export function FloatingPanelTextarea({ className, id, disabled, maxLength }: FloatingPanelTextareaProps) {
   const { note, setNote } = useFloatingPanel()
-
-  const maxLength = 20
 
   return (
     <div className=''>
@@ -273,6 +273,7 @@ export function FloatingPanelTextarea({ className, id }: FloatingPanelTextareaPr
         value={note}
         onChange={e => setNote(e.target.value)}
         maxLength={maxLength}
+        disabled={note.length === maxLength || disabled}
       />
       <span className={cn('text-sm text-slate-300', note.length === maxLength && 'text-destructive/50')}>
         {note.length}/{maxLength}

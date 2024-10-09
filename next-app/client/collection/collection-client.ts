@@ -1,5 +1,5 @@
 import BaseClient from '@/client/base-client'
-import { ICollection, ISharedCollection } from './type'
+import { ICollection, ISharedCollection, UpdateCollectionPayload } from './type'
 
 class CollectionClient extends BaseClient {
   constructor(email: string) {
@@ -27,6 +27,10 @@ class CollectionClient extends BaseClient {
 
   deleteCollection(id: string) {
     return this.delete(`/collection`, { id })
+  }
+
+  updateCollection(id: string, payload: UpdateCollectionPayload) {
+    return this.patch<UpdateCollectionPayload, ICollection>(`/collection/${id}`, payload)
   }
 }
 

@@ -152,7 +152,7 @@ type SearchRepoAtCollectionQuery struct {
 	Id    string `form:"id" binding:"required"`
 }
 
-func (c Controller) GetReposInCollection(ctx *gin.Context) {
+func (c *Controller) GetReposInCollection(ctx *gin.Context) {
 	var query SearchRepoAtCollectionQuery
 	if err := ctx.ShouldBindQuery(&query); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -177,11 +177,11 @@ func (c Controller) GetReposInCollection(ctx *gin.Context) {
 }
 
 type SearchCollectionQuery struct {
-	Page  int64  `form:"page" binding:"required"`
-	Limit int64  `form:"limit" binding:"required"`
+	Page  int64 `form:"page" binding:"required"`
+	Limit int64 `form:"limit" binding:"required"`
 }
 
-func (c Controller) GetCollections(ctx *gin.Context) {
+func (c *Controller) GetCollections(ctx *gin.Context) {
 	var query SearchCollectionQuery
 	if err := ctx.ShouldBindQuery(&query); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -199,4 +199,51 @@ func (c Controller) GetCollections(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, result)
+}
+
+type UpdateCollectionPayload struct {
+	Name        string `form:"name" binding:"required"`
+	Description string `form:"description"`
+	IsPublic    bool   `form:"is_public"`
+}
+
+func (c *Controller) UpdateCollection(ctx *gin.Context) {
+	var body UpdateCollectionPayload
+	if err := ctx.ShouldBindJSON(&body); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	id := ctx.Param("id")
+
+	sharedCollection, err := c.db.GetCollectionById(ctx, id)
+	if err != nil {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "collection not found"})
+		return
+	}
+
+	collection, err := domain.FromCollectionEntity(sharedCollection.Collection)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if body.Name != "" {
+		err := collection.SetName(body.Name)
+		if err != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+	}
+
+	collection.SetDescription(body.Description)
+	collection.SetIsPublic(body.IsPublic)
+
+	err = c.db.SaveCollection(ctx, collection)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, collection.ToCollectionEntity())
 }

@@ -1,3 +1,5 @@
 import Rename from './rename'
 import EditDescription from './edit-description'
-export { Rename, EditDescription }
+import Switcher from './switcher'
+
+export { Rename, EditDescription, Switcher }

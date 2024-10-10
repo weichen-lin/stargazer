@@ -5,6 +5,9 @@ import { GetUser } from '@/actions'
 import { CollectionClient } from '@/client/collection'
 import { redirect } from 'next/navigation'
 import { Owner } from './component'
+import Operator from './component/operator'
+import { CollectionProvider } from '../hooks/useCollectionContext'
+import Results from './component/collect-repos/results'
 
 export default async function Page(req: {
   params: {
@@ -18,8 +21,6 @@ export default async function Page(req: {
 
   try {
     const getSharedCollection = await client.getCollection(id)
-    // 9024c830-81aa-4018-b6ad-c8984740cc37
-
     const { owner, collection, shared_from } = getSharedCollection
 
     return (
@@ -31,8 +32,12 @@ export default async function Page(req: {
         )}
       >
         {shared_from && <Owner {...shared_from} />}
-        <div className='md:pl-3'></div>
-        123
+        <CollectionProvider initCollection={collection}>
+          <Operator />
+          <div className='w-full flex flex-col items-center justify-center flex-1 overflow-y-auto mb-8'>
+            <Results />
+          </div>
+        </CollectionProvider>
       </div>
     )
   } catch (error) {

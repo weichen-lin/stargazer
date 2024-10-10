@@ -149,7 +149,6 @@ func (c *Controller) RemoveRepoFromCollection(ctx *gin.Context) {
 type SearchRepoAtCollectionQuery struct {
 	Page  int64  `form:"page" binding:"required"`
 	Limit int64  `form:"limit" binding:"required"`
-	Id    string `form:"id" binding:"required"`
 }
 
 func (c *Controller) GetReposInCollection(ctx *gin.Context) {
@@ -159,7 +158,9 @@ func (c *Controller) GetReposInCollection(ctx *gin.Context) {
 		return
 	}
 
-	sharedCollection, err := c.db.GetCollectionById(ctx, query.Id)
+	id := ctx.Param("id")
+
+	sharedCollection, err := c.db.GetCollectionById(ctx, id)
 	if err != nil {
 		ctx.JSON(http.StatusNotFound, gin.H{"error": "collection not found"})
 		return
@@ -202,9 +203,9 @@ func (c *Controller) GetCollections(ctx *gin.Context) {
 }
 
 type UpdateCollectionPayload struct {
-	Name        string `form:"name" binding:"required"`
-	Description string `form:"description"`
-	IsPublic    bool   `form:"is_public"`
+	Name        string `json:"name" binding:"required"`
+	Description string `json:"description"`
+	IsPublic    bool   `json:"is_public"`
 }
 
 func (c *Controller) UpdateCollection(ctx *gin.Context) {
@@ -235,7 +236,6 @@ func (c *Controller) UpdateCollection(ctx *gin.Context) {
 			return
 		}
 	}
-
 	collection.SetDescription(body.Description)
 	collection.SetIsPublic(body.IsPublic)
 

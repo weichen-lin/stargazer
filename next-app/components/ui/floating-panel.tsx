@@ -33,10 +33,12 @@ export function useFloatingPanel() {
   return context
 }
 
-function useFloatingPanelLogic() {
+function useFloatingPanelLogic(props: { defaultText?: string } = {}) {
+  const { defaultText } = props
+
   const uniqueId = useId()
   const [isOpen, setIsOpen] = useState(false)
-  const [note, setNote] = useState('')
+  const [note, setNote] = useState(defaultText ?? '')
   const [triggerRect, setTriggerRect] = useState<DOMRect | null>(null)
   const [title, setTitle] = useState('')
 
@@ -46,7 +48,7 @@ function useFloatingPanelLogic() {
   }
   const closeFloatingPanel = () => {
     setIsOpen(false)
-    setNote('')
+    // setNote('')
   }
 
   return {
@@ -65,10 +67,11 @@ function useFloatingPanelLogic() {
 interface FloatingPanelRootProps {
   children: React.ReactNode
   className?: string
+  defaultText?: string
 }
 
-export function FloatingPanelRoot({ children, className }: FloatingPanelRootProps) {
-  const floatingPanelLogic = useFloatingPanelLogic()
+export function FloatingPanelRoot({ children, className, defaultText }: FloatingPanelRootProps) {
+  const floatingPanelLogic = useFloatingPanelLogic({ defaultText })
 
   return (
     <FloatingPanelContext.Provider value={floatingPanelLogic}>
@@ -257,12 +260,12 @@ export function FloatingPanelLabel({ children, htmlFor, className }: FloatingPan
 interface FloatingPanelTextareaProps {
   className?: string
   id?: string
+  disabled?: boolean
+  maxLength?: number
 }
 
-export function FloatingPanelTextarea({ className, id }: FloatingPanelTextareaProps) {
+export function FloatingPanelTextarea({ className, id, disabled, maxLength }: FloatingPanelTextareaProps) {
   const { note, setNote } = useFloatingPanel()
-
-  const maxLength = 20
 
   return (
     <div className=''>
@@ -271,8 +274,12 @@ export function FloatingPanelTextarea({ className, id }: FloatingPanelTextareaPr
         className={cn('h-full w-full resize-none rounded-md bg-transparent px-0 py-3 text-md outline-none', className)}
         autoFocus
         value={note}
-        onChange={e => setNote(e.target.value)}
+        onChange={e => {
+          if (maxLength && e.target.value.length > maxLength) return
+          setNote(e.target.value)
+        }}
         maxLength={maxLength}
+        disabled={disabled}
       />
       <span className={cn('text-sm text-slate-300', note.length === maxLength && 'text-destructive/50')}>
         {note.length}/{maxLength}

@@ -229,7 +229,7 @@ func Test_AddAndRemoveRepoIntoCollection(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	r := gin.Default()
 
-	r.GET("/collection/repos", NewTestJWTAuth(), testController.GetReposInCollection)
+	r.GET("/collection/repos/:id", NewTestJWTAuth(), testController.GetReposInCollection)
 	r.POST("/collection/repos", NewTestJWTAuth(), testController.AddRepoIntoCollection)
 	r.DELETE("/collection/repos", NewTestJWTAuth(), testController.RemoveRepoFromCollection)
 
@@ -293,7 +293,7 @@ func Test_AddAndRemoveRepoIntoCollection(t *testing.T) {
 		require.Equal(t, http.StatusCreated, w.Code)
 
 		w = httptest.NewRecorder()
-		req, _ = http.NewRequest("GET", fmt.Sprintf("/collection/repos?id=%s&page=1&limit=20", collection.Id().String()), nil)
+		req, _ = http.NewRequest("GET", fmt.Sprintf("/collection/repos/%s?page=1&limit=20", collection.Id().String()), nil)
 		req.Header.Set("Authorization", token)
 
 		r.ServeHTTP(w, req)
@@ -314,7 +314,7 @@ func Test_AddAndRemoveRepoIntoCollection(t *testing.T) {
 		require.Equal(t, http.StatusOK, w.Code)
 
 		w = httptest.NewRecorder()
-		req, _ = http.NewRequest("GET", fmt.Sprintf("/collection/repos?id=%s&page=1&limit=20", collection.Id().String()), nil)
+		req, _ = http.NewRequest("GET", fmt.Sprintf("/collection/repos/%s?page=1&limit=20", collection.Id().String()), nil)
 		req.Header.Set("Authorization", token)
 
 		r.ServeHTTP(w, req)

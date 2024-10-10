@@ -605,8 +605,6 @@ func (db *Database) GetCollectionById(ctx context.Context, id string) (*SharedCo
 		return nil, ErrNotFoundEmailAtContext
 	}
 
-	fmt.Println(email, id)
-
 	session := db.Driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
 	defer session.Close(context.Background())
 

@@ -22,7 +22,7 @@ const collectionAtom = create<ICollectionAtom>(set => ({
 
 export default function useCollection() {
   const { isFetching, setIsFetching, total, data, setTotal, setData } = collectionAtom()
-  const { isLoading, run } = useFetch<{
+  const { isLoading } = useFetch<{
     total: number
     data: ICollection[]
   }>({

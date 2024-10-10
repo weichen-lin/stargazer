@@ -13,39 +13,38 @@ import {
   FloatingPanelTrigger,
   useFloatingPanel,
 } from '@/components/ui/floating-panel'
-import { useFetch } from '@/hooks/util'
-import { ICollection } from '@/client/collection'
-import { useCollection } from '@/app/collections/hooks'
+import { FolderPen } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import { useCollectionContext } from '@/app/collections/hooks/useCollectionContext'
 
-export default function Operator() {
+export default function Rename() {
+  const { collection } = useCollectionContext()
+
   return (
-    <FloatingPanelRoot>
+    <FloatingPanelRoot defaultText={collection.name}>
       <FloatingPanelTrigger
-        title='Create a repository collection'
-        className='flex items-center space-x-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors'
+        title='Rename collection'
+        className={cn(
+          'flex items-center space-x-2 hover:bg-slate-400/20 transition-colors',
+          'bg-white rounded-md border-slate-300 shadow-md p-2',
+        )}
       >
-        <span>Create Collection</span>
+        <div className='flex gap-x-2 items-center'>
+          <FolderPen className='w-4 h-4' />
+          <span>Rename</span>
+        </div>
       </FloatingPanelTrigger>
       <FloatingPanelContent className='w-80'>
-        <FloatingPanel />
+        <RenamePanel />
       </FloatingPanelContent>
     </FloatingPanelRoot>
   )
 }
 
-const FloatingPanel = () => {
+const RenamePanel = () => {
   const { note } = useFloatingPanel()
-  const { data, setData, setIsFetching, loading } = useCollection()
-  const { run } = useFetch<ICollection>({
-    initialRun: false,
-    config: {
-      url: '/collection',
-      method: 'POST',
-    },
-    onSuccess: e => {
-      setData([e, ...data])
-    },
-  })
+  const { collection, isSearch, isUpdate, update } = useCollectionContext()
+  const loading = isSearch || isUpdate
 
   return (
     <FloatingPanelForm>
@@ -59,14 +58,9 @@ const FloatingPanel = () => {
         <FloatingPanelCloseButton />
         <FloatingPanelSubmitButton
           isLoading={loading}
-          text='Create'
+          text='Rename'
           onClick={() => {
-            try {
-              setIsFetching(true)
-              run({ payload: { name: note } })
-            } finally {
-              setIsFetching(false)
-            }
+            update({ ...collection, name: note })
           }}
         />
       </FloatingPanelFooter>

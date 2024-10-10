@@ -13,15 +13,15 @@ import {
   FloatingPanelTrigger,
   useFloatingPanel,
 } from '@/components/ui/floating-panel'
-import { useFetch } from '@/hooks/util'
-import { ICollection } from '@/client/collection'
-import { useCollection } from '@/app/collections/hooks'
+import { useCollectionContext } from '@/app/collections/hooks/useCollectionContext'
 import { FolderPen } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export default function EditDescription() {
+  const { collection } = useCollectionContext()
+
   return (
-    <FloatingPanelRoot>
+    <FloatingPanelRoot defaultText={collection.description}>
       <FloatingPanelTrigger
         title='Edit Description'
         className={cn(
@@ -43,18 +43,26 @@ export default function EditDescription() {
 
 const EditDescriptionPanel = () => {
   const { note } = useFloatingPanel()
+  const { collection, isSearch, isUpdate, update } = useCollectionContext()
 
+  const loading = isSearch || isUpdate
   return (
     <FloatingPanelForm>
       <FloatingPanelBody>
         <FloatingPanelLabel htmlFor='note-input'>
           <span className='bg-slate-300 px-2 py-1'>Description</span>
         </FloatingPanelLabel>
-        <FloatingPanelTextarea id='note-input' className='min-h-[80px]' disabled={true} maxLength={100} />
+        <FloatingPanelTextarea id='note-input' className='min-h-[80px]' disabled={loading} maxLength={100} />
       </FloatingPanelBody>
       <FloatingPanelFooter>
         <FloatingPanelCloseButton />
-        <FloatingPanelSubmitButton isLoading={true} text='Rename' onClick={() => {}} />
+        <FloatingPanelSubmitButton
+          isLoading={loading}
+          text='Edit'
+          onClick={() => {
+            update({ ...collection, description: note })
+          }}
+        />
       </FloatingPanelFooter>
     </FloatingPanelForm>
   )

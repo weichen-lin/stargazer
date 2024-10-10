@@ -5,11 +5,9 @@ import { GetUser } from '@/actions'
 import { CollectionClient } from '@/client/collection'
 import { redirect } from 'next/navigation'
 import { Owner } from './component'
-import { Badge } from '@/components/ui/badge'
-import { ArrowDown } from 'lucide-react'
-import Link from 'next/link'
-import { Rename, EditDescription, Switcher } from './component/operator'
-import { CollectionProvider } from '@/app/collections/hooks/useCollectionContext'
+import Operator from './component/operator'
+import { CollectionProvider } from '../hooks/useCollectionContext'
+import Results from './component/collect-repos/results'
 
 export default async function Page(req: {
   params: {
@@ -34,23 +32,12 @@ export default async function Page(req: {
         )}
       >
         {shared_from && <Owner {...shared_from} />}
-        <div className='md:pl-0 flex flex-col gap-y-4'>
-          <CollectionProvider collection={collection}>
-            <div className='flex items-center justify-start gap-x-6'>
-              <Link href='/collections'>
-                <ArrowDown className='w-12 h-12 rotate-90 hover:bg-slate-200 p-3 rounded-full mr-2 cursor-pointer' />
-              </Link>
-              <h1 className='text-2xl font-bold underline'>{collection.name}</h1>
-              <h2 className='font-light'>{collection.is_public ? <Badge>Public</Badge> : <Badge>Private</Badge>}</h2>
-            </div>
-            <div className='text-slate-500 pl-2'>{collection.description}</div>
-            <div className='flex gap-x-3 items-center'>
-              <Rename />
-              <EditDescription />
-              <Switcher />
-            </div>
-          </CollectionProvider>
-        </div>
+        <CollectionProvider initCollection={collection}>
+          <Operator />
+          <div className='w-full flex flex-col items-center justify-center flex-1 overflow-y-auto mb-8'>
+            <Results />
+          </div>
+        </CollectionProvider>
       </div>
     )
   } catch (error) {

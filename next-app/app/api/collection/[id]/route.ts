@@ -11,7 +11,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   try {
     const client = new CollectionClient(email)
 
-    const res = await client.updateCollection(id, data?.payload)
+    const res = await client.updateCollection(id, data)
     return Response.json(res)
   } catch (error) {
     return new Response('error', {

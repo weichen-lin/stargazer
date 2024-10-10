@@ -19,6 +19,15 @@ class CollectionClient extends BaseClient {
     return this.get<{ total: number; data: ICollection[] }>('/collection', params)
   }
 
+  getReposCollections(id: string, page: string, limit: string) {
+    const params = new URLSearchParams({
+      page,
+      limit,
+    })
+
+    return this.get<ICollection[]>(`/collection/repos/${id}`, params)
+  }
+
   createCollection(name: string) {
     return this.post<any, ICollection>('/collection', {
       name,

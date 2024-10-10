@@ -69,6 +69,7 @@ func main() {
 	{
 		collection.GET("/", c.GetCollections)
 		collection.GET("/:id", c.GetCollection)
+		collection.GET("/repos/:id", c.GetReposInCollection)
 		collection.PATCH("/:id", c.UpdateCollection)
 		collection.POST("/", c.CreateCollection)
 		collection.DELETE("/", c.DeleteCollection)

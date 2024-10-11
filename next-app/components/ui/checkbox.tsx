@@ -1,17 +1,21 @@
 import { cn } from '@/lib/utils'
-import { useEffect, useState } from 'react'
 
 interface ICheckboxProps {
-  checked?: boolean
+  checked: boolean
   onChange?: (checked: boolean) => void
 }
 
 export function Checkbox({ checked, onChange }: ICheckboxProps) {
-  const [isCheck, setIsChecked] = useState(checked ?? false)
-
   return (
-    <label className='relative block cursor-pointer select-none rounded-full text-2xl outline-2 outline-offset-1 outline-[#385cb0] has-[:checked]:rounded-md has-[:focus]:outline'>
-      <input className='peer absolute h-0 w-0 opacity-0' type='checkbox' />
+    <label className='hidden relative md:block cursor-pointer select-none rounded-full text-2xl outline-2 outline-offset-1 outline-[#385cb0] has-[:checked]:rounded-md has-[:focus]:outline'>
+      <input
+        className='peer absolute h-0 w-0 opacity-0'
+        type='checkbox'
+        checked={checked}
+        onChange={e => {
+          onChange?.(e.target.checked)
+        }}
+      />
       <div
         className={cn(
           'relative left-0 top-0 h-[1.5rem] w-[1.5rem] rounded-[50%] bg-slate-200 transition duration-300 focus:outline-[#385cb0]',

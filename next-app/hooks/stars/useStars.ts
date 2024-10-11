@@ -9,6 +9,8 @@ import { useCallback } from 'react'
 interface SelectState {
   selected: Option[]
   setSelected: (selected: Option[]) => void
+  selectedRepo: number[]
+  setSelectedRepo: (selectedRepo: number[]) => void
   isSearching: boolean
   setIsSearching: (isSearching: boolean) => void
   count: number
@@ -22,6 +24,8 @@ interface SelectState {
 const selectState = create<SelectState>(set => ({
   selected: [],
   setSelected: selected => set({ selected }),
+  selectedRepo: [],
+  setSelectedRepo: selectedRepo => set({ selectedRepo }),
   isSearching: false,
   setIsSearching: isSearching => set({ isSearching }),
   count: 0,
@@ -33,8 +37,20 @@ const selectState = create<SelectState>(set => ({
 }))
 
 const useStars = () => {
-  const { selected, setSelected, count, setCount, page, setPage, isSearching, setIsSearching, results, setResults } =
-    selectState()
+  const {
+    selected,
+    setSelected,
+    selectedRepo,
+    setSelectedRepo,
+    count,
+    setCount,
+    page,
+    setPage,
+    isSearching,
+    setIsSearching,
+    results,
+    setResults,
+  } = selectState()
 
   const { run } = useFetch<IRepoSearchWithLanguage>({
     initialRun: false,
@@ -69,6 +85,8 @@ const useStars = () => {
   return {
     selected,
     setSelected,
+    selectedRepo,
+    setSelectedRepo,
     isSearching,
     count,
     results,

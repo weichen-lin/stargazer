@@ -12,13 +12,15 @@ interface SwitchProps {
 }
 
 export default function Switcher() {
-  const { collection, loading, update } = useCollectionContext()
+  const { collection, isUpdate, isSearch, update } = useCollectionContext()
   const [isChecked, setIsChecked] = useState(collection.is_public)
 
   const handleToggle = () => {
     setIsChecked(!isChecked)
     update({ ...collection, is_public: !isChecked })
   }
+
+  const loading = isUpdate || isSearch
 
   return (
     <div className='flex gap-x-3 items-center'>

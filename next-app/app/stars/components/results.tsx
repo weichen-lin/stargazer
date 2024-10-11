@@ -3,9 +3,12 @@
 import { useStars } from '@/hooks/stars'
 import { Loading, Empty } from './status'
 import Repo from './repo'
+import SearchCollection from './dialog'
+import { useSearchCollection } from '@/app/stars/hook'
 
 export default function Results() {
   const { isSearching, results } = useStars()
+  const { open } = useSearchCollection()
 
   if (isSearching) {
     return <Loading />
@@ -20,6 +23,7 @@ export default function Results() {
       {results.map((item, index) => (
         <Repo key={item.repo_id} {...item} index={index} />
       ))}
+      {open && <SearchCollection />}
     </div>
   )
 }

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { FixPagination } from '@/components/tab'
 import { ILanguageDistribution } from '@/client/repository'
 import { useFetch } from '@/hooks/util'
+import SelectRepository from './select-repository'
 
 const SelectLanguage = () => {
   const { data, isLoading } = useFetch<ILanguageDistribution[]>({
@@ -40,15 +41,18 @@ const SelectLanguage = () => {
           />
         )}
       </div>
-      <Button
-        onClick={() => {
-          search(1)
-        }}
-        className='w-20 h-10 mb-2'
-        disabled={isLoading || selected.length === 0}
-      >
-        Search
-      </Button>
+      <div className='flex justify-between w-[380px]'>
+        <Button
+          onClick={() => {
+            search(1)
+          }}
+          className='w-20 h-10 mb-2'
+          disabled={isLoading || selected.length === 0}
+        >
+          Search
+        </Button>
+        <SelectRepository />
+      </div>
       {count > 0 && <FixPagination total={count} />}
     </div>
   )

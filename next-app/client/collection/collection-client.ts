@@ -41,6 +41,12 @@ class CollectionClient extends BaseClient {
   updateCollection(id: string, payload: UpdateCollectionPayload) {
     return this.patch<UpdateCollectionPayload, ICollection>(`/collection/${id}`, payload)
   }
+
+  addRepoToCollection(id: string, repo_ids: number[]) {
+    return this.post<any, ICollection>(`/collection/repos/${id}`, {
+      repo_ids,
+    })
+  }
 }
 
 export default CollectionClient

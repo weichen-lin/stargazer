@@ -37,7 +37,7 @@ export const CollectionProvider = ({
   const [selectRepos, setSelectRepos] = useState([])
   const [page, setPage] = useState(1)
   const [total, setTotal] = useState(0)
-  const [repos, setRepos] = useState([])
+  const [repos, setRepos] = useState<ICollection[]>([])
 
   const { run, isLoading } = useFetch<ICollection>({
     config: {
@@ -48,7 +48,7 @@ export const CollectionProvider = ({
     onSuccess: data => setCollection(data),
   })
 
-  const { run: getCollectRepos, isLoading: getCollectReposLoading } = useFetch<ICollection[]>({
+  const { run: getCollectRepos, isLoading: getCollectReposLoading } = useFetch<{ total: number; data: ICollection[] }>({
     config: {
       url: `/collection/repos/${collection.id}`,
       method: 'GET',
@@ -58,6 +58,10 @@ export const CollectionProvider = ({
       },
     },
     initialRun: true,
+    onSuccess: data => {
+      setRepos(data.data)
+      setTotal(data.total)
+    },
   })
 
   const update = async (collection: ICollection) => {

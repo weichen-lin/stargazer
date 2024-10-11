@@ -1,9 +1,11 @@
 import { Plus, FolderInput, Trash2 } from 'lucide-react'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { useStars } from '@/hooks/stars'
+import { useSearchCollection } from '@/app/stars/hook'
 
 export default function SelectRepository() {
   const { selectedRepo, setSelectedRepo } = useStars()
+  const { open, setOpen } = useSearchCollection()
 
   return (
     selectedRepo.length > 0 && (
@@ -27,7 +29,12 @@ export default function SelectRepository() {
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <FolderInput className='w-7 h-7 hover:bg-slate-300 p-[5px] rounded-full cursor-pointer' />
+              <FolderInput
+                className='w-7 h-7 hover:bg-slate-300 p-[5px] rounded-full cursor-pointer'
+                onClick={() => {
+                  setOpen(true)
+                }}
+              />
             </TooltipTrigger>
             <TooltipContent>
               <p>Add to collection</p>

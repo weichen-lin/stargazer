@@ -96,7 +96,6 @@ func (c *Controller) DeleteCollection(ctx *gin.Context) {
 }
 
 type CollectionRepoRequest struct {
-	Id      string  `json:"id" binding:"required"`
 	RepoIds []int64 `json:"repo_ids" binding:"required"`
 }
 
@@ -107,7 +106,14 @@ func (c *Controller) AddRepoIntoCollection(ctx *gin.Context) {
 		return
 	}
 
-	sharedCollection, err := c.db.GetCollectionById(ctx, body.Id)
+	id := ctx.Param("id")
+	collectionId, err := uuid.Parse(id)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		return
+	}
+
+	sharedCollection, err := c.db.GetCollectionById(ctx, collectionId.String())
 	if err != nil {
 		ctx.JSON(http.StatusNotFound, gin.H{"error": "collection not found"})
 		return
@@ -130,7 +136,14 @@ func (c *Controller) RemoveRepoFromCollection(ctx *gin.Context) {
 		return
 	}
 
-	sharedCollection, err := c.db.GetCollectionById(ctx, body.Id)
+	id := ctx.Param("id")
+	collectionId, err := uuid.Parse(id)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		return
+	}
+
+	sharedCollection, err := c.db.GetCollectionById(ctx, collectionId.String())
 	if err != nil {
 		ctx.JSON(http.StatusNotFound, gin.H{"error": "collection not found"})
 		return
@@ -147,8 +160,8 @@ func (c *Controller) RemoveRepoFromCollection(ctx *gin.Context) {
 }
 
 type SearchRepoAtCollectionQuery struct {
-	Page  int64  `form:"page" binding:"required"`
-	Limit int64  `form:"limit" binding:"required"`
+	Page  int64 `form:"page" binding:"required"`
+	Limit int64 `form:"limit" binding:"required"`
 }
 
 func (c *Controller) GetReposInCollection(ctx *gin.Context) {

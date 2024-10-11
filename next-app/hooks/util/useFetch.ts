@@ -17,7 +17,7 @@ const instance = axios.create({
   },
 })
 
-interface IRunProps {
+export interface IRunProps {
   params?: Record<string, string>
   payload?: any
 }

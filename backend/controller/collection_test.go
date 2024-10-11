@@ -229,22 +229,22 @@ func Test_AddAndRemoveRepoIntoCollection(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	r := gin.Default()
 
-	r.GET("/collection/repos", NewTestJWTAuth(), testController.GetReposInCollection)
-	r.POST("/collection/repos", NewTestJWTAuth(), testController.AddRepoIntoCollection)
-	r.DELETE("/collection/repos", NewTestJWTAuth(), testController.RemoveRepoFromCollection)
+	r.GET("/collection/repos/:id", NewTestJWTAuth(), testController.GetReposInCollection)
+	r.POST("/collection/repos/:id", NewTestJWTAuth(), testController.AddRepoIntoCollection)
+	r.DELETE("/collection/repos/:id", NewTestJWTAuth(), testController.RemoveRepoFromCollection)
 
 	user, token := createUserWithToken(t)
 
 	t.Run("Unauthorized request", func(t *testing.T) {
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("POST", "/collection/repos", nil)
+		req, _ := http.NewRequest("POST", "/collection/repos/invalid-id", nil)
 
 		r.ServeHTTP(w, req)
 
 		require.Equal(t, http.StatusUnauthorized, w.Code)
 
 		w = httptest.NewRecorder()
-		req, _ = http.NewRequest("DELETE", "/collection/repos", nil)
+		req, _ = http.NewRequest("DELETE", "/collection/repos/invalid-id", nil)
 
 		r.ServeHTTP(w, req)
 
@@ -256,14 +256,14 @@ func Test_AddAndRemoveRepoIntoCollection(t *testing.T) {
 		require.NoError(t, err)
 
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("POST", "/collection/repos", bytes.NewBuffer(body))
+		req, _ := http.NewRequest("POST", "/collection/repos/invalid-id", bytes.NewBuffer(body))
 		req.Header.Set("Authorization", token)
 
 		r.ServeHTTP(w, req)
 		require.Equal(t, http.StatusBadRequest, w.Code)
 
 		w = httptest.NewRecorder()
-		req, _ = http.NewRequest("DELETE", "/collection/repos", bytes.NewBuffer(body))
+		req, _ = http.NewRequest("DELETE", "/collection/repos/invalid-id", bytes.NewBuffer(body))
 		req.Header.Set("Authorization", token)
 
 		r.ServeHTTP(w, req)
@@ -280,20 +280,19 @@ func Test_AddAndRemoveRepoIntoCollection(t *testing.T) {
 		}
 
 		body, err := json.Marshal(&CollectionRepoRequest{
-			Id:      collection.Id().String(),
 			RepoIds: repos,
 		})
 		require.NoError(t, err)
 
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("POST", "/collection/repos", bytes.NewBuffer(body))
+		req, _ := http.NewRequest("POST", fmt.Sprintf("/collection/repos/%s", collection.Id().String()), bytes.NewBuffer(body))
 		req.Header.Set("Authorization", token)
 
 		r.ServeHTTP(w, req)
 		require.Equal(t, http.StatusCreated, w.Code)
 
 		w = httptest.NewRecorder()
-		req, _ = http.NewRequest("GET", fmt.Sprintf("/collection/repos?id=%s&page=1&limit=20", collection.Id().String()), nil)
+		req, _ = http.NewRequest("GET", fmt.Sprintf("/collection/repos/%s?page=1&limit=20", collection.Id().String()), nil)
 		req.Header.Set("Authorization", token)
 
 		r.ServeHTTP(w, req)
@@ -307,14 +306,14 @@ func Test_AddAndRemoveRepoIntoCollection(t *testing.T) {
 		require.Equal(t, response.Total, int64(25))
 
 		w = httptest.NewRecorder()
-		req, _ = http.NewRequest("DELETE", "/collection/repos", bytes.NewBuffer(body))
+		req, _ = http.NewRequest("DELETE", fmt.Sprintf("/collection/repos/%s", collection.Id().String()), bytes.NewBuffer(body))
 		req.Header.Set("Authorization", token)
 
 		r.ServeHTTP(w, req)
 		require.Equal(t, http.StatusOK, w.Code)
 
 		w = httptest.NewRecorder()
-		req, _ = http.NewRequest("GET", fmt.Sprintf("/collection/repos?id=%s&page=1&limit=20", collection.Id().String()), nil)
+		req, _ = http.NewRequest("GET", fmt.Sprintf("/collection/repos/%s?page=1&limit=20", collection.Id().String()), nil)
 		req.Header.Set("Authorization", token)
 
 		r.ServeHTTP(w, req)

@@ -69,10 +69,12 @@ func main() {
 	{
 		collection.GET("/", c.GetCollections)
 		collection.GET("/:id", c.GetCollection)
+		collection.PATCH("/:id", c.UpdateCollection)
 		collection.POST("/", c.CreateCollection)
 		collection.DELETE("/", c.DeleteCollection)
-		collection.POST("/repo", c.AddRepoIntoCollection)
-		collection.DELETE("/repo", c.RemoveRepoFromCollection)
+		collection.GET("/repos/:id", c.GetReposInCollection)
+		collection.POST("/repos/:id", c.AddRepoIntoCollection)
+		collection.DELETE("/repos/:id", c.RemoveRepoFromCollection)
 	}
 
 	r.Run(":" + port)

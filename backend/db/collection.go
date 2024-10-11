@@ -319,7 +319,7 @@ func (db *Database) AddRepoToCollection(ctx context.Context, collection *domain.
 			MATCH (r:Repository) 
 			WHERE r.repo_id IN $repos
 			MERGE (r)-[i:IS_LOCATE]->(c)
-			ON MATCH SET i.created_at = datetime()
+			ON MATCH SET i.updated_at = datetime()
 			ON CREATE SET i.created_at = datetime()
 			RETURN i.created_at AS created_at
 			`,
@@ -604,8 +604,6 @@ func (db *Database) GetCollectionById(ctx context.Context, id string) (*SharedCo
 	if !ok {
 		return nil, ErrNotFoundEmailAtContext
 	}
-
-	fmt.Println(email, id)
 
 	session := db.Driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
 	defer session.Close(context.Background())

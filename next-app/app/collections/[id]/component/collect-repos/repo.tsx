@@ -7,8 +7,6 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Star, Eye, LucideCalendarRange, ExternalLink, DoorOpen } from 'lucide-react'
 import { useState } from 'react'
-import { Checkbox } from '@/components/ui/checkbox'
-import { useStars } from '@/hooks/stars'
 
 export default function GridRepo(props: IRepository & { index: number }) {
   const {
@@ -25,7 +23,6 @@ export default function GridRepo(props: IRepository & { index: number }) {
   } = props
   const { setOpen, setRepoID } = useRepoDetail()
   const [isHover, setIsHover] = useState<boolean>(false)
-  const { selectedRepo, setSelectedRepo } = useStars()
 
   return (
     <motion.div
@@ -41,21 +38,9 @@ export default function GridRepo(props: IRepository & { index: number }) {
       <div className='flex flex-col justify-between gap-y-3 h-full'>
         <div className='flex gap-x-1 w-full'>
           <img src={avatar_url} alt={repo_name} width={60} height={60} className='rounded-full' />
-          <div className='flex flex-col px-1 w-[calc(100%-64px)]'>
-            <div className='flex justify-between items-center'>
-              <div className='text-lg truncate w-[calc(100%-48px)]'>
-                {owner_name}/{repo_name}
-              </div>
-              <Checkbox
-                checked={selectedRepo.includes(repo_id)}
-                onChange={(checked: boolean) => {
-                  if (checked) {
-                    setSelectedRepo([...selectedRepo, repo_id])
-                  } else {
-                    setSelectedRepo(selectedRepo.filter(id => id !== repo_id))
-                  }
-                }}
-              />
+          <div className='flex flex-col px-1'>
+            <div className='text-lg truncate w-[280px]'>
+              {owner_name}/{repo_name}
             </div>
             <div className='rounded-full text-slate-500/75 dark:text-white/70 h-6'>@{owner_name}</div>
           </div>

@@ -441,6 +441,174 @@ func (db *Database) SearchRepositoryByLanguage(ctx context.Context, params *Sear
 	}, nil
 }
 
+type RepositoryWithCollection struct {
+	RepositoryEntity *domain.RepositoryEntity   `json:"repository"`
+	CollectedBy      []*domain.CollectionEntity `json:"collected_by"`
+}
+
+type SearchResultWithCollection struct {
+	Data  []*RepositoryWithCollection `json:"data"`
+	Total int64                       `json:"total"`
+}
+
+func (db *Database) SearchRepositoryByLanguageWithCollection(ctx context.Context, params *SearchParams) (*SearchResultWithCollection, error) {
+	email, ok := EmailFromContext(ctx)
+	if !ok {
+		return nil, ErrNotFoundEmailAtContext
+	}
+
+	session := db.Driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
+	defer session.Close(context.Background())
+
+	result, err := session.ExecuteRead(context.Background(), func(tx neo4j.ManagedTransaction) (any, error) {
+		result, err := tx.Run(context.Background(), `
+			MATCH (u:User {email: $email})-[s:STARS {is_delete: false}]-(r:Repository)
+			WHERE r.language IN $languages
+			WITH u, COUNT(r) as total
+			MATCH (u)-[s:STARS]-(r)
+			WHERE r.language IN $languages
+			OPTIONAL MATCH (u)-[h:HAS_COLLECT]->(c)-[i:IS_LOCATE]-(r)	
+			WITH total, s, r, 
+			CASE 
+				WHEN count(c) > 0 THEN 
+					collect({
+						id: c.id,
+						name: c.name,
+						description: c.description,
+						created_at: c.created_at,
+						updated_at: c.updated_at,
+						is_public: c.is_public
+					})
+				ELSE null
+			END as collected_by
+			ORDER BY s.created_at DESC
+			SKIP $limit * ($page - 1)
+			LIMIT $limit
+			RETURN total, {
+				repo_id: r.repo_id,
+				repo_name: r.repo_name,
+				owner_name: r.owner_name,
+				avatar_url: r.avatar_url,
+				html_url: r.html_url,
+				homepage: r.homepage,
+				description: r.description,
+				created_at: r.created_at,
+				updated_at: r.updated_at,
+				stargazers_count: r.stargazers_count,
+				language: r.language,
+				watchers_count: r.watchers_count,
+				open_issues_count: r.open_issues_count,
+				default_branch: r.default_branch,
+				archived: r.archived,
+				topics: r.topics,
+				external_created_at: s.created_at,
+				last_synced_at: s.last_synced_at,
+				last_modified_at: s.last_modified_at
+			} as data, collected_by
+			`,
+			map[string]interface{}{
+				"email":     email,
+				"languages": params.Languages,
+				"limit":     params.Limit,
+				"page":      params.Page,
+			})
+
+		if err != nil {
+			fmt.Println("error at read repo: ", err)
+		}
+		records, err := result.Collect(context.Background())
+		return records, err
+	})
+	fmt.Println(params.Page)
+
+	if err != nil {
+		return &SearchResultWithCollection{
+			Data:  []*RepositoryWithCollection{},
+			Total: 0,
+		}, nil
+	}
+
+	results, ok := result.([]*neo4j.Record)
+	if !ok {
+		return nil, fmt.Errorf("error at converting users records to *neo4j.Result")
+	}
+
+	searchResults := &SearchResultWithCollection{
+		Data:  make([]*RepositoryWithCollection, len(results)),
+		Total: 0,
+	}
+
+	for i, record := range results {
+		recordMap := record.AsMap()
+
+		total, ok := recordMap["total"].(int64)
+		if !ok {
+			return nil, fmt.Errorf("error convert id from record: %v", record)
+		}
+		searchResults.Total = total
+
+		data, ok := recordMap["data"].(map[string]interface{})
+		if !ok {
+			return nil, fmt.Errorf("error convert repo from record: %v", record)
+		}
+
+		entity := &domain.RepositoryEntity{
+			RepoID:            getInt64(data["repo_id"]),
+			RepoName:          getString(data["repo_name"]),
+			OwnerName:         getString(data["owner_name"]),
+			AvatarURL:         getString(data["avatar_url"]),
+			HtmlURL:           getString(data["html_url"]),
+			Homepage:          getString(data["homepage"]),
+			Description:       getString(data["description"]),
+			CreatedAt:         getString(data["created_at"]),
+			UpdatedAt:         getString(data["updated_at"]),
+			StargazersCount:   getInt64(data["stargazers_count"]),
+			WatchersCount:     getInt64(data["watchers_count"]),
+			OpenIssuesCount:   getInt64(data["open_issues_count"]),
+			Language:          getString(data["language"]),
+			DefaultBranch:     getString(data["default_branch"]),
+			Archived:          getBool(data["archived"]),
+			Topics:            getStringArray(data["topics"]),
+			ExternalCreatedAt: getTimeString(data["external_created_at"]),
+			LastSyncedAt:      getTimeString(data["last_synced_at"]),
+			LastModifiedAt:    getTimeString(data["last_modified_at"]),
+		}
+
+		collected_by, ok := recordMap["collected_by"].([]interface{})
+		if !ok {
+			searchResults.Data[i] = &RepositoryWithCollection{
+				RepositoryEntity: entity,
+				CollectedBy:      []*domain.CollectionEntity{},
+			}
+			continue
+		}
+
+		collects := make([]*domain.CollectionEntity, len(collected_by))
+
+		for i, c := range collected_by {
+			collectMap := c.(map[string]interface{})
+			fmt.Println("index i: ", collectMap)
+
+			entity := &domain.CollectionEntity{
+				Id:          getString(collectMap["id"]),
+				Name:        getString(collectMap["name"]),
+				Description: getString(collectMap["description"]),
+				CreatedAt:   getString(collectMap["created_at"]),
+				UpdatedAt:   getString(collectMap["updated_at"]),
+				IsPublic:    getBool(collectMap["is_public"]),
+			}
+			collects[i] = entity
+		}
+
+		searchResults.Data[i] = &RepositoryWithCollection{
+			RepositoryEntity: entity,
+			CollectedBy:      collects,
+		}
+	}
+
+	return searchResults, nil
+}
+
 type TopicResult struct {
 	RepoId int64    `json:"repo_id"`
 	Topics []string `json:"topics"`

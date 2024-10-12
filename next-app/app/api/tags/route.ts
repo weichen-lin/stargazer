@@ -1,35 +1,19 @@
 import type { NextRequest } from 'next/server'
-import { GetUser } from '@/actions'
 import TagClient, { ITagPayload } from '@/client/tag'
 
 export async function POST(req: NextRequest) {
-  const { email } = await GetUser()
-  const data = await req.json()
+  const req_json = await req.json()
 
-  try {
-    const client = new TagClient(email)
-    await client.createTag(data)
+  const client = new TagClient()
+  const { data, status_code } = await client.createTag(req_json)
 
-    return new Response(JSON.stringify('ok'))
-  } catch (error) {
-    return new Response('error', {
-      status: 400,
-    })
-  }
+  return Response.json(data, { status: status_code })
 }
 
 export async function DELETE(req: NextRequest) {
-  const { email } = await GetUser()
-  const data = await req.json()
+  const req_json = await req.json()
 
-  try {
-    const client = new TagClient(email)
-    await client.deleteTag(data)
-
-    return new Response(JSON.stringify('ok'))
-  } catch (error) {
-    return new Response('error', {
-      status: 400,
-    })
-  }
+  const client = new TagClient()
+  const { data, status_code } = await client.deleteTag(req_json)
+  return Response.json(data, { status: status_code })
 }

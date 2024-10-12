@@ -11,7 +11,7 @@ export async function GET(req: NextRequest, { params }: { params: { repo_id: str
   return Response.json(data, { status: status_code })
 }
 
-export async function DELETE({ params }: { params: { repo_id: string } }) {
+export async function DELETE(req: NextRequest, { params }: { params: { repo_id: string } }) {
   const { repo_id } = params
 
   const client = new RepositoryClient()

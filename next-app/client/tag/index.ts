@@ -7,10 +7,6 @@ export interface ITagPayload {
 }
 
 class TagClient extends BaseClient {
-  constructor(email: string) {
-    super(email)
-  }
-
   getTags(id: string) {
     return this.get<ITag[]>(`/tag/${id}`)
   }

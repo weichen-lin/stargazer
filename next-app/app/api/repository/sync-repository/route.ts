@@ -1,26 +1,10 @@
-import { GetUser } from '@/actions'
 import { RepositoryClient } from '@/client/repository'
-import { isAxiosError } from 'axios'
 
 export const dynamic = 'force-dynamic'
 export async function GET() {
-  const { email } = await GetUser()
+  const client = new RepositoryClient()
 
-  try {
-    const client = new RepositoryClient(email)
+  const { data, status_code } = await client.syncRepository()
 
-    await client.syncRepository()
-
-    return Response.json({ status: 'ok' })
-  } catch (error) {
-    if (isAxiosError(error)) {
-      return new Response(JSON.stringify(error.response?.data), {
-        status: error.response?.status,
-      })
-    }
-
-    return new Response('unknown error', {
-      status: 400,
-    })
-  }
+  return Response.json(data, { status: status_code })
 }

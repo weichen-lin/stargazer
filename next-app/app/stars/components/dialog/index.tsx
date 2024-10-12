@@ -2,17 +2,21 @@
 
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
 import clsx from 'clsx'
-import { useSearchCollection } from '@/app/stars/hook'
-import { useStars } from '@/hooks/stars'
 import ListCollection from './collection'
 import CollectionPagination from './pagination'
 import { useFetch } from '@/hooks/util'
 import { ICollection } from '@/client/collection'
+import { useStarsContext } from '@/app/stars/hook'
+import { useState } from 'react'
 
 export default function SearchCollection() {
-  const { open, setOpen } = useSearchCollection()
-  const { selectedRepo } = useStars()
-  const { isLoading, data } = useFetch<{
+  const { selectRepos, open, setOpen } = useStarsContext()
+  const [chosen, setChosen] = useState<string | null>(null)
+  const [collections, setCollections] = useState<ICollection[]>([])
+  const [page, setPage] = useState(1)
+  const [total, setTotal] = useState(0)
+
+  const { isLoading } = useFetch<{
     total: number
     data: ICollection[]
   }>({
@@ -26,10 +30,14 @@ export default function SearchCollection() {
       },
     },
     onSuccess: data => {
-      //  setData(data.data)
-      //  setTotal(data.total)
+      setCollections(data.data)
+      setTotal(data.total)
     },
   })
+
+  const select = (id: string) => {
+    setChosen(chosen === id ? null : id)
+  }
 
   return (
     <Dialog
@@ -41,14 +49,18 @@ export default function SearchCollection() {
       <DialogContent
         className={clsx(
           'flex flex-col justify-start h-[650px] p-0',
-          'w-full lg:min-w-[580px] lg:max-w-[580px] overflow-y-auto',
+          'w-full lg:min-w-[580px] lg:max-w-[580px] overflow-y-auto gap-y-0',
         )}
       >
-        <DialogHeader className='text-2xl p-4'>Moving {selectedRepo.length} Repositories to Collection</DialogHeader>
-        {data?.total && <CollectionPagination total={data.total} />}
+        <DialogHeader className='text-2xl p-4'>Moving {selectRepos.length} Repositories to Collection</DialogHeader>
+        {total > 0 && <CollectionPagination total={total} />}
         {isLoading && <Loading />}
-        {!isLoading && data && data?.data.length === 0 && <Empty />}
-        {!isLoading && data && data?.data.length > 0 && data?.data.map(e => <ListCollection key={e.id} {...e} />)}
+        {!isLoading && collections.length === 0 && <Empty />}
+        <div className='py-4'>
+          {!isLoading &&
+            collections.length > 0 &&
+            collections.map(e => <ListCollection key={e.id} {...e} chosen={chosen} select={select} />)}
+        </div>
       </DialogContent>
     </Dialog>
   )
@@ -56,7 +68,7 @@ export default function SearchCollection() {
 
 const Loading = () => {
   return (
-    <div className='flex flex-col items-start justify-start h-full gap-y-4 px-4'>
+    <div className='flex flex-col items-start justify-start h-full gap-y-4 p-4'>
       <div className='w-full h-12 bg-slate-200 animate-pulse'></div>
       <div className='w-full h-12 bg-slate-200 animate-pulse'></div>
       <div className='w-full h-12 bg-slate-200 animate-pulse'></div>

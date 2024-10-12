@@ -3,25 +3,37 @@
 import { sign } from 'jsonwebtoken'
 import { z } from 'zod'
 import { randomUUID } from 'crypto'
-import axios, { AxiosInstance, AxiosRequestConfig } from 'axios'
+import axios, { AxiosInstance, AxiosRequestConfig, isAxiosError } from 'axios'
+import { getServerSession } from 'next-auth'
+import { options } from '@/app/api/auth/[...nextauth]/option'
+
+const userSchema = z.object({
+  name: z.string().min(1),
+  email: z.string().email(),
+  image: z.string(),
+})
+
+interface APIResponse<T> {
+  status_code: number
+  data: T
+}
 
 class BaseClient {
   private _health: boolean = false
   private readonly _secret: string
   private readonly _baseApiPath: string
+  private readonly _options = options
   private headers: Record<string, string> = {}
   private _axiosInstance!: AxiosInstance
 
-  constructor(email: string) {
+  constructor() {
     this._baseApiPath = process.env.STARGAZER_BACKEND as string
     this._secret = process.env.JWT_SECRET as string
 
     this._health = this.validate()
 
     this.appendDefaultHeaders({
-      Authorization: this.generateAccessToken(email),
       'X-Request-Id': randomUUID(),
-      'X-User-Email': email,
     })
 
     this._axiosInstance = axios.create({
@@ -59,8 +71,30 @@ class BaseClient {
     return token
   }
 
-  private async api<T>(options: AxiosRequestConfig): Promise<T> {
+  private async api<T>(options: AxiosRequestConfig): Promise<APIResponse<T>> {
     const { url, method, headers, params, data, signal } = options
+
+    if (!this._health) {
+      return {
+        status_code: 500,
+        data: 'Internal Server Error' as T,
+      }
+    }
+
+    const session = await getServerSession(this._options)
+    if (!session) {
+      return {
+        status_code: 401,
+        data: 'Unauthorized' as T,
+      }
+    }
+
+    const { email } = userSchema.parse(session?.user)
+
+    this.appendDefaultHeaders({
+      Authorization: this.generateAccessToken(email),
+      'X-User-Email': email,
+    })
 
     try {
       const response = await this._axiosInstance.request<T>({
@@ -75,9 +109,24 @@ class BaseClient {
         signal,
       })
 
-      return response.data
+      return {
+        status_code: response.status,
+        data: response.data,
+      }
     } catch (error) {
-      throw error
+      if (isAxiosError(error)) {
+        if (error.response) {
+          return {
+            status_code: error.response.status,
+            data: error.response.data,
+          }
+        }
+      }
+
+      return {
+        status_code: 500,
+        data: error as T,
+      }
     }
   }
 

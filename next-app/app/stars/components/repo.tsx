@@ -8,9 +8,9 @@ import { Button } from '@/components/ui/button'
 import { Star, Eye, LucideCalendarRange, ExternalLink, DoorOpen } from 'lucide-react'
 import { useState } from 'react'
 import { Checkbox } from '@/components/ui/checkbox'
-import { useStars } from '@/hooks/stars'
 import { MixIcon } from '@radix-ui/react-icons'
 import { ICollection } from '@/client/collection'
+import { useStarsContext } from '@/app/stars/hook'
 
 export default function GridRepo(props: { repository: IRepository; collected_by: ICollection[]; index: number }) {
   const { repository, collected_by, index } = props
@@ -27,7 +27,7 @@ export default function GridRepo(props: { repository: IRepository; collected_by:
   } = repository
   const { setOpen, setRepoID } = useRepoDetail()
   const [isHover, setIsHover] = useState<boolean>(false)
-  const { selectedRepo, setSelectedRepo } = useStars()
+  const { selectRepos, setSelectRepos } = useStarsContext()
 
   return (
     <motion.div
@@ -45,18 +45,16 @@ export default function GridRepo(props: { repository: IRepository; collected_by:
           <img src={avatar_url} alt={repo_name} width={60} height={60} className='rounded-full' />
           <div className='flex flex-col px-1 w-[calc(100%-64px)]'>
             <div className='flex justify-between items-center'>
-              <div className='flex justify-between'>
-                <div className='text-lg truncate w-[calc(100%-48px)]'>
-                  {owner_name}/{repo_name}
-                </div>
+              <div className='text-lg truncate w-[calc(100%-48px)]'>
+                {owner_name}/{repo_name}
               </div>
               <Checkbox
-                checked={selectedRepo.includes(repo_id)}
+                checked={selectRepos.includes(repo_id)}
                 onChange={(checked: boolean) => {
                   if (checked) {
-                    setSelectedRepo([...selectedRepo, repo_id])
+                    setSelectRepos([...selectRepos, repo_id])
                   } else {
-                    setSelectedRepo(selectedRepo.filter(id => id !== repo_id))
+                    setSelectRepos(selectRepos.filter(id => id !== repo_id))
                   }
                 }}
               />

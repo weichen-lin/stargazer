@@ -1,18 +1,10 @@
-import { GetUser } from '@/actions'
 import { RepositoryClient } from '@/client/repository'
 
 export const dynamic = 'force-dynamic' // defaults to auto
 export async function GET() {
-  const { email } = await GetUser()
-  const client = new RepositoryClient(email)
+  const client = new RepositoryClient()
 
-  const data = await client.getTopics()
+  const { data, status_code } = await client.getTopics()
 
-  try {
-    return Response.json(data.data)
-  } catch (error) {
-    return new Response('error', {
-      status: 400,
-    })
-  }
+  return Response.json(data, { status: status_code })
 }

@@ -1,14 +1,12 @@
 import { Plus, FolderInput, Trash2 } from 'lucide-react'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { useStars } from '@/hooks/stars'
-import { useSearchCollection } from '@/app/stars/hook'
+import { useStarsContext } from '@/app/stars/hook'
 
 export default function SelectRepository() {
-  const { selectedRepo, setSelectedRepo } = useStars()
-  const { open, setOpen } = useSearchCollection()
+  const { setOpen, selectRepos, setSelectRepos } = useStarsContext()
 
   return (
-    selectedRepo.length > 0 && (
+    selectRepos.length > 0 && (
       <div className='bg-slate-200 h-10 p-2 rounded-lg flex gap-x-4 items-center'>
         <TooltipProvider>
           <Tooltip>
@@ -16,7 +14,7 @@ export default function SelectRepository() {
               <Plus
                 className='w-7 h-7 rotate-45 hover:bg-slate-300 p-1 rounded-full cursor-pointer'
                 onClick={() => {
-                  setSelectedRepo([])
+                  setSelectRepos([])
                 }}
               />
             </TooltipTrigger>
@@ -25,7 +23,7 @@ export default function SelectRepository() {
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
-        <div className='text-sm'>{selectedRepo.length} Selected</div>
+        <div className='text-sm'>{selectRepos.length} Selected</div>
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>

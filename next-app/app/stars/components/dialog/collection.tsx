@@ -1,16 +1,14 @@
 import { ICollection } from '@/client/collection'
 import { MixIcon } from '@radix-ui/react-icons'
-import { useSearchCollection } from '@/app/stars/hook'
 import { cn } from '@/lib/utils'
 import { LockClosedIcon, LockOpen2Icon } from '@radix-ui/react-icons'
 import { Button } from '@/components/ui/button'
-import { useStars } from '@/hooks/stars'
+import { useStarsContext } from '@/app/stars/hook'
 import { useFetch } from '@/hooks/util'
 
-export default function ListCollection(props: ICollection) {
-  const { id, name, is_public } = props
-  const { chosen, setChosen, open, setOpen } = useSearchCollection()
-  const { selectedRepo } = useStars()
+export default function ListCollection(props: ICollection & { chosen: string | null; select: (id: string) => void }) {
+  const { id, name, is_public, chosen, select } = props
+  const { selectRepos, setOpen } = useStarsContext()
   const { run, isLoading } = useFetch({
     initialRun: false,
     config: {
@@ -29,11 +27,11 @@ export default function ListCollection(props: ICollection) {
   return (
     <div
       className={cn(
-        'flex justify-between w-full px-4 cursor-pointer py-3 group overflow-x-hidden',
+        'flex justify-between w-full px-4 cursor-pointer py-2 group overflow-x-hidden',
         chosen === id ? 'bg-blue-100' : 'hover:bg-slate-100',
       )}
       onClick={() => {
-        setChosen(chosen === id ? null : id)
+        select(id)
       }}
       onMouseEnter={() => {}}
       onMouseLeave={() => {}}
@@ -59,7 +57,7 @@ export default function ListCollection(props: ICollection) {
             size='sm'
             variant='outline'
             onClick={() => {
-              addRepos(selectedRepo)
+              addRepos(selectRepos)
             }}
             loading={isLoading}
           >

@@ -7,7 +7,6 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@/components/ui/pagination'
-import { useStars } from '@/hooks/stars'
 
 export default function CollectionPagination(props: { total: number }) {
   const { total } = props

@@ -1,4 +1,4 @@
-import SelectLanguage from './select-languages'
+import SelectLanguage from './operator/select-languages'
 import Results from './results'
 
 export { SelectLanguage, Results }

@@ -1,6 +1,6 @@
 import BaseClient from '@/client/base-client'
 import { z } from 'zod'
-import { IRepository } from './type'
+import { IRepository, IRepoSearchWithLanguage } from './type'
 import { ICollection } from '../collection'
 
 export interface ILanguageDistribution {
@@ -18,12 +18,8 @@ export const SortKeySchema = z.enum(['created_at', 'stargazers_count', 'watchers
 export type SortKey = z.infer<typeof SortKeySchema>
 
 class RepositoryClient extends BaseClient {
-  constructor(email: string) {
-    super(email)
-  }
-
   syncRepository() {
-    return this.get('/repository/sync-repository')
+    return this.get<{ message: string; expires: string }>('/repository/sync-repository')
   }
 
   getRepoDetail(id: string) {
@@ -39,7 +35,7 @@ class RepositoryClient extends BaseClient {
   }
 
   getTopics() {
-    return this.get<{ data: ITopics[] }>('/repository/topics')
+    return this.get<ITopics[]>('/repository/topics')
   }
 
   getReposWithSortKey(sortkey: SortKey) {
@@ -57,10 +53,7 @@ class RepositoryClient extends BaseClient {
       limit,
     })
 
-    return this.get<{ total: number; data: { repository: IRepository; collected_by: ICollection[] } }>(
-      '/repository',
-      params,
-    )
+    return this.get<IRepoSearchWithLanguage>('/repository', params)
   }
 }
 

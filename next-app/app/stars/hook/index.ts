@@ -1,3 +1,3 @@
-import useSearchCollection from './useSearchCollection'
+import { useStarsContext } from './useStarsContext'
 
-export { useSearchCollection }
+export { useStarsContext }

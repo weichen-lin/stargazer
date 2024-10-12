@@ -1,7 +1,6 @@
 'use server'
 
 import { cn } from '@/lib/utils'
-import { GetUser } from '@/actions'
 import { CollectionClient } from '@/client/collection'
 import { redirect } from 'next/navigation'
 import { Owner } from './component'
@@ -15,13 +14,12 @@ export default async function Page(req: {
   }
 }) {
   const { id } = req.params
-  const { email } = await GetUser()
 
-  const client = new CollectionClient(email)
+  const client = new CollectionClient()
 
   try {
-    const getSharedCollection = await client.getCollection(id)
-    const { owner, collection, shared_from } = getSharedCollection
+    const { data: getSharedCollection } = await client.getCollection(id)
+    const { collection, shared_from } = getSharedCollection
 
     return (
       <div

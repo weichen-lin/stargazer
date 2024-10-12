@@ -23,7 +23,7 @@ function getRotationDegree() {
 const fixedValueGenerator = () => 0.5
 
 export default function TopicsCloud() {
-  const { data, isLoading } = useFetch<ITopics[]>({
+  const { data, isLoading } = useFetch<{ data: ITopics[] }>({
     initialRun: true,
     config: {
       url: '/repository/topics',
@@ -31,8 +31,10 @@ export default function TopicsCloud() {
     },
   })
 
+  const word_data = data?.data ?? []
+
   const words =
-    data
+    word_data
       ?.sort((a, b) => b.repos.length - a.repos.length)
       .slice(0, 50)
       .map(e => ({
@@ -54,7 +56,7 @@ export default function TopicsCloud() {
           <CardTitle className='text-xl'>Topics Cloud</CardTitle>
         </CardHeader>
         <CardContent className='flex-1 flex items-center justify-center'>
-          {!isLoading && data && data.length > 0 && (
+          {!isLoading && word_data && word_data.length > 0 && (
             <Wordcloud
               words={words}
               width={340}
@@ -83,7 +85,7 @@ export default function TopicsCloud() {
               }
             </Wordcloud>
           )}
-          {!isLoading && data && data.length === 0 && <EmptyContent />}
+          {!isLoading && word_data && word_data.length === 0 && <EmptyContent />}
         </CardContent>
         {isLoading && <Loading />}
       </Card>

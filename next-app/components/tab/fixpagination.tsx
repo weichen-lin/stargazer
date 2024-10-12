@@ -7,11 +7,11 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@/components/ui/pagination'
-import { useStars } from '@/hooks/stars'
+import { useStarsContext } from '@/app/stars/hook'
 
 export default function FixPagination(props: { total: number }) {
   const { total } = props
-  const { page, search } = useStars()
+  const { page, search } = useStarsContext()
 
   return <Pagination>{renderPagination(total, page, search)}</Pagination>
 }

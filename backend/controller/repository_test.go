@@ -321,7 +321,7 @@ func Test_GetRepositoryByPageAndLanguages(t *testing.T) {
 		r.ServeHTTP(w, req)
 		require.Equal(t, http.StatusOK, w.Code)
 
-		var response db.SearchResult
+		var response db.SearchResultWithCollection
 		err := json.NewDecoder(w.Body).Decode(&response)
 		require.NoError(t, err)
 
@@ -329,7 +329,7 @@ func Test_GetRepositoryByPageAndLanguages(t *testing.T) {
 		require.Equal(t, response.Total, int64(realTotal))
 
 		for _, data := range response.Data {
-			require.Equal(t, true, contains([]string{"Go", "Python"}, data.Language))
+			require.Equal(t, true, contains([]string{"Go", "Python"}, data.RepositoryEntity.Language))
 		}
 	})
 }

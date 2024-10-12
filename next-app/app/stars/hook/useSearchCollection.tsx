@@ -9,7 +9,7 @@ interface ISearchCollection {
 }
 
 const searchCollectionState = create<ISearchCollection>(set => ({
-  open: true,
+  open: false,
   setOpen: open => set({ open }),
   chosen: null,
   setChosen: chosen => set({ chosen }),

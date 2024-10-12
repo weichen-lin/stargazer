@@ -20,8 +20,8 @@ export default function Results() {
 
   return (
     <div className='w-full h-full md:grid md:grid-cols-2 xl:grid-cols-3 3xl:grid-cols-4 gap-4 py-4 flex flex-col content-start'>
-      {results.map((item, index) => (
-        <Repo key={item.repo_id} {...item} index={index} />
+      {results.map(({ repository, collected_by }, index) => (
+        <Repo key={repository.repo_id} repository={repository} collected_by={collected_by} index={index} />
       ))}
       {open && <SearchCollection />}
     </div>

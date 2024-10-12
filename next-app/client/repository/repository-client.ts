@@ -1,6 +1,7 @@
 import BaseClient from '@/client/base-client'
 import { z } from 'zod'
 import { IRepository } from './type'
+import { ICollection } from '../collection'
 
 export interface ILanguageDistribution {
   language: string
@@ -56,7 +57,10 @@ class RepositoryClient extends BaseClient {
       limit,
     })
 
-    return this.get<{ total: number; data: IRepository[] }>('/repository', params)
+    return this.get<{ total: number; data: { repository: IRepository; collected_by: ICollection[] } }>(
+      '/repository',
+      params,
+    )
   }
 }
 

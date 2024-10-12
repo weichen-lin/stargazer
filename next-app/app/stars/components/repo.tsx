@@ -9,20 +9,22 @@ import { Star, Eye, LucideCalendarRange, ExternalLink, DoorOpen } from 'lucide-r
 import { useState } from 'react'
 import { Checkbox } from '@/components/ui/checkbox'
 import { useStars } from '@/hooks/stars'
+import { MixIcon } from '@radix-ui/react-icons'
+import { ICollection } from '@/client/collection'
 
-export default function GridRepo(props: IRepository & { index: number }) {
+export default function GridRepo(props: { repository: IRepository; collected_by: ICollection[]; index: number }) {
+  const { repository, collected_by, index } = props
   const {
     stargazers_count,
     repo_name,
     language,
-    index,
     html_url,
     avatar_url,
     owner_name,
     open_issues_count,
     repo_id,
     updated_at,
-  } = props
+  } = repository
   const { setOpen, setRepoID } = useRepoDetail()
   const [isHover, setIsHover] = useState<boolean>(false)
   const { selectedRepo, setSelectedRepo } = useStars()
@@ -43,8 +45,10 @@ export default function GridRepo(props: IRepository & { index: number }) {
           <img src={avatar_url} alt={repo_name} width={60} height={60} className='rounded-full' />
           <div className='flex flex-col px-1 w-[calc(100%-64px)]'>
             <div className='flex justify-between items-center'>
-              <div className='text-lg truncate w-[calc(100%-48px)]'>
-                {owner_name}/{repo_name}
+              <div className='flex justify-between'>
+                <div className='text-lg truncate w-[calc(100%-48px)]'>
+                  {owner_name}/{repo_name}
+                </div>
               </div>
               <Checkbox
                 checked={selectedRepo.includes(repo_id)}
@@ -57,7 +61,17 @@ export default function GridRepo(props: IRepository & { index: number }) {
                 }}
               />
             </div>
-            <div className='rounded-full text-slate-500/75 dark:text-white/70 h-6'>@{owner_name}</div>
+            <div className='rounded-full text-slate-500/75 dark:text-white/70 h-6 flex justify-between mt-1'>
+              @{owner_name}
+              <div className='flex gap-x-2 items-center pr-1'>
+                {collected_by.length > 0 && (
+                  <div className='flex gap-x-2 items-center'>
+                    <MixIcon className='w-5 h-5' />
+                    {collected_by.length}
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
         <div className='flex justify-between items-center mb-4'>

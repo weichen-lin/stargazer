@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { ICollection } from '../collection'
 
 export interface ILanguageDistribution {
   language: string
@@ -38,5 +39,5 @@ export interface IRepository {
 
 export interface IRepoSearchWithLanguage {
   total: number
-  data: IRepository[]
+  data: { repository: IRepository; collected_by: ICollection[] }[]
 }

@@ -151,7 +151,7 @@ func (c *Controller) SearchRepoByLanguages(ctx *gin.Context) {
 		return
 	}
 
-	results, err := c.db.SearchRepositoryByLanguage(ctx, &db.SearchParams{
+	results, err := c.db.SearchRepositoryByLanguageWithCollection(ctx, &db.SearchParams{
 		Page:      query.Page,
 		Limit:     query.Limit,
 		Languages: strings.Split(query.Languages, ","),

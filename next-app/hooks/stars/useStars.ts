@@ -5,6 +5,7 @@ import { Option } from '@/components/ui/multiple-selector'
 import { useFetch } from '@/hooks/util'
 import { IRepoSearchWithLanguage, IRepository } from '@/client/repository'
 import { useCallback } from 'react'
+import { ICollection } from '@/client/collection'
 
 interface SelectState {
   selected: Option[]
@@ -17,8 +18,8 @@ interface SelectState {
   setCount: (count: number) => void
   page: number
   setPage: (page: number) => void
-  results: IRepository[]
-  setResults: (results: IRepository[]) => void
+  results: { repository: IRepository; collected_by: ICollection[] }[]
+  setResults: (results: { repository: IRepository; collected_by: ICollection[] }[]) => void
 }
 
 const selectState = create<SelectState>(set => ({

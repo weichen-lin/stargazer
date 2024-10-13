@@ -37,7 +37,12 @@ export interface IRepository {
   last_modified_at: string
 }
 
+export interface IRepositoryWithCollection {
+  repository: IRepository
+  collected_by: ICollection[]
+}
+
 export interface IRepoSearchWithLanguage {
   total: number
-  data: { repository: IRepository; collected_by: ICollection[] }[]
+  data: IRepositoryWithCollection[]
 }

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { StarFilledIcon, EyeOpenIcon, RocketIcon } from '@radix-ui/react-icons'
@@ -36,8 +36,8 @@ const CardInfoMap: {
 
 export default function RepoSearch() {
   const [sortKey, setSortKey] = useState<SortKey>('created_at')
-  const { data, isLoading, run } = useFetch<IRepository[]>({
-    initialRun: false,
+  const { data, isLoading, run } = useFetch<{ data: IRepository[] }>({
+    initialRun: true,
     config: {
       url: '/repository/sort',
       method: 'GET',
@@ -47,9 +47,7 @@ export default function RepoSearch() {
     },
   })
 
-  useEffect(() => {
-    run({ params: { key: sortKey } })
-  }, [sortKey])
+  const repos = data?.data ?? []
 
   return (
     <Card className='flex flex-col h-[320px] w-full max-w-[380px] md:max-w-none'>
@@ -68,6 +66,7 @@ export default function RepoSearch() {
             value={sortKey}
             onValueChange={e => {
               setSortKey(e as SortKey)
+              run({ params: { key: e } })
             }}
             disabled={isLoading}
           >
@@ -91,8 +90,8 @@ export default function RepoSearch() {
         <CardDescription> {CardInfoMap[sortKey].description}</CardDescription>
       </CardHeader>
       <CardContent className='flex-1 pb-0 overflow-y-auto flex flex-col gap-y-2 py-4'>
-        {!isLoading && data && data.length > 0 && data.map(repo => <Repo key={`repo_${repo.repo_id}`} {...repo} />)}
-        {!isLoading && data && data.length === 0 && <EmptyContent />}
+        {!isLoading && repos && repos.length > 0 && repos.map(repo => <Repo key={`repo_${repo.repo_id}`} {...repo} />)}
+        {!isLoading && repos && repos.length === 0 && <EmptyContent />}
         {isLoading && <Loading />}
       </CardContent>
     </Card>

@@ -1,6 +1,6 @@
 'use server'
 
-import BaseClient from './base-client'
+import BaseClient from '../base-client'
 
 export interface ICrontab {
   triggered_at: string
@@ -12,10 +12,6 @@ export interface ICrontab {
 }
 
 class CrontabClient extends BaseClient {
-  constructor(email: string) {
-    super(email)
-  }
-
   getCrontab() {
     return this.get<ICrontab>('/crontab')
   }

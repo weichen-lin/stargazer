@@ -2,10 +2,6 @@ import BaseClient from '@/client/base-client'
 import { ICollection, ISharedCollection, UpdateCollectionPayload } from './type'
 
 class CollectionClient extends BaseClient {
-  constructor(email: string) {
-    super(email)
-  }
-
   getCollection(id: string) {
     return this.get<ISharedCollection>(`/collection/${id}`)
   }

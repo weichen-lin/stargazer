@@ -1,12 +1,12 @@
 'use client'
 
 import MultipleSelector from '@/components/ui/multiple-selector'
-import { useStars } from '@/hooks/stars'
 import { Button } from '@/components/ui/button'
 import { FixPagination } from '@/components/tab'
 import { ILanguageDistribution } from '@/client/repository'
 import { useFetch } from '@/hooks/util'
 import SelectRepository from './select-repository'
+import { useStarsContext } from '@/app/stars/hook'
 
 const SelectLanguage = () => {
   const { data, isLoading } = useFetch<ILanguageDistribution[]>({
@@ -17,7 +17,7 @@ const SelectLanguage = () => {
     },
   })
 
-  const { selected, setSelected, search, count } = useStars()
+  const { selectLanguages, setSelectLanguages, search, total } = useStarsContext()
 
   const options = (data && data.map(e => ({ label: e.language, value: e.language }))) || []
 
@@ -29,8 +29,8 @@ const SelectLanguage = () => {
           <div className='w-[380px] h-10 bg-slate-300 rounded-lg animate-pulse'></div>
         ) : (
           <MultipleSelector
-            value={selected}
-            onChange={setSelected}
+            value={selectLanguages}
+            onChange={setSelectLanguages}
             defaultOptions={options}
             placeholder='Select languages you like...'
             emptyIndicator={
@@ -47,13 +47,13 @@ const SelectLanguage = () => {
             search(1)
           }}
           className='w-20 h-10 mb-2'
-          disabled={isLoading || selected.length === 0}
+          disabled={isLoading || selectLanguages.length === 0}
         >
           Search
         </Button>
         <SelectRepository />
       </div>
-      {count > 0 && <FixPagination total={count} />}
+      {total > 0 && <FixPagination total={total} />}
     </div>
   )
 }

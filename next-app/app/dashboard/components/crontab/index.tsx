@@ -4,7 +4,7 @@ import moment from 'moment'
 import HourSetting from './crontab-setting'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { useFetch } from '@/hooks/util'
-import { ICrontab } from '@/client/crontab-client'
+import { ICrontab } from '@/client/crontab'
 import { Timer, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 

@@ -20,11 +20,15 @@ func (db *Database) GetRepository(ctx context.Context, repo_id int64) (*domain.R
 		return nil, ErrNotFoundEmailAtContext
 	}
 
-	session := db.Driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
-	defer session.Close(context.Background())
+	ctx, cancel := context.WithTimeout(ctx, time.Duration(db.Timeout)*time.Second)
+	session := db.Driver.NewSession(ctx, neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
+	defer func() {
+		session.Close(context.Background())
+		cancel()
+	}()
 
-	result, err := session.ExecuteRead(context.Background(), func(tx neo4j.ManagedTransaction) (any, error) {
-		result, err := tx.Run(context.Background(), `
+	result, err := session.ExecuteRead(ctx, func(tx neo4j.ManagedTransaction) (any, error) {
+		result, err := tx.Run(ctx, `
 			MATCH (u:User {email: $email})-[s:STARS {is_delete: false}]-(r:Repository  {repo_id: $repo_id})
 			RETURN {
 				repo_id: r.repo_id,
@@ -57,24 +61,27 @@ func (db *Database) GetRepository(ctx context.Context, repo_id int64) (*domain.R
 			return nil, err
 		}
 
-		record, err := result.Single(context.Background())
+		record, err := result.Single(ctx)
 		return record, err
 	})
 
 	if err != nil {
+		if err == context.DeadlineExceeded {
+			return nil, fmt.Errorf("database operation timed out: %w", err)
+		}
 		return nil, ErrRepositoryNotFound
 	}
 
 	record, ok := result.(*neo4j.Record)
 	if !ok {
-		return nil, fmt.Errorf("error at converting users records to *neo4j.Record")
+		return nil, fmt.Errorf("error at converting repository record to *neo4j.Record")
 	}
 
 	repoMap := record.AsMap()
 
 	repo, ok := repoMap["repo"].(map[string]interface{})
 	if !ok {
-		return nil, fmt.Errorf("error converting record to map")
+		return nil, fmt.Errorf("error converting repository record to map")
 	}
 
 	repository, err := domain.FromRepositoryEntity(
@@ -114,12 +121,16 @@ func (db *Database) DeleteRepository(ctx context.Context, repo_id int64) error {
 		return ErrNotFoundEmailAtContext
 	}
 
-	session := db.Driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
-	defer session.Close(context.Background())
+	ctx, cancel := context.WithTimeout(ctx, time.Duration(db.Timeout)*time.Second)
+	session := db.Driver.NewSession(ctx, neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
+	defer func() {
+		session.Close(context.Background())
+		cancel()
+	}()
 
-	result, err := session.ExecuteWrite(context.Background(), func(tx neo4j.ManagedTransaction) (any, error) {
-		result, err := tx.Run(context.Background(), `
-			MATCH (u:User {email: $email})-[s:STARS]-(r:Repository  {repo_id: $repo_id})
+	result, err := session.ExecuteWrite(ctx, func(tx neo4j.ManagedTransaction) (any, error) {
+		result, err := tx.Run(ctx, `
+			MATCH (u:User {email: $email})-[s:STARS]-(r:Repository {repo_id: $repo_id})
 			SET s.is_delete = true
 			RETURN r.repo_id as repo_id
 			`,
@@ -132,25 +143,24 @@ func (db *Database) DeleteRepository(ctx context.Context, repo_id int64) error {
 			return nil, err
 		}
 
-		record, err := result.Single(context.Background())
+		record, err := result.Single(ctx)
 		return record, err
 	})
 
 	if err != nil {
-		fmt.Println(err)
 		return ErrRepositoryNotFound
 	}
 
 	record, ok := result.(*neo4j.Record)
 	if !ok {
-		return fmt.Errorf("error at converting users records to *neo4j.Record")
+		return fmt.Errorf("error at converting delete repository repo_id record to *neo4j.Record")
 	}
 
 	repoMap := record.AsMap()
 	_, ok = repoMap["repo_id"].(int64)
 
 	if !ok {
-		return errors.New("failed to convert repo_id after delete")
+		return errors.New("error at converting delete repository repo_id after delete")
 	}
 
 	return nil
@@ -167,11 +177,15 @@ func (db *Database) GetRepoLanguageDistribution(ctx context.Context) ([]*Languag
 		return nil, ErrNotFoundEmailAtContext
 	}
 
-	session := db.Driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
-	defer session.Close(context.Background())
+	ctx, cancel := context.WithTimeout(ctx, time.Duration(db.Timeout)*time.Second)
+	session := db.Driver.NewSession(ctx, neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
+	defer func() {
+		session.Close(context.Background())
+		cancel()
+	}()
 
-	result, err := session.ExecuteRead(context.Background(), func(tx neo4j.ManagedTransaction) (any, error) {
-		result, err := tx.Run(context.Background(), `
+	result, err := session.ExecuteRead(ctx, func(tx neo4j.ManagedTransaction) (any, error) {
+		result, err := tx.Run(ctx, `
 			MATCH (u:User { email: $email })-[s:STARS { is_delete: false }]->(r:Repository)
 			WITH r.language as language, COUNT(r) as count
 			RETURN language, count
@@ -182,29 +196,28 @@ func (db *Database) GetRepoLanguageDistribution(ctx context.Context) ([]*Languag
 			})
 
 		if err != nil {
-			fmt.Println("error at read repo: ", err)
 			return nil, err
 		}
-		record, err := result.Collect(context.Background())
+		record, err := result.Collect(ctx)
 		return record, err
 	})
 
 	if err != nil {
-		return nil, err
+		return []*LanguageDistribution{}, err
 	}
 
 	records, ok := result.([]*neo4j.Record)
 	if !ok {
-		return nil, fmt.Errorf("error at converting users records to []*neo4j.Record")
+		return nil, fmt.Errorf("error at converting repository language distribution records to []*neo4j.Record")
 	}
 
-	languages := make([]*LanguageDistribution, 0, len(records))
+	languages := make([]*LanguageDistribution, len(records))
 
-	for _, record := range records {
-		languages = append(languages, &LanguageDistribution{
+	for index, record := range records {
+		languages[index] = &LanguageDistribution{
 			Language: getString(record.Values[0]),
 			Count:    getInt64(record.Values[1]),
-		})
+		}
 	}
 
 	return languages, nil
@@ -216,13 +229,16 @@ func (db *Database) CreateRepository(ctx context.Context, repo *domain.Repositor
 		return ErrNotFoundEmailAtContext
 	}
 
+	ctx, cancel := context.WithTimeout(ctx, time.Duration(db.Timeout)*time.Second)
+	session := db.Driver.NewSession(ctx, neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
+	defer func() {
+		session.Close(context.Background())
+		cancel()
+	}()
+
 	entity := repo.ToRepositoryEntity()
-
-	session := db.Driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
-	defer session.Close(context.Background())
-
-	records, err := session.ExecuteWrite(context.Background(), func(tx neo4j.ManagedTransaction) (any, error) {
-		result, err := tx.Run(context.Background(), `
+	records, err := session.ExecuteWrite(ctx, func(tx neo4j.ManagedTransaction) (any, error) {
+		result, err := tx.Run(ctx, `
 			MATCH (u:User {email: $email})
 			MERGE (r:Repository { repo_id: $repo_id })
 			SET r += {
@@ -288,26 +304,26 @@ func (db *Database) CreateRepository(ctx context.Context, repo *domain.Repositor
 		)
 
 		if err != nil {
-			fmt.Println("error at create repo: ", err)
 			return nil, err
 		}
-		records, err := result.Single(context.Background())
-		return records, err
+
+		record, err := result.Single(ctx)
+		return record, err
 	})
 
 	if err != nil {
-		return ErrRepositoryNotFound
+		return fmt.Errorf("error at create repository %d, email: %s", entity.RepoID, email)
 	}
 
 	repos, ok := records.(*neo4j.Record)
 	if !ok {
-		return ErrRepositoryNotFound
+		return fmt.Errorf("error at converting create repository records to *neo4j.Record")
 	}
 
 	record := repos.AsMap()
 	_, ok = record["result"].(time.Time)
 	if !ok {
-		return fmt.Errorf("error convert id from record: %v", record)
+		return fmt.Errorf("error convert result from record at create repository: %v", record)
 	}
 
 	return nil
@@ -330,11 +346,15 @@ func (db *Database) SearchRepositoryByLanguage(ctx context.Context, params *Sear
 		return nil, ErrNotFoundEmailAtContext
 	}
 
-	session := db.Driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
-	defer session.Close(context.Background())
+	ctx, cancel := context.WithTimeout(ctx, time.Duration(db.Timeout)*time.Second)
+	session := db.Driver.NewSession(ctx, neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
+	defer func() {
+		session.Close(context.Background())
+		cancel()
+	}()
 
-	result, err := session.ExecuteRead(context.Background(), func(tx neo4j.ManagedTransaction) (any, error) {
-		result, err := tx.Run(context.Background(), `
+	result, err := session.ExecuteRead(ctx, func(tx neo4j.ManagedTransaction) (any, error) {
+		result, err := tx.Run(ctx, `
 			MATCH (u:User {email: $email})-[s:STARS {is_delete: false}]-(r:Repository)
 			WHERE r.language IN $languages
 			WITH u, COUNT(r) as total
@@ -374,9 +394,9 @@ func (db *Database) SearchRepositoryByLanguage(ctx context.Context, params *Sear
 			})
 
 		if err != nil {
-			fmt.Println("error at read repo: ", err)
 			return nil, err
 		}
+
 		record, err := result.Single(context.Background())
 		return record, err
 	})
@@ -390,7 +410,7 @@ func (db *Database) SearchRepositoryByLanguage(ctx context.Context, params *Sear
 
 	record, ok := result.(*neo4j.Record)
 	if !ok {
-		return nil, fmt.Errorf("error at converting users records to []*neo4j.Record")
+		return nil, fmt.Errorf("error at converting search repository record to *neo4j.Record")
 	}
 
 	recordMap := record.AsMap()
@@ -402,7 +422,7 @@ func (db *Database) SearchRepositoryByLanguage(ctx context.Context, params *Sear
 
 	data, ok := recordMap["data"].([]interface{})
 	if !ok {
-		return nil, fmt.Errorf("error convert id from record: %v", record)
+		return nil, fmt.Errorf("error convert repos from record: %v", record)
 	}
 
 	repos := make([]*domain.RepositoryEntity, len(data))
@@ -457,11 +477,15 @@ func (db *Database) SearchRepositoryByLanguageWithCollection(ctx context.Context
 		return nil, ErrNotFoundEmailAtContext
 	}
 
-	session := db.Driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
-	defer session.Close(context.Background())
+	ctx, cancel := context.WithTimeout(ctx, time.Duration(db.Timeout)*time.Second)
+	session := db.Driver.NewSession(ctx, neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
+	defer func() {
+		session.Close(context.Background())
+		cancel()
+	}()
 
-	result, err := session.ExecuteRead(context.Background(), func(tx neo4j.ManagedTransaction) (any, error) {
-		result, err := tx.Run(context.Background(), `
+	result, err := session.ExecuteRead(ctx, func(tx neo4j.ManagedTransaction) (any, error) {
+		result, err := tx.Run(ctx, `
 			MATCH (u:User {email: $email})-[s:STARS {is_delete: false}]-(r:Repository)
 			WHERE r.language IN $languages
 			WITH u, COUNT(r) as total
@@ -514,23 +538,23 @@ func (db *Database) SearchRepositoryByLanguageWithCollection(ctx context.Context
 			})
 
 		if err != nil {
-			fmt.Println("error at read repo: ", err)
+			return nil, err
 		}
-		records, err := result.Collect(context.Background())
+
+		records, err := result.Collect(ctx)
 		return records, err
 	})
-	fmt.Println(params.Page)
 
 	if err != nil {
 		return &SearchResultWithCollection{
 			Data:  []*RepositoryWithCollection{},
 			Total: 0,
-		}, nil
+		}, err
 	}
 
 	results, ok := result.([]*neo4j.Record)
 	if !ok {
-		return nil, fmt.Errorf("error at converting users records to *neo4j.Result")
+		return nil, fmt.Errorf("error at converting search repository with collection records to []*neo4j.Record")
 	}
 
 	searchResults := &SearchResultWithCollection{
@@ -543,7 +567,7 @@ func (db *Database) SearchRepositoryByLanguageWithCollection(ctx context.Context
 
 		total, ok := recordMap["total"].(int64)
 		if !ok {
-			return nil, fmt.Errorf("error convert id from record: %v", record)
+			return nil, fmt.Errorf("error convert total from record: %v", record)
 		}
 		searchResults.Total = total
 
@@ -585,9 +609,8 @@ func (db *Database) SearchRepositoryByLanguageWithCollection(ctx context.Context
 
 		collects := make([]*domain.CollectionEntity, len(collected_by))
 
-		for i, c := range collected_by {
-			collectMap := c.(map[string]interface{})
-			fmt.Println("index i: ", collectMap)
+		for index, collection := range collected_by {
+			collectMap := collection.(map[string]interface{})
 
 			entity := &domain.CollectionEntity{
 				Id:          getString(collectMap["id"]),
@@ -597,7 +620,7 @@ func (db *Database) SearchRepositoryByLanguageWithCollection(ctx context.Context
 				UpdatedAt:   getString(collectMap["updated_at"]),
 				IsPublic:    getBool(collectMap["is_public"]),
 			}
-			collects[i] = entity
+			collects[index] = entity
 		}
 
 		searchResults.Data[i] = &RepositoryWithCollection{
@@ -620,11 +643,15 @@ func (db *Database) GetAllRepositoryTopics(ctx context.Context) ([]*TopicResult,
 		return nil, ErrNotFoundEmailAtContext
 	}
 
-	session := db.Driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
-	defer session.Close(context.Background())
+	ctx, cancel := context.WithTimeout(ctx, time.Duration(db.Timeout)*time.Second)
+	session := db.Driver.NewSession(ctx, neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
+	defer func() {
+		session.Close(context.Background())
+		cancel()
+	}()
 
-	results, err := session.ExecuteRead(context.Background(), func(tx neo4j.ManagedTransaction) (any, error) {
-		result, err := tx.Run(context.Background(), `
+	results, err := session.ExecuteRead(ctx, func(tx neo4j.ManagedTransaction) (any, error) {
+		result, err := tx.Run(ctx, `
 			MATCH (u:User {email: $email})-[s:STARS {is_delete: false}]-(r:Repository)
 			RETURN r.repo_id as repo_id, r.topics as topics
 			`,
@@ -633,9 +660,9 @@ func (db *Database) GetAllRepositoryTopics(ctx context.Context) ([]*TopicResult,
 			})
 
 		if err != nil {
-			fmt.Println("error at read repo: ", err)
 			return nil, err
 		}
+
 		record, err := result.Collect(context.Background())
 		return record, err
 	})
@@ -649,19 +676,18 @@ func (db *Database) GetAllRepositoryTopics(ctx context.Context) ([]*TopicResult,
 		return nil, fmt.Errorf("error at converting topics records to []*neo4j.Record")
 	}
 
-	topics := make([]*TopicResult, 0, len(records))
-	for _, record := range records {
-		topics = append(topics, &TopicResult{
+	topics := make([]*TopicResult, len(records))
+	for index, record := range records {
+		topics[index] = &TopicResult{
 			RepoId: getInt64(record.Values[0]),
 			Topics: getStringArray(record.Values[1]),
-		})
+		}
 	}
 
 	return topics, nil
 }
 
 type SortKey string
-
 type SortOrder string
 
 const (
@@ -705,18 +731,25 @@ func (db *Database) GetRepositoriesOrderBy(ctx context.Context, params *SortPara
 		return nil, ErrNotFoundEmailAtContext
 	}
 
+	ctx, cancel := context.WithTimeout(ctx, time.Duration(db.Timeout)*time.Second)
+	session := db.Driver.NewSession(ctx, neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
+	defer func() {
+		session.Close(context.Background())
+		cancel()
+	}()
+
 	sortKey, exists := sortKeyMap[SortKey(params.Key)]
 	if !exists {
-		return []*domain.RepositoryEntity{}, ErrInvalidSortKey
+		return nil, ErrInvalidSortKey
 	}
 
 	sortOrder, exists := sortOrderMap[SortOrder(params.Order)]
 	if !exists {
-		return []*domain.RepositoryEntity{}, ErrInvalidSortOrder
+		return nil, ErrInvalidSortOrder
 	}
 
 	query := fmt.Sprintf(`
-			MATCH (u:User {email: $email})-[s:STARS { is_delete: false }]-(r:Repository)
+			MATCH (u:User {email: $email})-[s:STARS {is_delete: false}]-(r:Repository)
 			RETURN {
 				repo_id: r.repo_id,
 				repo_name: r.repo_name,
@@ -742,25 +775,22 @@ func (db *Database) GetRepositoriesOrderBy(ctx context.Context, params *SortPara
 			LIMIT 5
 			`, sortKey, sortOrder)
 
-	session := db.Driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
-	defer session.Close(context.Background())
-
-	results, err := session.ExecuteRead(context.Background(), func(tx neo4j.ManagedTransaction) (any, error) {
-		result, err := tx.Run(context.Background(), query,
+	results, err := session.ExecuteRead(ctx, func(tx neo4j.ManagedTransaction) (any, error) {
+		result, err := tx.Run(ctx, query,
 			map[string]interface{}{
 				"email": email,
 			})
 
 		if err != nil {
-			fmt.Println("error at read repo: ", err)
 			return nil, err
 		}
+
 		record, err := result.Collect(context.Background())
 		return record, err
 	})
 
 	if err != nil {
-		return []*domain.RepositoryEntity{}, nil
+		return nil, err
 	}
 
 	records, ok := results.([]*neo4j.Record)
@@ -772,9 +802,7 @@ func (db *Database) GetRepositoriesOrderBy(ctx context.Context, params *SortPara
 
 	for i, r := range records {
 		record := r.AsMap()
-
 		repoMap := record["repo"].(map[string]interface{})
-
 		entity := &domain.RepositoryEntity{
 			RepoID:            getInt64(repoMap["repo_id"]),
 			RepoName:          getString(repoMap["repo_name"]),
@@ -796,7 +824,6 @@ func (db *Database) GetRepositoriesOrderBy(ctx context.Context, params *SortPara
 			LastSyncedAt:      getTimeString(repoMap["last_synced_at"]),
 			LastModifiedAt:    getTimeString(repoMap["last_modified_at"]),
 		}
-
 		repos[i] = entity
 	}
 
@@ -809,15 +836,17 @@ func (db *Database) FullTextSearch(ctx context.Context, query string) ([]*domain
 		return nil, ErrNotFoundEmailAtContext
 	}
 
-	session := db.Driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
-	defer session.Close(context.Background())
+	ctx, cancel := context.WithTimeout(ctx, time.Duration(db.Timeout)*time.Second)
+	session := db.Driver.NewSession(ctx, neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
+	defer func() {
+		session.Close(context.Background())
+		cancel()
+	}()
 
-	result, err := session.ExecuteRead(context.Background(), func(tx neo4j.ManagedTransaction) (any, error) {
-		result, err := tx.Run(context.Background(), `
+	result, err := session.ExecuteRead(ctx, func(tx neo4j.ManagedTransaction) (any, error) {
+		result, err := tx.Run(ctx, `
 			CALL db.index.fulltext.queryNodes("REPOSITORY_FULL_TEXT_SEARCH", $query) YIELD node, score
-			MATCH (User {
-				email: $email
-			})-[s:STARS {is_delete: false}]-(node)
+			MATCH (User {email: $email})-[s:STARS {is_delete: false}]-(node)
 			RETURN {
 				repo_id: node.repo_id,
 				repo_name: node.repo_name,
@@ -847,20 +876,20 @@ func (db *Database) FullTextSearch(ctx context.Context, query string) ([]*domain
 			})
 
 		if err != nil {
-			fmt.Println("error at read repo: ", err)
 			return nil, err
 		}
+
 		record, err := result.Collect(context.Background())
 		return record, err
 	})
 
 	if err != nil {
-		return []*domain.RepositoryEntity{}, nil
+		return nil, err
 	}
 
 	records, ok := result.([]*neo4j.Record)
 	if !ok {
-		return nil, fmt.Errorf("error at converting users records to []*neo4j.Record")
+		return nil, fmt.Errorf("error at converting full text search records to []*neo4j.Record")
 	}
 
 	repos := make([]*domain.RepositoryEntity, len(records))

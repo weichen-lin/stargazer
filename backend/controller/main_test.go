@@ -35,7 +35,8 @@ func NewTestDatabase() *db.Database {
 	}
 
 	return &db.Database{
-		Driver: driver,
+		Driver:  driver,
+		Timeout: 5,
 	}
 }
 

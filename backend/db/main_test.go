@@ -30,7 +30,8 @@ func NewTestDatabase() *Database {
 	}
 
 	return &Database{
-		Driver: driver,
+		Driver:  driver,
+		Timeout: 5,
 	}
 }
 
@@ -104,7 +105,7 @@ func getRandomTopics() []string {
 	return topics
 }
 
-func createRepositoryAtFakeUser(t *testing.T, user *domain.User) *domain.Repository {
+func createRandomRepository(t *testing.T) *domain.Repository {
 	repositoryEntity := &domain.RepositoryEntity{
 		RepoID:            faker.RandomUnixTime(),
 		RepoName:          faker.Name(),
@@ -130,6 +131,12 @@ func createRepositoryAtFakeUser(t *testing.T, user *domain.User) *domain.Reposit
 	repo, err := domain.FromRepositoryEntity(repositoryEntity)
 	require.NoError(t, err)
 	require.NotEmpty(t, repo)
+
+	return repo
+}
+
+func createRepositoryAtFakeUser(t *testing.T, user *domain.User) *domain.Repository {
+	repo := createRandomRepository(t)
 
 	ctx, err := WithEmail(context.Background(), user.Email())
 	require.NoError(t, err)

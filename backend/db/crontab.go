@@ -28,8 +28,7 @@ func (db *Database) GetCrontab(ctx context.Context) (*domain.Crontab, error) {
 				created_at: c.created_at,
 				updated_at: c.updated_at,
 				status: c.status,
-				last_triggered_at: c.last_triggered_at,
-				version: c.version
+				last_triggered_at: c.last_triggered_at
 			} as crontab
 			`,
 			map[string]interface{}{
@@ -67,7 +66,6 @@ func (db *Database) GetCrontab(ctx context.Context) (*domain.Crontab, error) {
 			UpdatedAt:       getString(crontab["updated_at"]),
 			Status:          getString(crontab["status"]),
 			LastTriggeredAt: getString(crontab["last_triggered_at"]),
-			Version:         getInt64(crontab["version"]),
 		},
 	)
 
@@ -98,8 +96,7 @@ func (db *Database) SaveCrontab(ctx context.Context, crontab *domain.Crontab) er
 				triggered_at: $triggered_at,
 				updated_at: $updated_at,
 				status: $status,
-				last_triggered_at: $last_triggered_at,
-				version: $version
+				last_triggered_at: $last_triggered_at
 			}
 			RETURN c.created_at AS created_at;
             `, map[string]any{
@@ -109,7 +106,6 @@ func (db *Database) SaveCrontab(ctx context.Context, crontab *domain.Crontab) er
 			"triggered_at":      entity.TriggeredAt,
 			"last_triggered_at": entity.LastTriggeredAt,
 			"status":            entity.Status,
-			"version":           entity.Version,
 		})
 
 		if err != nil {

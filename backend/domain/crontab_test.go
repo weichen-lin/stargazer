@@ -15,17 +15,14 @@ func TestNewCrontab(t *testing.T) {
 	require.Equal(t, "new", crontab.Status())
 	require.True(t, crontab.TriggeredAt().IsZero())
 	require.False(t, crontab.CreatedAt().IsZero())
-	require.Equal(t, now.Sub(crontab.createdAt).Milliseconds() > 0, true)
-	require.True(t, crontab.UpdatedAt().IsZero())
+	require.False(t, crontab.UpdatedAt().IsZero())
+	require.WithinDuration(t, crontab.createdAt, time.Now(), time.Duration(2*time.Second))
 	require.True(t, crontab.LastTriggeredAt().IsZero())
-	require.Equal(t, crontab.Version(), int64(1))
 
 	updateAt := now.Add(time.Hour * 2).Format(time.RFC3339)
 	crontab.SetUpdatedAt(updateAt)
-	crontab.UpdateVersion()
 
 	require.Equal(t, updateAt, crontab.UpdatedAt().Format(time.RFC3339))
-	require.Equal(t, int64(2), crontab.Version())
 }
 
 func Test_ToCrontabEntityEmpty(t *testing.T) {
@@ -34,10 +31,14 @@ func Test_ToCrontabEntityEmpty(t *testing.T) {
 	entity := Crontab.ToCrontabEntity()
 	require.Equal(t, entity.CreatedAt, Crontab.CreatedAt().Format(time.RFC3339))
 	require.Equal(t, entity.TriggeredAt, "")
-	require.Equal(t, entity.UpdatedAt, "")
+	require.Equal(t, entity.UpdatedAt, Crontab.UpdatedAt().Format(time.RFC3339))
 	require.Equal(t, entity.Status, Crontab.Status())
-	require.Equal(t, entity.Version, Crontab.Version())
 	require.Equal(t, entity.LastTriggeredAt, "")
+
+	crontabEmptyUpdatedAt := NewCrontab()
+	crontabEmptyUpdatedAt.SetUpdatedAt("")
+	crontabEmptyUpdatedAtEntity := crontabEmptyUpdatedAt.ToCrontabEntity()
+	require.Equal(t, crontabEmptyUpdatedAtEntity.UpdatedAt, time.Now().Format(time.RFC3339))
 }
 
 func TestCrontab_SetTriggerAt(t *testing.T) {
@@ -83,10 +84,9 @@ func TestCrontab_SetUpdatedAt(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "2023-01-02T00:00:00Z", Crontab.UpdatedAt().Format(time.RFC3339))
 
-	// Test empty string (should set to zero time)
 	err = Crontab.SetUpdatedAt("")
 	require.NoError(t, err)
-	require.Equal(t, Crontab.UpdatedAt(), time.Time{})
+	require.WithinDuration(t, Crontab.UpdatedAt(), time.Now(), time.Duration(2*time.Second))
 
 	// Test invalid time format
 	err = Crontab.SetUpdatedAt("invalid-time")
@@ -157,7 +157,6 @@ func TestFromCrontabEntity(t *testing.T) {
 		UpdatedAt:       "2023-01-03T00:00:00Z",
 		LastTriggeredAt: "2023-01-03T00:00:00Z",
 		Status:          "active",
-		Version:         12,
 	}
 
 	Crontab, err := FromCrontabEntity(entity)
@@ -168,44 +167,64 @@ func TestFromCrontabEntity(t *testing.T) {
 	require.Equal(t, "2023-01-03T00:00:00Z", Crontab.UpdatedAt().Format(time.RFC3339))
 	require.Equal(t, "2023-01-03T00:00:00Z", Crontab.LastTriggeredAt().Format(time.RFC3339))
 	require.Equal(t, "active", Crontab.Status())
-	require.Equal(t, int64(12), Crontab.Version())
 }
 
-func TestFromCrontabEntity_ErrorCases(t *testing.T) {
-
-	// Test invalid times
-	invalidEntity := &CrontabEntity{
-		TriggeredAt:     "invalid-time",
-		CreatedAt:       "",
-		UpdatedAt:       "",
-		Status:          "active",
-		LastTriggeredAt: "",
+func TestFromCrontabEntity_ErrorCasess(t *testing.T) {
+	validTime := "2023-01-01T00:00:00Z"
+	testCases := []struct {
+		name     string
+		entity   *CrontabEntity
+		expected string
+	}{
+		{
+			name: "Invalid TriggeredAt",
+			entity: &CrontabEntity{
+				TriggeredAt: "invalid-time",
+				Status:      "active",
+			},
+			expected: "parsing time",
+		},
+		{
+			name: "Invalid CreatedAt",
+			entity: &CrontabEntity{
+				CreatedAt: "invalid_createdAt",
+				Status:    "active",
+			},
+			expected: "parsing time",
+		},
+		{
+			name: "Invalid UpdatedAt",
+			entity: &CrontabEntity{
+				CreatedAt: validTime,
+				UpdatedAt: "invalid_updatedAt",
+				Status:    "active",
+			},
+			expected: "parsing time",
+		},
+		{
+			name: "Empty Status",
+			entity: &CrontabEntity{
+				CreatedAt: validTime,
+				Status:    "",
+			},
+			expected: "invalid status: cannot be empty",
+		},
+		{
+			name: "Invalid LastTriggeredAt",
+			entity: &CrontabEntity{
+				CreatedAt:       validTime,
+				Status:          "active",
+				LastTriggeredAt: "invalid_lastTriggeredAt",
+			},
+			expected: "parsing time",
+		},
 	}
 
-	_, err := FromCrontabEntity(invalidEntity)
-	require.Error(t, err)
-
-	invalidEntity.TriggeredAt = ""
-	invalidEntity.CreatedAt = "invalid_createdAt"
-
-	_, err = FromCrontabEntity(invalidEntity)
-	require.Error(t, err)
-
-	invalidEntity.CreatedAt = "2023-01-01T00:00:00Z"
-	invalidEntity.UpdatedAt = "invalid_createdAt"
-
-	_, err = FromCrontabEntity(invalidEntity)
-	require.Error(t, err)
-
-	invalidEntity.UpdatedAt = ""
-	invalidEntity.Status = ""
-
-	_, err = FromCrontabEntity(invalidEntity)
-	require.Error(t, err)
-
-	invalidEntity.Status = "status"
-	invalidEntity.LastTriggeredAt = "invalid_createdAt"
-
-	_, err = FromCrontabEntity(invalidEntity)
-	require.Error(t, err)
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			_, err := FromCrontabEntity(tc.entity)
+			require.Error(t, err)
+			require.Contains(t, err.Error(), tc.expected)
+		})
+	}
 }

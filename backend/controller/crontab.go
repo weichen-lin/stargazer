@@ -75,7 +75,6 @@ func (c *Controller) UpdateCrontab(ctx *gin.Context) {
 
 	crontab.SetTriggeredAt(query.TriggeredAt.Format(time.RFC3339))
 	crontab.SetUpdatedAt(now.Format(time.RFC3339))
-	crontab.UpdateVersion()
 
 	err = c.db.SaveCrontab(ctx, crontab)
 	if err != nil {

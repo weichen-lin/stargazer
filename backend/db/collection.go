@@ -18,13 +18,17 @@ func (db *Database) SaveCollection(ctx context.Context, collection *domain.Colle
 		return ErrNotFoundEmailAtContext
 	}
 
+	ctx, cancel := context.WithTimeout(ctx, time.Duration(db.Timeout)*time.Second)
+	session := db.Driver.NewSession(ctx, neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
+	defer func() {
+		session.Close(context.Background())
+		cancel()
+	}()
+
 	entity := collection.ToCollectionEntity()
 
-	session := db.Driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
-	defer session.Close(context.Background())
-
-	result, err := session.ExecuteWrite(context.Background(), func(tx neo4j.ManagedTransaction) (any, error) {
-		result, err := tx.Run(context.Background(), `
+	result, err := session.ExecuteWrite(ctx, func(tx neo4j.ManagedTransaction) (any, error) {
+		result, err := tx.Run(ctx, `
 			MATCH (u:User {email: $email})
 			MERGE (u)-[h:HAS_COLLECT]-(c:Collection {id: $id})
 			ON CREATE SET c += {
@@ -57,7 +61,7 @@ func (db *Database) SaveCollection(ctx context.Context, collection *domain.Colle
 		if err != nil {
 			return nil, err
 		}
-		record, err := result.Single(context.Background())
+		record, err := result.Single(ctx)
 		return record, err
 	})
 
@@ -67,14 +71,14 @@ func (db *Database) SaveCollection(ctx context.Context, collection *domain.Colle
 
 	collectionRecord, ok := result.(*neo4j.Record)
 	if !ok {
-		return fmt.Errorf("error at converting collection records to *neo4j.Record")
+		return fmt.Errorf("error at converting collection record to *neo4j.Record")
 	}
 
 	record := collectionRecord.AsMap()
 
 	_, ok = record["id"].(string)
 	if !ok {
-		return fmt.Errorf("error convert name from record: %v", record)
+		return fmt.Errorf("error convert id from record: %v", record)
 	}
 
 	return nil
@@ -86,11 +90,15 @@ func (db *Database) GetCollectionByName(ctx context.Context, name string) (*doma
 		return nil, ErrNotFoundEmailAtContext
 	}
 
-	session := db.Driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
-	defer session.Close(context.Background())
+	ctx, cancel := context.WithTimeout(ctx, time.Duration(db.Timeout)*time.Second)
+	session := db.Driver.NewSession(ctx, neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
+	defer func() {
+		session.Close(context.Background())
+		cancel()
+	}()
 
-	result, err := session.ExecuteRead(context.Background(), func(tx neo4j.ManagedTransaction) (any, error) {
-		result, err := tx.Run(context.Background(), `
+	result, err := session.ExecuteRead(ctx, func(tx neo4j.ManagedTransaction) (any, error) {
+		result, err := tx.Run(ctx, `
 			MATCH (u:User {email: $email})-[h:HAS_COLLECT]-(c:Collection {name: $name})
 			RETURN {
 				id: c.id,
@@ -109,7 +117,7 @@ func (db *Database) GetCollectionByName(ctx context.Context, name string) (*doma
 		if err != nil {
 			return nil, err
 		}
-		record, err := result.Single(context.Background())
+		record, err := result.Single(ctx)
 		return record, err
 	})
 
@@ -139,6 +147,7 @@ func (db *Database) GetCollectionByName(ctx context.Context, name string) (*doma
 			UpdatedAt:   getString(data["updated_at"]),
 		},
 	)
+
 	if err != nil {
 		return nil, err
 	}
@@ -152,11 +161,15 @@ func (db *Database) DeleteCollection(ctx context.Context, id string) error {
 		return ErrNotFoundEmailAtContext
 	}
 
-	session := db.Driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
-	defer session.Close(context.Background())
+	ctx, cancel := context.WithTimeout(ctx, time.Duration(db.Timeout)*time.Second)
+	session := db.Driver.NewSession(ctx, neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
+	defer func() {
+		session.Close(context.Background())
+		cancel()
+	}()
 
-	result, err := session.ExecuteWrite(context.Background(), func(tx neo4j.ManagedTransaction) (any, error) {
-		result, err := tx.Run(context.Background(), `
+	result, err := session.ExecuteWrite(ctx, func(tx neo4j.ManagedTransaction) (any, error) {
+		result, err := tx.Run(ctx, `
 			MATCH (u:User {email: $email})-[h:HAS_COLLECT]-(c:Collection {id: $id})
 			OPTIONAL MATCH (r:Repository)-[i:IS_LOCATE]->(c)
 			DELETE h, i, c
@@ -171,7 +184,7 @@ func (db *Database) DeleteCollection(ctx context.Context, id string) error {
 			return nil, err
 		}
 
-		record, err := result.Collect(context.Background())
+		record, err := result.Collect(ctx)
 		return record, err
 	})
 
@@ -209,14 +222,18 @@ type CollectionSearchResult struct {
 func (db *Database) GetCollections(ctx context.Context, params *PagingParams) (*CollectionSearchResult, error) {
 	email, ok := EmailFromContext(ctx)
 	if !ok {
-		return nil, ErrNotFoundEmailAtContext
+		return nil,ErrNotFoundEmailAtContext
 	}
 
-	session := db.Driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
-	defer session.Close(context.Background())
+	ctx, cancel := context.WithTimeout(ctx, time.Duration(db.Timeout)*time.Second)
+	session := db.Driver.NewSession(ctx, neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
+	defer func() {
+		session.Close(context.Background())
+		cancel()
+	}()
 
-	result, err := session.ExecuteRead(context.Background(), func(tx neo4j.ManagedTransaction) (any, error) {
-		result, err := tx.Run(context.Background(), `
+	result, err := session.ExecuteRead(ctx, func(tx neo4j.ManagedTransaction) (any, error) {
+		result, err := tx.Run(ctx, `
 			MATCH (u:User {email: $email})-[h:HAS_COLLECT]-(c:Collection)
 			WITH u, COUNT(c) as total
 			MATCH (u)-[h:HAS_COLLECT]-(c)
@@ -240,10 +257,10 @@ func (db *Database) GetCollections(ctx context.Context, params *PagingParams) (*
 			})
 
 		if err != nil {
-			fmt.Println("error at read folders: ", err)
 			return nil, err
 		}
-		record, err := result.Single(context.Background())
+
+		record, err := result.Single(ctx)
 		return record, err
 	})
 
@@ -260,12 +277,12 @@ func (db *Database) GetCollections(ctx context.Context, params *PagingParams) (*
 
 	total, ok := recordMap["total"].(int64)
 	if !ok {
-		return nil, fmt.Errorf("error convert id from record: %v", record)
+		return nil, fmt.Errorf("error convert total from record: %v", record)
 	}
 
 	data, ok := recordMap["data"].([]interface{})
 	if !ok {
-		return nil, fmt.Errorf("error convert id from record: %v", record)
+		return nil, fmt.Errorf("error convert data from record: %v", record)
 	}
 
 	collections := make([]*domain.CollectionEntity, len(data))
@@ -297,13 +314,17 @@ func (db *Database) AddRepoToCollection(ctx context.Context, collection *domain.
 		return ErrNotFoundEmailAtContext
 	}
 
+	ctx, cancel := context.WithTimeout(ctx, time.Duration(db.Timeout)*time.Second)
+	session := db.Driver.NewSession(ctx, neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
+	defer func() {
+		session.Close(context.Background())
+		cancel()
+	}()
+
 	entity := collection.ToCollectionEntity()
 
-	session := db.Driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
-	defer session.Close(context.Background())
-
-	result, err := session.ExecuteWrite(context.Background(), func(tx neo4j.ManagedTransaction) (any, error) {
-		result, err := tx.Run(context.Background(), `
+	result, err := session.ExecuteWrite(ctx, func(tx neo4j.ManagedTransaction) (any, error) {
+		result, err := tx.Run(ctx, `
 			MATCH (u:User {email: $email})
 			MERGE (c:Collection {id: $id})
 			ON CREATE SET c += {
@@ -316,7 +337,7 @@ func (db *Database) AddRepoToCollection(ctx context.Context, collection *domain.
 			ON MATCH SET c.updated_at = $updated_at
 			MERGE (u)-[:HAS_COLLECT]->(c)
 			WITH u, c
-			MATCH (r:Repository) 
+			MATCH (u)-[:STARS]-(r:Repository) 
 			WHERE r.repo_id IN $repos
 			MERGE (r)-[i:IS_LOCATE]->(c)
 			ON MATCH SET i.updated_at = datetime()
@@ -336,7 +357,7 @@ func (db *Database) AddRepoToCollection(ctx context.Context, collection *domain.
 		if err != nil {
 			return nil, err
 		}
-		record, err := result.Collect(context.Background())
+		record, err := result.Collect(ctx)
 		return record, err
 	})
 
@@ -353,7 +374,7 @@ func (db *Database) AddRepoToCollection(ctx context.Context, collection *domain.
 		r := record.AsMap()
 		_, ok = r["created_at"].(time.Time)
 		if !ok {
-			return fmt.Errorf("error convert name from record: %v", record)
+			return fmt.Errorf("error convert created_at from record: %v", record)
 		}
 	}
 
@@ -366,13 +387,17 @@ func (db *Database) DeleteRepoFromCollection(ctx context.Context, collection *do
 		return ErrNotFoundEmailAtContext
 	}
 
+	ctx, cancel := context.WithTimeout(ctx, time.Duration(db.Timeout)*time.Second)
+	session := db.Driver.NewSession(ctx, neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
+	defer func() {
+		session.Close(context.Background())
+		cancel()
+	}()
+
 	entity := collection.ToCollectionEntity()
 
-	session := db.Driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
-	defer session.Close(context.Background())
-
-	result, err := session.ExecuteWrite(context.Background(), func(tx neo4j.ManagedTransaction) (any, error) {
-		result, err := tx.Run(context.Background(), `
+	result, err := session.ExecuteWrite(ctx, func(tx neo4j.ManagedTransaction) (any, error) {
+		result, err := tx.Run(ctx, `
 			MATCH (u:User {email: $email})-[:HAS_COLLECT]->(c:Collection {id: $id})
 			MATCH (r:Repository)-[i:IS_LOCATE]->(c)
 			WHERE r.repo_id IN $repos
@@ -391,7 +416,7 @@ func (db *Database) DeleteRepoFromCollection(ctx context.Context, collection *do
 			return nil, err
 		}
 
-		record, err := result.Collect(context.Background())
+		record, err := result.Collect(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -425,11 +450,17 @@ func (db *Database) GetCollectionContainRepos(ctx context.Context, collection *d
 		return nil, ErrNotFoundEmailAtContext
 	}
 
-	session := db.Driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
-	defer session.Close(context.Background())
+	ctx, cancel := context.WithTimeout(ctx, time.Duration(db.Timeout)*time.Second)
+	session := db.Driver.NewSession(ctx, neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
+	defer func() {
+		session.Close(context.Background())
+		cancel()
+	}()
 
-	result, err := session.ExecuteRead(context.Background(), func(tx neo4j.ManagedTransaction) (any, error) {
-		result, err := tx.Run(context.Background(), `
+	entity := collection.ToCollectionEntity()
+
+	result, err := session.ExecuteRead(ctx, func(tx neo4j.ManagedTransaction) (any, error) {
+		result, err := tx.Run(ctx, `
 			MATCH (u:User {email: $email})-[h:HAS_COLLECT]-(c:Collection {id: $id})
 			MATCH (r:Repository)-[i:IS_LOCATE]->(c)
 			WITH c, COUNT(r) AS total
@@ -462,16 +493,15 @@ func (db *Database) GetCollectionContainRepos(ctx context.Context, collection *d
 			`,
 			map[string]interface{}{
 				"email": email,
-				"id":    collection.Id().String(),
+				"id":    entity.Id,
 				"limit": limit,
 				"page":  page,
 			})
 
 		if err != nil {
-			fmt.Println("error at read repo: ", err)
 			return nil, err
 		}
-		record, err := result.Single(context.Background())
+		record, err := result.Single(ctx)
 		return record, err
 	})
 
@@ -484,7 +514,7 @@ func (db *Database) GetCollectionContainRepos(ctx context.Context, collection *d
 
 	record, ok := result.(*neo4j.Record)
 	if !ok {
-		return nil, fmt.Errorf("error at converting users records to []*neo4j.Record")
+		return nil, fmt.Errorf("error at converting search records to *neo4j.Record")
 	}
 
 	recordMap := record.AsMap()
@@ -541,13 +571,17 @@ func (db *Database) ShareCollection(ctx context.Context, collection *domain.Coll
 		return ErrNotFoundEmailAtContext
 	}
 
+	ctx, cancel := context.WithTimeout(ctx, time.Duration(db.Timeout)*time.Second)
+	session := db.Driver.NewSession(ctx, neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
+	defer func() {
+		session.Close(context.Background())
+		cancel()
+	}()
+
 	entity := collection.ToCollectionEntity()
 
-	session := db.Driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
-	defer session.Close(context.Background())
-
-	result, err := session.ExecuteWrite(context.Background(), func(tx neo4j.ManagedTransaction) (any, error) {
-		result, err := tx.Run(context.Background(), `
+	result, err := session.ExecuteWrite(ctx, func(tx neo4j.ManagedTransaction) (any, error) {
+		result, err := tx.Run(ctx, `
 			MATCH (u:User {email: $email})-[h:HAS_COLLECT]-(c:Collection {id: $id})
 			MATCH (u2:User {email: $shared_to})
 			MERGE (c)-[s:SHARED_WITH]->(u2)
@@ -564,7 +598,7 @@ func (db *Database) ShareCollection(ctx context.Context, collection *domain.Coll
 		if err != nil {
 			return nil, err
 		}
-		record, err := result.Single(context.Background())
+		record, err := result.Single(ctx)
 		return record, err
 	})
 
@@ -581,7 +615,7 @@ func (db *Database) ShareCollection(ctx context.Context, collection *domain.Coll
 
 	_, ok = record["id"].(string)
 	if !ok {
-		return fmt.Errorf("error convert name from record: %v", record)
+		return fmt.Errorf("error convert id from record: %v", record)
 	}
 
 	return nil
@@ -605,11 +639,15 @@ func (db *Database) GetCollectionById(ctx context.Context, id string) (*SharedCo
 		return nil, ErrNotFoundEmailAtContext
 	}
 
-	session := db.Driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
-	defer session.Close(context.Background())
+	ctx, cancel := context.WithTimeout(ctx, time.Duration(db.Timeout)*time.Second)
+	session := db.Driver.NewSession(ctx, neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
+	defer func() {
+		session.Close(context.Background())
+		cancel()
+	}()
 
-	result, err := session.ExecuteRead(context.Background(), func(tx neo4j.ManagedTransaction) (any, error) {
-		result, err := tx.Run(context.Background(), `
+	result, err := session.ExecuteRead(ctx, func(tx neo4j.ManagedTransaction) (any, error) {
+		result, err := tx.Run(ctx, `
 			MATCH (c:Collection {id: $id})
 			Optional MATCH (u2:User)-[:HAS_COLLECT]-(c)-[s:SHARED_WITH]->(u:User {email: $email})
 			Optional MATCH (u3 {email: $email})-[:HAS_COLLECT]-(c)
@@ -636,7 +674,7 @@ func (db *Database) GetCollectionById(ctx context.Context, id string) (*SharedCo
 		if err != nil {
 			return nil, err
 		}
-		record, err := result.Single(context.Background())
+		record, err := result.Single(ctx)
 		return record, err
 	})
 
@@ -646,13 +684,13 @@ func (db *Database) GetCollectionById(ctx context.Context, id string) (*SharedCo
 
 	collectionRecord, ok := result.(*neo4j.Record)
 	if !ok {
-		return nil, fmt.Errorf("error at converting tag records to *neo4j.Record")
+		return nil, fmt.Errorf("error at converting shared collection records to *neo4j.Record")
 	}
 
 	record := collectionRecord.AsMap()
 	data, ok := record["collection"].(map[string]interface{})
 	if !ok {
-		return nil, fmt.Errorf("error convert name from record: %v", record)
+		return nil, fmt.Errorf("error convert collection from record: %v", record)
 	}
 
 	shared := &SharedCollection{
@@ -686,11 +724,15 @@ func (db *Database) GetSharedCollections(ctx context.Context) ([]*SharedCollecti
 		return nil, ErrNotFoundEmailAtContext
 	}
 
-	session := db.Driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
-	defer session.Close(context.Background())
+	ctx, cancel := context.WithTimeout(ctx, time.Duration(db.Timeout)*time.Second)
+	session := db.Driver.NewSession(ctx, neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
+	defer func() {
+		session.Close(context.Background())
+		cancel()
+	}()
 
-	result, err := session.ExecuteRead(context.Background(), func(tx neo4j.ManagedTransaction) (any, error) {
-		result, err := tx.Run(context.Background(), `
+	result, err := session.ExecuteRead(ctx, func(tx neo4j.ManagedTransaction) (any, error) {
+		result, err := tx.Run(ctx, `
 			MATCH (u:User {email: $email})-[s:SHARED_WITH]-(c:Collection)
 			MATCH (u2:User)-[h:HAS_COLLECT]-(c)
 			RETURN {
@@ -713,21 +755,18 @@ func (db *Database) GetSharedCollections(ctx context.Context) ([]*SharedCollecti
 		if err != nil {
 			return nil, err
 		}
-		record, err := result.Collect(context.Background())
+		record, err := result.Collect(ctx)
 		return record, err
 	})
 
-	fmt.Println("error at read shared collections: ", err)
 	if err != nil {
 		return []*SharedCollection{}, nil
 	}
 
 	records, ok := result.([]*neo4j.Record)
 	if !ok {
-		return nil, fmt.Errorf("error at converting collection records to *neo4j.Record")
+		return nil, fmt.Errorf("error at converting shared collection records to *neo4j.Record")
 	}
-
-	fmt.Println("error at read shared records: ", records)
 
 	sharedCollection := make([]*SharedCollection, len(records))
 

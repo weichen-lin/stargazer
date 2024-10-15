@@ -71,9 +71,8 @@ func Test_CrontabCRUD(t *testing.T) {
 		validTime := time.Now().Format(time.RFC3339)
 
 		require.Equal(t, "", response.TriggeredAt)
-		require.Equal(t, "", response.UpdatedAt)
+		require.Equal(t, validTime, response.UpdatedAt)
 		require.Equal(t, validTime, response.CreatedAt)
-		require.Equal(t, int64(1), response.Version)
 		require.Equal(t, "new", response.Status)
 		require.Equal(t, "", response.LastTriggeredAt)
 
@@ -92,9 +91,8 @@ func Test_CrontabCRUD(t *testing.T) {
 		require.Equal(t, uuid.Nil, id)
 
 		require.Equal(t, "", response.TriggeredAt)
-		require.Equal(t, "", response.UpdatedAt)
 		require.Equal(t, validTime, response.CreatedAt)
-		require.Equal(t, int64(1), response.Version)
+		require.Equal(t, validTime, response.UpdatedAt)
 		require.Equal(t, "new", response.Status)
 		require.Equal(t, "", response.LastTriggeredAt)
 
@@ -135,7 +133,6 @@ func Test_CrontabCRUD(t *testing.T) {
 		require.Equal(t, newTriggeredAt.Format(time.RFC3339), response.TriggeredAt)
 		require.WithinDuration(t, updatedTime, checkUpdatedTime, time.Second*2)
 		require.Equal(t, validTime, response.CreatedAt)
-		require.Equal(t, int64(2), response.Version)
 		require.Equal(t, "new", response.Status)
 		require.Equal(t, "", response.LastTriggeredAt)
 

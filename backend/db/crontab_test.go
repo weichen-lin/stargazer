@@ -38,39 +38,20 @@ func Test_SaveCrontab(t *testing.T) {
 }
 
 func Test_GetCrontab(t *testing.T) {
-	entity := &domain.UserEntity{
-		Name:              "Test 123",
-		Email:             "john.doe.456@example.com",
-		Image:             "https://example.comhaha/avatar.jpg",
-		AccessToken:       "abc123123123123",
-		Provider:          "github",
-		ProviderAccountId: "123412312312356",
-		Scope:             "read:user,user:email",
-		AuthType:          "oauth",
-		TokenType:         "bearer",
-	}
-
-	user := domain.FromUserEntity(entity)
-
-	err := db.CreateUser(user)
-	require.NoError(t, err)
-
-	ctx, err := WithEmail(context.Background(), entity.Email)
-	require.NoError(t, err)
-	require.NotEmpty(t, ctx)
+	_, ctx := createFakeUser(t)
 
 	newCrontab := domain.NewCrontab()
 	require.NotEmpty(t, newCrontab)
 
-	err = db.SaveCrontab(ctx, newCrontab)
+	err := db.SaveCrontab(ctx, newCrontab)
 	require.NoError(t, err)
 
 	crontab, err := db.GetCrontab(ctx)
 	require.NoError(t, err)
 	require.NotEmpty(t, crontab)
-	require.Equal(t, crontab.UpdatedAt(), time.Time{})
+	require.WithinDuration(t, crontab.CreatedAt(), newCrontab.CreatedAt(), time.Duration(2*time.Second))
+	require.WithinDuration(t, crontab.UpdatedAt(), newCrontab.UpdatedAt(), time.Duration(2*time.Second))
 	require.Equal(t, crontab.TriggeredAt(), time.Time{})
 	require.Equal(t, crontab.LastTriggeredAt(), time.Time{})
 	require.Equal(t, crontab.Status(), "new")
-	require.Equal(t, crontab.Version(), int64(1))
 }

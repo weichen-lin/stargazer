@@ -5,41 +5,16 @@ import (
 	"testing"
 	"time"
 
-	"github.com/go-faker/faker/v4"
 	"github.com/stretchr/testify/require"
 	"github.com/weichen-lin/stargazer/domain"
 )
 
 func TestGetRepository(t *testing.T) {
-	repo, err := db.GetRepository(context.Background(), 123)
+	notExistRepo, err := db.GetRepository(context.Background(), 123)
 	require.ErrorIs(t, err, ErrNotFoundEmailAtContext)
-	require.Empty(t, repo)
+	require.Empty(t, notExistRepo)
 
-	repositoryEntity := &domain.RepositoryEntity{
-		RepoID:            123456789,
-		RepoName:          "example-repo",
-		OwnerName:         "example-owner",
-		AvatarURL:         "https://example.com/avatar.png",
-		HtmlURL:           "https://github.com/example/repo",
-		Homepage:          "https://example.com",
-		CreatedAt:         "2024-01-01T00:00:00Z",
-		UpdatedAt:         "2024-01-02T00:00:00Z",
-		StargazersCount:   100,
-		WatchersCount:     50,
-		OpenIssuesCount:   10,
-		DefaultBranch:     "main",
-		Description:       "test-description",
-		Language:          "Go",
-		Archived:          true,
-		Topics:            []string{"TEST", "test-2"},
-		ExternalCreatedAt: time.Now().Format(time.RFC3339),
-		LastSyncedAt:      time.Now().Format(time.RFC3339),
-		LastModifiedAt:    time.Now().Format(time.RFC3339),
-	}
-
-	repo, err = domain.FromRepositoryEntity(repositoryEntity)
-	require.NoError(t, err)
-	require.NotEmpty(t, repo)
+	repo := createRandomRepository(t)
 
 	entity := &domain.UserEntity{
 		Name:              "Test 123",
@@ -63,13 +38,15 @@ func TestGetRepository(t *testing.T) {
 	require.NotEmpty(t, ctx)
 
 	err = db.CreateRepository(ctx, repo)
-	require.ErrorIs(t, err, ErrRepositoryNotFound)
+	require.Error(t, err)
 
 	ctx, err = WithEmail(context.Background(), user.Email())
 	require.NoError(t, err)
 
 	err = db.CreateRepository(ctx, repo)
 	require.NoError(t, err)
+
+	repositoryEntity := repo.ToRepositoryEntity()
 
 	repo, err = db.GetRepository(ctx, repositoryEntity.RepoID)
 	require.NoError(t, err)
@@ -124,10 +101,6 @@ func TestDeleteRepository(t *testing.T) {
 }
 
 func TestGetRepoLanguageDistribution(t *testing.T) {
-	repo, err := db.GetRepository(context.Background(), 123)
-	require.ErrorIs(t, err, ErrNotFoundEmailAtContext)
-	require.Empty(t, repo)
-
 	repositoryEntityGo := &domain.RepositoryEntity{
 		RepoID:            1233211234,
 		RepoName:          "example-repo-for-language-distribution",
@@ -180,25 +153,8 @@ func TestGetRepoLanguageDistribution(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEmpty(t, pythonRepo)
 
-	entity := &domain.UserEntity{
-		Name:              "Test 123",
-		Email:             faker.Email(),
-		Image:             "https://example.comhaha/avatar.jpg",
-		AccessToken:       "abc123123123123",
-		Provider:          "github",
-		ProviderAccountId: "123412312312356",
-		Scope:             "read:user,user:email",
-		AuthType:          "oauth",
-		TokenType:         "bearer",
-	}
-
-	user := domain.FromUserEntity(entity)
-
-	err = db.CreateUser(user)
-	require.NoError(t, err)
-
-	ctx, err := WithEmail(context.Background(), entity.Email)
-	require.NoError(t, err)
+	_, ctx := createFakeUser(t)
+	_, ctx2 := createFakeUser(t)
 
 	err = db.CreateRepository(ctx, goRepo)
 	require.NoError(t, err)
@@ -220,13 +176,13 @@ func TestGetRepoLanguageDistribution(t *testing.T) {
 	require.Equal(t, len(languageDistribution), 2)
 
 	result, err := db.SearchRepositoryByLanguage(ctx, &SearchParams{
-		Languages: []string{"Go"},
+		Languages: []string{"Go", "Python"},
 		Page:      1,
 		Limit:     10,
 	})
 	require.NoError(t, err)
-	require.Equal(t, result.Total, int64(1))
-	require.Equal(t, len(result.Data), 1)
+	require.Equal(t, result.Total, int64(2))
+	require.Equal(t, len(result.Data), 2)
 
 	result, err = db.SearchRepositoryByLanguage(ctx, &SearchParams{
 		Languages: []string{"NotExist"},
@@ -236,6 +192,14 @@ func TestGetRepoLanguageDistribution(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, result.Total, int64(0))
 	require.Equal(t, len(result.Data), 0)
+
+	result, err = db.SearchRepositoryByLanguage(ctx2, &SearchParams{
+		Languages: []string{"Go"},
+		Page:      1,
+		Limit:     10,
+	})
+	require.NoError(t, err)
+	require.Equal(t, result.Total, int64(0))
 }
 
 func TestGetAllRepositoryTopics(t *testing.T) {

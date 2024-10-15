@@ -6,8 +6,6 @@ import (
 )
 
 type Crontab struct {
-	*AggregateRoot
-
 	triggeredAt     time.Time
 	createdAt       time.Time
 	updatedAt       time.Time
@@ -21,7 +19,6 @@ type CrontabEntity struct {
 	UpdatedAt       string `json:"updated_at"`
 	Status          string `json:"status"`
 	LastTriggeredAt string `json:"last_triggered_at"`
-	Version         int64  `json:"version"`
 }
 
 func (c *Crontab) TriggeredAt() time.Time {
@@ -94,7 +91,7 @@ func (c *Crontab) SetCreatedAt(t string) error {
 
 func (c *Crontab) SetUpdatedAt(t string) error {
 	if t == "" {
-		c.updatedAt = time.Time{}
+		c.updatedAt = time.Now()
 		return nil
 	}
 
@@ -126,29 +123,20 @@ func NewCrontab() *Crontab {
 
 	Crontab.SetTriggeredAt("")
 	Crontab.SetCreatedAt(now.Format(time.RFC3339))
-	Crontab.SetUpdatedAt("")
+	Crontab.SetUpdatedAt(now.Format(time.RFC3339))
 	Crontab.SetStatus("new")
-
-	root := NewAggregateRoot()
-	Crontab.AggregateRoot = root
 
 	return Crontab
 }
 
 func (c *Crontab) ToCrontabEntity() *CrontabEntity {
 
-	var triggeredAt, updatedAt, lastTriggeredAt string
+	var triggeredAt, lastTriggeredAt string
 
 	if c.TriggeredAt().IsZero() {
 		triggeredAt = ""
 	} else {
 		triggeredAt = c.TriggeredAt().Format(time.RFC3339)
-	}
-
-	if c.UpdatedAt().IsZero() {
-		updatedAt = ""
-	} else {
-		updatedAt = c.UpdatedAt().Format(time.RFC3339)
 	}
 
 	if c.LastTriggeredAt().IsZero() {
@@ -160,18 +148,15 @@ func (c *Crontab) ToCrontabEntity() *CrontabEntity {
 	return &CrontabEntity{
 		CreatedAt:       c.CreatedAt().Format(time.RFC3339),
 		TriggeredAt:     triggeredAt,
-		UpdatedAt:       updatedAt,
+		UpdatedAt:        c.UpdatedAt().Format(time.RFC3339),
 		LastTriggeredAt: lastTriggeredAt,
 		Status:          c.Status(),
-		Version:         c.Version(),
 	}
 }
 
 func FromCrontabEntity(CrontabEntity *CrontabEntity) (*Crontab, error) {
 	Crontab := &Crontab{}
 
-	root := NewAggregateRoot()
-	root.version = CrontabEntity.Version
 
 	if err := Crontab.SetTriggeredAt(CrontabEntity.TriggeredAt); err != nil {
 		return nil, err
@@ -192,8 +177,6 @@ func FromCrontabEntity(CrontabEntity *CrontabEntity) (*Crontab, error) {
 	if err := Crontab.SetLastTriggerAt(CrontabEntity.LastTriggeredAt); err != nil {
 		return nil, err
 	}
-
-	Crontab.AggregateRoot = root
 
 	return Crontab, nil
 }

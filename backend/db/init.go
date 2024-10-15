@@ -8,7 +8,8 @@ import (
 )
 
 type Database struct {
-	Driver neo4j.DriverWithContext
+	Driver  neo4j.DriverWithContext
+	Timeout int
 }
 
 func NewDatabase() *Database {
@@ -30,7 +31,8 @@ func NewDatabase() *Database {
 	}
 
 	return &Database{
-		Driver: driver,
+		Driver:  driver,
+		Timeout: 5,
 	}
 }
 

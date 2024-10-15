@@ -6,21 +6,29 @@ import { Lock, Unlock } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useCollectionContext } from '@/app/collections/hooks/useCollectionContext'
 import { Badge } from '@/components/ui/badge'
-
-interface SwitchProps {
-  onChange?: (isChecked: boolean) => void
-}
+import { useFetch } from '@/hooks/util'
+import { ICollection } from '@/client/collection'
 
 export default function Switcher() {
-  const { collection, isUpdate, isSearch, update } = useCollectionContext()
+  const { collection, isSearch, update } = useCollectionContext()
   const [isChecked, setIsChecked] = useState(collection.is_public)
+  const { run, isLoading } = useFetch<ICollection>({
+    config: {
+      url: `/collection/${collection.id}`,
+      method: 'PATCH',
+    },
+    initialRun: false,
+    onSuccess: data => {
+      update(data)
+    },
+  })
 
   const handleToggle = () => {
     setIsChecked(!isChecked)
-    update({ ...collection, is_public: !isChecked })
+    run({ payload: { is_public: !isChecked } })
   }
 
-  const loading = isUpdate || isSearch
+  const loading = isLoading || isSearch
 
   return (
     <div className='flex gap-x-3 items-center'>

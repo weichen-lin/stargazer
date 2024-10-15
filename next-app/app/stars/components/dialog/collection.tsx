@@ -8,7 +8,7 @@ import { useFetch } from '@/hooks/util'
 
 export default function ListCollection(props: ICollection & { chosen: string | null; select: (id: string) => void }) {
   const { id, name, is_public, chosen, select } = props
-  const { selectRepos, setOpen } = useStarsContext()
+  const { selectRepos, setSelectRepos, setOpen } = useStarsContext()
   const { run, isLoading } = useFetch({
     initialRun: false,
     config: {
@@ -17,6 +17,7 @@ export default function ListCollection(props: ICollection & { chosen: string | n
     },
     onSuccess: e => {
       setOpen(false)
+      setSelectRepos([])
     },
   })
 

@@ -216,7 +216,7 @@ func (c *Controller) GetCollections(ctx *gin.Context) {
 }
 
 type UpdateCollectionPayload struct {
-	Name        string `json:"name" binding:"required"`
+	Name        string `json:"name"`
 	Description string `json:"description"`
 	IsPublic    bool   `json:"is_public"`
 }
@@ -243,6 +243,12 @@ func (c *Controller) UpdateCollection(ctx *gin.Context) {
 	}
 
 	if body.Name != "" {
+		checkCollection, _ := c.db.GetCollectionByName(ctx, body.Name)
+		if checkCollection != nil {
+			ctx.JSON(http.StatusConflict, gin.H{"error": "collection already exists"})
+			return
+		}
+
 		err := collection.SetName(body.Name)
 		if err != nil {
 			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})

@@ -34,7 +34,7 @@ export default function Operator() {
 }
 
 const FloatingPanel = () => {
-  const { note } = useFloatingPanel()
+  const { note, setNote, error, setError, closeFloatingPanel } = useFloatingPanel()
   const { data, setData, setIsFetching, loading } = useCollection()
   const { run } = useFetch<ICollection>({
     initialRun: false,
@@ -44,6 +44,11 @@ const FloatingPanel = () => {
     },
     onSuccess: e => {
       setData([e, ...data])
+      setNote('')
+      closeFloatingPanel()
+    },
+    onError: ({ error }) => {
+      setError(error)
     },
   })
 
@@ -54,6 +59,7 @@ const FloatingPanel = () => {
           <span className='bg-slate-300 px-2 py-1'>Name</span>
         </FloatingPanelLabel>
         <FloatingPanelTextarea id='note-input' className='min-h-[80px]' maxLength={20} />
+        {error && <p className='text-red-500 text-sm'>{error}</p>}
       </FloatingPanelBody>
       <FloatingPanelFooter>
         <FloatingPanelCloseButton />

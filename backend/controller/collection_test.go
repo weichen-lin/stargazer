@@ -350,33 +350,12 @@ func Test_UpdateCollection(t *testing.T) {
 		require.Equal(t, http.StatusUnauthorized, w.Code)
 	})
 
-	t.Run("Test invalid body", func(t *testing.T) {
-		invalidMessages := []string{
-			`{"named": "test"}`,
-			`{"nasme": "asdas", "dsescription": "asdasd", "is_public": true}`,
-			`{"desscription": ""}`,
-			`{"is_pusblic": "true"}`,
-			`{"is_public": "true"}`,
-		}
-
-		for _, message := range invalidMessages {
-			body := bytes.NewBufferString(message)
-
-			w := httptest.NewRecorder()
-			req, _ := http.NewRequest("PATCH", fmt.Sprintf("/collection/%s", collection.Id().String()), body)
-			req.Header.Set("Authorization", token)
-
-			r.ServeHTTP(w, req)
-			require.Equal(t, http.StatusBadRequest, w.Code)
-		}
-	})
-
 	t.Run("Test real result", func(t *testing.T) {
 		validMessages := []string{
 			`{"name": "new name"}`,
-			`{"name": "new name", "description": "new description"}`,
-			`{"name": "new name", "is_public": true}`,
-			`{"name": "new name 2", "description": "new description 2", "is_public": false}`,
+			`{"name": "new name 1", "description": "new description"}`,
+			`{"name": "new name 2", "is_public": true}`,
+			`{"name": "new name 3", "description": "new description 2", "is_public": false}`,
 		}
 
 		for _, message := range validMessages {

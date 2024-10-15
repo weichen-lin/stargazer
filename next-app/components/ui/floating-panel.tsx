@@ -21,6 +21,8 @@ interface FloatingPanelContextType {
   triggerRect: DOMRect | null
   title: string
   setTitle: (title: string) => void
+  error: string | null
+  setError: (error: string | null) => void
 }
 
 const FloatingPanelContext = createContext<FloatingPanelContextType | undefined>(undefined)
@@ -41,6 +43,7 @@ function useFloatingPanelLogic(props: { defaultText?: string } = {}) {
   const [note, setNote] = useState(defaultText ?? '')
   const [triggerRect, setTriggerRect] = useState<DOMRect | null>(null)
   const [title, setTitle] = useState('')
+  const [error, setError] = useState<string | null>(null)
 
   const openFloatingPanel = (rect: DOMRect) => {
     setTriggerRect(rect)
@@ -48,7 +51,6 @@ function useFloatingPanelLogic(props: { defaultText?: string } = {}) {
   }
   const closeFloatingPanel = () => {
     setIsOpen(false)
-    // setNote('')
   }
 
   return {
@@ -61,6 +63,8 @@ function useFloatingPanelLogic(props: { defaultText?: string } = {}) {
     triggerRect,
     title,
     setTitle,
+    error,
+    setError,
   }
 }
 
@@ -222,12 +226,11 @@ interface FloatingPanelFormProps {
 }
 
 export function FloatingPanelForm({ children, onSubmit, className }: FloatingPanelFormProps) {
-  const { note, closeFloatingPanel } = useFloatingPanel()
+  const { note } = useFloatingPanel()
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     onSubmit?.(note)
-    closeFloatingPanel()
   }
 
   return (
@@ -265,7 +268,7 @@ interface FloatingPanelTextareaProps {
 }
 
 export function FloatingPanelTextarea({ className, id, disabled, maxLength }: FloatingPanelTextareaProps) {
-  const { note, setNote } = useFloatingPanel()
+  const { note, setNote, error, setError } = useFloatingPanel()
 
   return (
     <div className=''>
@@ -276,6 +279,7 @@ export function FloatingPanelTextarea({ className, id, disabled, maxLength }: Fl
         value={note}
         onChange={e => {
           if (maxLength && e.target.value.length > maxLength) return
+          if (error) setError(null)
           setNote(e.target.value)
         }}
         maxLength={maxLength}
@@ -371,9 +375,9 @@ interface FloatingPanelSubmitButtonProps {
 }
 
 export function FloatingPanelSubmitButton({ className, isLoading, text, onClick }: FloatingPanelSubmitButtonProps) {
-  const { note } = useFloatingPanel()
+  const { note, error } = useFloatingPanel()
 
-  const disabledButton = !note || note === '' || isLoading
+  const disabledButton = !note || note === '' || isLoading || error
 
   return (
     <motion.button

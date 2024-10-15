@@ -16,6 +16,8 @@ import {
 import { FolderPen } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useCollectionContext } from '@/app/collections/hooks/useCollectionContext'
+import { useFetch } from '@/hooks/util'
+import { ICollection } from '@/client/collection'
 
 export default function Rename() {
   const { collection } = useCollectionContext()
@@ -42,9 +44,24 @@ export default function Rename() {
 }
 
 const RenamePanel = () => {
-  const { note } = useFloatingPanel()
-  const { collection, isSearch, isUpdate, update } = useCollectionContext()
-  const loading = isSearch || isUpdate
+  const { note, error, setError, closeFloatingPanel } = useFloatingPanel()
+  const { collection, isSearch, update } = useCollectionContext()
+  const { run, isLoading } = useFetch<ICollection>({
+    config: {
+      url: `/collection/${collection.id}`,
+      method: 'PATCH',
+    },
+    initialRun: false,
+    onSuccess: data => {
+      update(data)
+      closeFloatingPanel()
+    },
+    onError: ({ error }) => {
+      setError(error)
+    },
+  })
+
+  const loading = isSearch || isLoading
 
   return (
     <FloatingPanelForm>
@@ -53,6 +70,7 @@ const RenamePanel = () => {
           <span className='bg-slate-300 px-2 py-1'>Name</span>
         </FloatingPanelLabel>
         <FloatingPanelTextarea id='note-input' className='min-h-[80px]' maxLength={20} />
+        {error && <p className='text-red-500 text-sm'>{error}</p>}
       </FloatingPanelBody>
       <FloatingPanelFooter>
         <FloatingPanelCloseButton />
@@ -60,7 +78,7 @@ const RenamePanel = () => {
           isLoading={loading}
           text='Rename'
           onClick={() => {
-            update({ ...collection, name: note })
+            run({ payload: { name: note } })
           }}
         />
       </FloatingPanelFooter>

@@ -7,7 +7,6 @@ import { useFetch, IRunProps } from '@/hooks/util'
 interface ICollectionContext {
   collection: ICollection
   update: (collection: ICollection) => void
-  isUpdate: boolean
   isSearch: boolean
   repos: any[]
   page: number
@@ -39,15 +38,6 @@ export const CollectionProvider = ({
   const [total, setTotal] = useState(0)
   const [repos, setRepos] = useState<ICollection[]>([])
 
-  const { run, isLoading } = useFetch<ICollection>({
-    config: {
-      url: `/collection/${collection.id}`,
-      method: 'PATCH',
-    },
-    initialRun: false,
-    onSuccess: data => setCollection(data),
-  })
-
   const { run: getCollectRepos, isLoading: getCollectReposLoading } = useFetch<{ total: number; data: ICollection[] }>({
     config: {
       url: `/collection/repos/${collection.id}`,
@@ -65,14 +55,13 @@ export const CollectionProvider = ({
   })
 
   const update = async (collection: ICollection) => {
-    run({ payload: { name: collection.name, description: collection.description, is_public: collection.is_public } })
+    setCollection(collection)
   }
 
   return (
     <CollectionContext.Provider
       value={{
         collection,
-        isUpdate: isLoading,
         isSearch: getCollectReposLoading,
         update,
         repos,

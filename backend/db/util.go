@@ -72,7 +72,14 @@ func getStringArray(v interface{}) []string {
 	} else {
 		var topics []string
 		for _, topic := range s {
-			topics = append(topics, topic.(string))
+			topicString, ok := topic.(string)
+			if !ok {
+				continue
+			}
+
+			if topicString != "" {
+				topics = append(topics, topicString)
+			}
 		}
 		return topics
 	}

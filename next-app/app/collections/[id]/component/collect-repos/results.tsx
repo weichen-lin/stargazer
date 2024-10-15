@@ -5,7 +5,7 @@ import Repo from './repo'
 import { useCollectionContext } from '@/app/collections/hooks/useCollectionContext'
 
 export default function Results() {
-  const { isUpdate, isSearch, repos } = useCollectionContext()
+  const { isSearch, repos } = useCollectionContext()
 
   if (isSearch) {
     return <Loading />

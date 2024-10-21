@@ -48,7 +48,7 @@ func (c *Controller) SyncRepository(ctx *gin.Context) {
 
 	getUserStarsLimiter.Set(user.Email(), true, time.Minute*30)
 
-	c.kabaka.Publish("star-syncer", []byte(`{"email":"`+user.Email()+`","page":1}`))
+	c.kabaka.Publish("star-syncer", []byte(`{"email":"`+user.Email()+`","page":1}`), NewHeaders(ctx))
 
 	ctx.JSON(http.StatusOK, "ok")
 }
@@ -180,7 +180,7 @@ func (c *Controller) GetTopics(ctx *gin.Context) {
 	})
 
 	if _, found := getTopicsLimiter.Get(user.Email()); !found && !exists {
-		c.kabaka.Publish("topic-syncer", []byte(`{"email":"`+user.Email()+`"}`))
+		c.kabaka.Publish("topic-syncer", []byte(`{"email":"`+user.Email()+`"}`), NewHeaders(ctx))
 		getTopicsLimiter.Set(user.Email(), true, time.Minute*5)
 	}
 }

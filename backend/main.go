@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"github.com/weichen-lin/stargazer/controller"
+	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
 	"go.uber.org/zap"
 )
 
@@ -31,8 +32,9 @@ func main() {
 
 	initOtel()
 
-	r := gin.Default()
+	r := gin.New()
 
+	r.Use(otelgin.Middleware("stargazer-backend"))
 	r.HEAD("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"message": "OK",

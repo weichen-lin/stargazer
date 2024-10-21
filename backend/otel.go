@@ -3,33 +3,29 @@ package main
 import (
 	"context"
 	"fmt"
-	"os"
 
 	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 func initOtel() {
-	endpoint := os.Getenv("")
-	secret := os.Getenv("")
-
-	headers := map[string]string{
-		"Authorization": secret,
+	conn, err := grpc.NewClient("localhost:4317",
+		// Note the use of insecure transport here. TLS is recommended in production.
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	)
+	if err != nil {
+		fmt.Println(err.Error())
 	}
 
-	exporter, err := otlptracehttp.New(context.Background(),
-		otlptracehttp.WithEndpointURL(endpoint),
-		otlptracehttp.WithHeaders(
-			headers,
-		),
-	)
-
+	traceExporter, err := otlptracegrpc.New(context.Background(), otlptracegrpc.WithGRPCConn(conn))
 	if err != nil {
-		panic(err)
+		fmt.Println(err.Error())
 	}
 
 	res, err := resource.New(context.Background(),
@@ -43,7 +39,7 @@ func initOtel() {
 
 	// Register the trace exporter with a TracerProvider, using a batch
 	// span processor to aggregate spans before export.
-	bsp := sdktrace.NewBatchSpanProcessor(exporter)
+	bsp := sdktrace.NewBatchSpanProcessor(traceExporter)
 	tracerProvider := sdktrace.NewTracerProvider(
 		sdktrace.WithSampler(sdktrace.AlwaysSample()),
 		sdktrace.WithResource(res),

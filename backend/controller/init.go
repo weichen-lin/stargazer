@@ -21,18 +21,12 @@ func NewController(logger kabaka.Logger) *Controller {
 
 	cronjobs := db.GetAllCrontab()
 
-	bk := kabaka.NewKabaka(&kabaka.Config{
-		Logger: logger,
-	})
+	bk := kabaka.NewKabaka(nil)
 
 	starSyncerHandleFunc := func(msg *kabaka.Message) error {
 		err := util.GetGithubRepos(db, *msg, bk)
 
-		if err != nil {
-			return err
-		}
-
-		return nil
+		return err
 	}
 
 	topicHandlerFunc := func(msg *kabaka.Message) error {
@@ -49,7 +43,7 @@ func NewController(logger kabaka.Logger) *Controller {
 	for _, cronjob := range cronjobs {
 		if cronjob.TriggeredAt != "" {
 			fn := func() error {
-				bk.Publish("star-syncer", []byte(`{"email":"`+cronjob.Email+`","page":1}`))
+				bk.Publish("star-syncer", []byte(`{"email":"`+cronjob.Email+`","page":1}`), nil)
 				return nil
 			}
 

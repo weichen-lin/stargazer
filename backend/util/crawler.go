@@ -76,8 +76,14 @@ func GetGithubRepos(database *db.Database, msg kabaka.Message, writer *kabaka.Ka
 	}
 
 	user, err := database.GetUser(ctx)
+	if err != nil {
+		return err
+	}
 
 	stars, err := GetUserStarredRepos(info.Page, user.AccessToken())
+	if err != nil {
+		return err
+	}
 
 	for _, star := range stars {
 		repo, err := domain.NewRepository(&star)
@@ -99,7 +105,7 @@ func GetGithubRepos(database *db.Database, msg kabaka.Message, writer *kabaka.Ka
 			return fmt.Errorf("error marshalling JSON: %s", err.Error())
 		}
 
-		err = writer.Publish("star-syncer", jsonString)
+		err = writer.Publish("star-syncer", jsonString, nil)
 
 		if err != nil {
 			return fmt.Errorf("error sending message: %s", err.Error())

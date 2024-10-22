@@ -30,6 +30,22 @@ func NewDatabase() *Database {
 		panic(err)
 	}
 
+	err = InitUserIndex(driver)
+	if err != nil {
+		panic(err)
+	}
+
+	err = InitRepoLanguagesIndex(driver)
+	if err != nil {
+		panic(err)
+	}
+
+	err = InitRepoIdIndex(driver)
+	if err != nil {
+		panic(err)
+	}
+
+
 	return &Database{
 		Driver:  driver,
 		Timeout: 5,
@@ -56,3 +72,67 @@ func InitFullTextIndex(driver neo4j.DriverWithContext) error {
 
 	return nil
 }
+
+func InitUserIndex(driver neo4j.DriverWithContext) error {
+	session := driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
+	defer session.Close(context.Background())
+
+	_, err := session.ExecuteWrite(context.Background(), func(transaction neo4j.ManagedTransaction) (interface{}, error) {
+		_, err := transaction.Run(context.Background(),
+			"CREATE INDEX USER_EMAIL IF NOT EXISTS "+
+				"FOR (u:User) ON (u.email);",
+			map[string]interface{}{},
+		)
+
+		return nil, err
+	})
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func InitRepoLanguagesIndex(driver neo4j.DriverWithContext) error {
+	session := driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
+	defer session.Close(context.Background())
+
+	_, err := session.ExecuteWrite(context.Background(), func(transaction neo4j.ManagedTransaction) (interface{}, error) {
+		_, err := transaction.Run(context.Background(),
+			"CREATE INDEX REPOSITORY_LANGUAGE IF NOT EXISTS "+
+				"FOR (r:Reposiotry) ON (r.language);",
+			map[string]interface{}{},
+		)
+
+		return nil, err
+	})
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func InitRepoIdIndex(driver neo4j.DriverWithContext) error {
+	session := driver.NewSession(context.Background(), neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
+	defer session.Close(context.Background())
+
+	_, err := session.ExecuteWrite(context.Background(), func(transaction neo4j.ManagedTransaction) (interface{}, error) {
+		_, err := transaction.Run(context.Background(),
+			"CREATE INDEX REPOSITORY_ID IF NOT EXISTS "+
+				"FOR (r:Reposiotry) ON (r.repo_id);",
+			map[string]interface{}{},
+		)
+
+		return nil, err
+	})
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+

@@ -10,6 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-faker/faker/v4"
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
+	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/require"
 	"github.com/weichen-lin/kabaka"
 	"github.com/weichen-lin/stargazer/db"
@@ -18,8 +19,8 @@ import (
 )
 
 var testDB *db.Database
-var testscheular *Scheduler
 var testKabaka *kabaka.Kabaka
+var testRDB *redis.Client
 var testController *Controller
 var testJWTSecretKey = "secretfor32stringsecretfor32stringsecretfor32stringsecretfor32stringsecretfor32stringsecretfor32string"
 var testJWTMaker util.Maker
@@ -38,6 +39,15 @@ func NewTestDatabase() *db.Database {
 		Driver:  driver,
 		Timeout: 5,
 	}
+}
+
+func NewTestRedisCli() *redis.Client {
+	c := redis.NewClient(&redis.Options{
+		Addr:     "localhost:6379",
+		Password: "",
+		DB:       0,
+	})
+	return c
 }
 
 func NewTestJWTAuth() gin.HandlerFunc {
@@ -104,19 +114,20 @@ func createCollection(t *testing.T, user *domain.User) *domain.Collection {
 
 func TestMain(m *testing.M) {
 	testDB = NewTestDatabase()
-	testscheular = NewScheduler()
 	testKabaka = kabaka.NewKabaka(&kabaka.Options{
-		BufferSize: 24,
-		DefaultMaxRetries: 1,
-		DefaultRetryDelay: time.Duration(5*time.Second),
-		DefaultProcessTimeout: time.Duration(10*time.Second),
-		Logger: nil,
+		BufferSize:            24,
+		DefaultMaxRetries:     1,
+		DefaultRetryDelay:     time.Duration(5 * time.Second),
+		DefaultProcessTimeout: time.Duration(10 * time.Second),
+		Logger:                nil,
 	})
 
+	testRDB = NewTestRedisCli()
+
 	testController = &Controller{
-		db:        testDB,
-		scheduler: testscheular,
-		kabaka:    testKabaka,
+		db:     testDB,
+		kabaka: testKabaka,
+		rdb:    testRDB,
 	}
 
 	var err error
@@ -132,20 +143,6 @@ func TestMain(m *testing.M) {
 	testKabaka.CreateTopic("star-syncer")
 
 	testKabaka.Subscribe("star-syncer", starSyncerHandleFunc)
-
-	cronjobs := testDB.GetAllCrontab()
-
-	for _, cronjob := range cronjobs {
-		if cronjob.TriggeredAt != "" {
-
-			fn := func() error {
-				testKabaka.Publish("star-syncer", []byte(`{"email":"`+cronjob.Email+`","page":1}`), nil)
-				return nil
-			}
-
-			testscheular.AddJob(cronjob, fn)
-		}
-	}
 
 	gin.SetMode(gin.TestMode)
 

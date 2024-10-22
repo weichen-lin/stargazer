@@ -148,7 +148,7 @@ func (c *Crontab) ToCrontabEntity() *CrontabEntity {
 	return &CrontabEntity{
 		CreatedAt:       c.CreatedAt().Format(time.RFC3339),
 		TriggeredAt:     triggeredAt,
-		UpdatedAt:        c.UpdatedAt().Format(time.RFC3339),
+		UpdatedAt:       c.UpdatedAt().Format(time.RFC3339),
 		LastTriggeredAt: lastTriggeredAt,
 		Status:          c.Status(),
 	}
@@ -156,7 +156,6 @@ func (c *Crontab) ToCrontabEntity() *CrontabEntity {
 
 func FromCrontabEntity(CrontabEntity *CrontabEntity) (*Crontab, error) {
 	Crontab := &Crontab{}
-
 
 	if err := Crontab.SetTriggeredAt(CrontabEntity.TriggeredAt); err != nil {
 		return nil, err

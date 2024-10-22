@@ -72,11 +72,11 @@ export default function HourSetting(props: ICrontabSetting) {
 
   return (
     <div className='w-full flex justify-between items-center'>
-      <span className='text-slate-500 dark:text-slate-700'>
+      {/* <span className='text-slate-500 dark:text-slate-700'>
         {triggered_at !== null ? `Everyday at ${formatHour(date.getHours())}` : '--'}
-      </span>
+      </span> */}
       <div className='flex gap-x-2'>
-        <Popover>
+        {/* <Popover>
           <PopoverTrigger>
             <div className='px-2 py-[6px] border-slate-700 border-[1px] rounded-md'>Setting</div>
           </PopoverTrigger>
@@ -101,7 +101,7 @@ export default function HourSetting(props: ICrontabSetting) {
               </div>
             </div>
           </PopoverContent>
-        </Popover>
+        </Popover> */}
         <Button loading={isLoading} onClick={() => syncRepository({})}>
           Start
         </Button>

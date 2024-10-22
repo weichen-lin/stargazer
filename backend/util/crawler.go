@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"sort"
 	"time"
 
 	"github.com/weichen-lin/kabaka"
@@ -134,48 +135,29 @@ func GetGithubRepos(database *db.Database, msg kabaka.Message, writer *kabaka.Ka
 	return nil
 }
 
-type GetRepositoryTopicsMessage struct {
-	Email string `json:"email"`
+type TopicsResult struct {
+	TopicName string  `json:"topic_name"`
+	RepoIds   []int64 `json:"repo_ids"`
 }
 
-func GetRepositoryTopics(database *db.Database, msg kabaka.Message, writer *kabaka.Kabaka) error {
+func GetRepositoryTopics(topicsMap map[string][]int64) []*TopicsResult {
 
-	var info GetRepositoryTopicsMessage
+	topics := make([]*TopicsResult, 0)
 
-	err := json.Unmarshal(msg.Value, &info)
-	if err != nil {
-		return fmt.Errorf("error unmarshalling JSON: %s", err.Error())
+	for topicName, repoIds := range topicsMap {
+		topics = append(topics, &TopicsResult{
+			TopicName: topicName,
+			RepoIds:   repoIds,
+		})
 	}
 
-	ctx, err := db.WithEmail(context.Background(), info.Email)
-	if err != nil {
-		return err
+	sort.Slice(topics, func(i, j int) bool {
+		return len(topics[i].RepoIds) > len(topics[j].RepoIds)
+	})
+
+	if len(topics) < 50 {
+		return topics
 	}
 
-	results, err := database.GetAllRepositoryTopics(ctx)
-	if err != nil {
-		return err
-	}
-
-	topicsMap := make(map[string][]int64)
-
-	for _, result := range results {
-		for _, topic := range result.Topics {
-			repos, exists := topicsMap[topic]
-
-			if !exists {
-				repos := []int64{}
-				repos = append(repos, result.RepoId)
-				topicsMap[topic] = repos
-				continue
-			}
-
-			repos = append(repos, result.RepoId)
-			topicsMap[topic] = repos
-		}
-	}
-
-	StarGazerTopicCache.SetTopics(info.Email, topicsMap)
-
-	return nil
+	return topics[:50]
 }

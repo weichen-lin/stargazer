@@ -2,7 +2,6 @@ package controller
 
 import (
 	"net/http"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/weichen-lin/stargazer/db"
@@ -46,52 +45,4 @@ func (c *Controller) CreateCrontab(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusCreated, newCrontab.ToCrontabEntity())
-}
-
-type UpdateQuery struct {
-	TriggeredAt time.Time `form:"triggered_at" json:"time" binding:"required" time_format:"2006-01-02T15:04:05Z07:00"`
-}
-
-func (c *Controller) UpdateCrontab(ctx *gin.Context) {
-	user, err := c.db.GetUser(ctx)
-	if err != nil {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
-		return
-	}
-
-	var query UpdateQuery
-	if err := ctx.ShouldBindQuery(&query); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	crontab, err := c.db.GetCrontab(ctx)
-	if err != nil {
-		handleError(err, ctx)
-		return
-	}
-
-	now := time.Now()
-
-	crontab.SetTriggeredAt(query.TriggeredAt.Format(time.RFC3339))
-	crontab.SetUpdatedAt(now.Format(time.RFC3339))
-
-	err = c.db.SaveCrontab(ctx, crontab)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	fn := func() error {
-		err := c.kabaka.Publish("star-syncer", []byte(`{"email":"`+user.Email()+`","page":1}`), nil)
-		return err
-	}
-
-	err = c.scheduler.Update(user.Email(), query.TriggeredAt, fn)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	ctx.JSON(http.StatusOK, crontab.ToCrontabEntity())
 }

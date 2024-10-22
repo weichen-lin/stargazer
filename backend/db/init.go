@@ -45,7 +45,6 @@ func NewDatabase() *Database {
 		panic(err)
 	}
 
-
 	return &Database{
 		Driver:  driver,
 		Timeout: 5,
@@ -135,4 +134,3 @@ func InitRepoIdIndex(driver neo4j.DriverWithContext) error {
 
 	return nil
 }
-

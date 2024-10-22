@@ -222,7 +222,7 @@ type CollectionSearchResult struct {
 func (db *Database) GetCollections(ctx context.Context, params *PagingParams) (*CollectionSearchResult, error) {
 	email, ok := EmailFromContext(ctx)
 	if !ok {
-		return nil,ErrNotFoundEmailAtContext
+		return nil, ErrNotFoundEmailAtContext
 	}
 
 	ctx, cancel := context.WithTimeout(ctx, time.Duration(db.Timeout)*time.Second)

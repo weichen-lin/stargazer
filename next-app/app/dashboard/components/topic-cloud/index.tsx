@@ -35,11 +35,11 @@ export default function TopicsCloud() {
 
   const words =
     word_data
-      ?.sort((a, b) => b.repos.length - a.repos.length)
+      ?.sort((a, b) => b.repo_ids.length - a.repo_ids.length)
       .slice(0, 50)
       .map(e => ({
-        text: e.name,
-        value: e.repos.length,
+        text: e.topic_name,
+        value: e.repo_ids.length,
       })) ?? []
 
   const fontScale = scaleLog({

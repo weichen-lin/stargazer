@@ -15,7 +15,7 @@ require (
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/resend/resend-go/v2 v2.10.0
 	github.com/stretchr/testify v1.9.0
-	github.com/weichen-lin/kabaka v0.0.0-20240831025809-43390d7afd9d
+	github.com/weichen-lin/kabaka v1.0.1
 	go.opentelemetry.io/otel v1.30.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.30.0
 	go.opentelemetry.io/otel/sdk v1.30.0

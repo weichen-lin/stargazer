@@ -105,7 +105,11 @@ func createCollection(t *testing.T, user *domain.User) *domain.Collection {
 func TestMain(m *testing.M) {
 	testDB = NewTestDatabase()
 	testscheular = NewScheduler()
-	testKabaka = kabaka.NewKabaka(&kabaka.Config{
+	testKabaka = kabaka.NewKabaka(&kabaka.Options{
+		BufferSize: 24,
+		DefaultMaxRetries: 1,
+		DefaultRetryDelay: time.Duration(5*time.Second),
+		DefaultProcessTimeout: time.Duration(10*time.Second),
 		Logger: nil,
 	})
 
@@ -135,7 +139,7 @@ func TestMain(m *testing.M) {
 		if cronjob.TriggeredAt != "" {
 
 			fn := func() error {
-				testKabaka.Publish("star-syncer", []byte(`{"email":"`+cronjob.Email+`","page":1}`))
+				testKabaka.Publish("star-syncer", []byte(`{"email":"`+cronjob.Email+`","page":1}`), nil)
 				return nil
 			}
 

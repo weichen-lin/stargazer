@@ -102,6 +102,8 @@ github.com/ugorji/go/codec v1.2.12 h1:9LC83zGrHhuUA9l16C9AHXAqEV/2wBQ4nkvumAE65E
 github.com/ugorji/go/codec v1.2.12/go.mod h1:UNopzCgEMSXjBc6AOMqYvWC1ktqTAfzJZUZgYf6w6lg=
 github.com/weichen-lin/kabaka v0.0.0-20240831025809-43390d7afd9d h1:DhIRFQEZgVGKSF56fGEX8+SuP0Lj9w+3nSc+SpoXeFo=
 github.com/weichen-lin/kabaka v0.0.0-20240831025809-43390d7afd9d/go.mod h1:i/+GiKj/8W08H/TCpRw9B+KxvRyVS2FZp4FwtWwseno=
+github.com/weichen-lin/kabaka v1.0.1 h1:f3cHzTEMZuazLkJEsTI1qmZcT75jCWJw/UomwUsVuyk=
+github.com/weichen-lin/kabaka v1.0.1/go.mod h1:v+OK2JyLN8ToWMNoigVaH15XEmEZiE5Kvla1j9T+ThY=
 go.opentelemetry.io/otel v1.30.0 h1:F2t8sK4qf1fAmY9ua4ohFS/K+FUuOPemHUIXHtktrts=
 go.opentelemetry.io/otel v1.30.0/go.mod h1:tFw4Br9b7fOS+uEao81PJjVMjW/5fvNCbpsDIXqP0pc=
 go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.30.0 h1:lsInsfvhVIfOI6qHVyysXMNDnjO9Npvl7tlDPJFBVd4=

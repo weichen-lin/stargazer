@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -9,23 +10,12 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/patrickmn/go-cache"
+	"github.com/redis/go-redis/v9"
 	"github.com/weichen-lin/stargazer/db"
 	"github.com/weichen-lin/stargazer/util"
-	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/propagation"
 )
 
-var getUserStarsLimiter = cache.New(20*time.Minute, 10*time.Minute)
-var getTopicsLimiter = cache.New(5*time.Minute, 5*time.Minute)
-
 func (c *Controller) SyncRepository(ctx *gin.Context) {
-	otelCtx := otel.GetTextMapPropagator().Extract(ctx, propagation.HeaderCarrier(ctx.Request.Header))
-
-	tracer := otel.Tracer("")
-	_, span := tracer.Start(otelCtx, "sync-repository")
-	defer span.End()
-
 	user, err := c.db.GetUser(ctx)
 
 	if err != nil {
@@ -34,23 +24,29 @@ func (c *Controller) SyncRepository(ctx *gin.Context) {
 		})
 	}
 
-	if _, found := getUserStarsLimiter.Get(user.Email()); found {
-		_, expired, _ := getUserStarsLimiter.GetWithExpiration(user.Email())
-		remain := time.Until(expired)
-		mins := int(remain.Minutes())
+	limiter := fmt.Sprintf("%s-sync-limiter", user.Name())
 
-		ctx.JSON(http.StatusConflict, gin.H{
-			"message": "This user is already being processed. Please try again later.",
-			"expires": fmt.Sprintf("%d minutes", mins),
-		})
+	_, err = c.rdb.Get(ctx, limiter).Result()
+	if err != nil {
+		if err == redis.Nil {
+			c.rdb.SetNX(ctx, limiter, true, time.Minute*30)
+			c.kabaka.Publish("star-syncer", []byte(`{"email":"`+user.Email()+`","page":1}`), nil)
+			ctx.JSON(http.StatusOK, "ok")
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "server is not response now"})
 		return
 	}
 
-	getUserStarsLimiter.Set(user.Email(), true, time.Minute*30)
-
-	c.kabaka.Publish("star-syncer", []byte(`{"email":"`+user.Email()+`","page":1}`), nil)
-
-	ctx.JSON(http.StatusOK, "ok")
+	ttl, err := c.rdb.TTL(ctx, limiter).Result()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "server is not response now"})
+	} else {
+		ctx.JSON(http.StatusTooManyRequests, gin.H{
+			"expires": fmt.Sprintf("%d minutes", int(ttl.Minutes())),
+			"message": "This user is already being processed. Please try again later.",
+		})
+	}
 }
 
 type GetRepositoryQuery struct {
@@ -173,16 +169,60 @@ func (c *Controller) GetTopics(ctx *gin.Context) {
 		})
 	}
 
-	topics, exists := util.StarGazerTopicCache.GetTopics(user.Email())
+	topicCache := fmt.Sprintf("%s-topic-cache", user.Name())
+
+	val, err := c.rdb.Get(ctx, topicCache).Result()
+	if err != nil {
+		if err == redis.Nil {
+			results, err := c.db.GetAllRepositoryTopics(ctx)
+			if err != nil {
+				handleRepositoryErr(err, ctx)
+				return
+			}
+
+			topicsMap := make(map[string][]int64)
+
+			for _, result := range results {
+				for _, topic := range result.Topics {
+					repos, exists := topicsMap[topic]
+
+					if !exists {
+						repos := []int64{}
+						repos = append(repos, result.RepoId)
+						topicsMap[topic] = repos
+						continue
+					}
+
+					repos = append(repos, result.RepoId)
+					topicsMap[topic] = repos
+				}
+			}
+
+			topics := util.GetRepositoryTopics(topicsMap)
+
+			jsonString, _ := json.Marshal(topics)
+
+			ctx.JSON(http.StatusOK, gin.H{
+				"data": topics,
+			})
+
+			c.rdb.SetNX(ctx, topicCache, jsonString, time.Hour*12)
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "server is not response now"})
+		return
+	}
+
+	var topics []*util.TopicsResult
+	err = json.Unmarshal([]byte(val), &topics)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "server is not response now"})
+		return
+	}
 
 	ctx.JSON(http.StatusOK, gin.H{
 		"data": topics,
 	})
-
-	if _, found := getTopicsLimiter.Get(user.Email()); !found && !exists {
-		c.kabaka.Publish("topic-syncer", []byte(`{"email":"`+user.Email()+`"}`), nil)
-		getTopicsLimiter.Set(user.Email(), true, time.Minute*5)
-	}
 }
 
 type GetRepositoriesByKeyQueries struct {

@@ -55,7 +55,6 @@ func main() {
 	{
 		crontab.GET("/", c.GetCrontab)
 		crontab.POST("/", c.CreateCrontab)
-		crontab.PATCH("/", c.UpdateCrontab)
 	}
 
 	tag := r.Group("/tag", m.JWTAuth())

@@ -83,7 +83,7 @@ func (c *Controller) UpdateCrontab(ctx *gin.Context) {
 	}
 
 	fn := func() error {
-		err := c.kabaka.Publish("star-syncer", []byte(`{"email":"`+user.Email()+`","page":1}`))
+		err := c.kabaka.Publish("star-syncer", []byte(`{"email":"`+user.Email()+`","page":1}`), nil)
 		return err
 	}
 

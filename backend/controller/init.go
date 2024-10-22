@@ -2,6 +2,7 @@ package controller
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/weichen-lin/kabaka"
 	"github.com/weichen-lin/stargazer/db"
@@ -21,7 +22,12 @@ func NewController(logger kabaka.Logger) *Controller {
 
 	cronjobs := db.GetAllCrontab()
 
-	bk := kabaka.NewKabaka(&kabaka.Config{
+
+	bk := kabaka.NewKabaka(&kabaka.Options{
+		BufferSize: 24,
+		DefaultMaxRetries: 1,
+		DefaultRetryDelay: time.Duration(5*time.Second),
+		DefaultProcessTimeout: time.Duration(10*time.Second),
 		Logger: logger,
 	})
 
@@ -49,7 +55,7 @@ func NewController(logger kabaka.Logger) *Controller {
 	for _, cronjob := range cronjobs {
 		if cronjob.TriggeredAt != "" {
 			fn := func() error {
-				bk.Publish("star-syncer", []byte(`{"email":"`+cronjob.Email+`","page":1}`))
+				bk.Publish("star-syncer", []byte(`{"email":"`+cronjob.Email+`","page":1}`), nil)
 				return nil
 			}
 

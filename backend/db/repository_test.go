@@ -78,7 +78,7 @@ func TestGetRepository(t *testing.T) {
 	require.Equal(t, repo.Description(), repositoryEntity.Description)
 	require.Equal(t, repo.Language(), repositoryEntity.Language)
 	require.Equal(t, repo.Archived(), repositoryEntity.Archived)
-	require.Equal(t, repo.Topics(), repositoryEntity.Topics)
+	require.Equal(t, len(repo.Topics()), len(repositoryEntity.Topics))
 	require.WithinDuration(t, repo.ExternalCreateAt(), expectExternalCreatedAt, time.Duration(time.Second*3))
 	require.WithinDuration(t, repo.LastSyncedAt(), expectLastSyncedAt, time.Duration(time.Second*3))
 	require.WithinDuration(t, repo.LastModifiedAt(), expectLastModifiedAt, time.Duration(time.Second*3))

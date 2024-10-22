@@ -7,8 +7,8 @@ export interface ILanguageDistribution {
 }
 
 export interface ITopics {
-  name: string
-  repos: number[]
+  topic_name: string
+  repo_ids: number[]
 }
 
 export const SortKeySchema = z.enum(['created_at', 'stargazers_count', 'watchers_count'])

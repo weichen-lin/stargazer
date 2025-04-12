@@ -8,6 +8,10 @@ import {
   EllipsisVertical,
   PencilIcon,
   ArrowBigRight,
+  Clock,
+  UserRound,
+  ChartColumnBig,
+  Eye,
 } from 'lucide-react';
 import { MagicCard } from '@/components/shared/magic-card';
 import { Button } from '@/components/ui/button';
@@ -18,44 +22,42 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { AnimatedTooltip } from '@/components/ui/animated-tooltip';
+import LanguageDistribution from '@/pages/dashboard/language-distribution';
+import { UpdatedRepo } from '@/components/shared/repo/updated-grid-repo';
 
 export default function MyCollections() {
   return (
     <div className='row-span-5 grid grid-cols-3 h-full gap-4'>
-      <div className='col-span-2 rounded-lg space-y-4'>
-        <div className='flex justify-between py-1'>
-          <div className='flex gap-x-4 items-center'>
-            <FolderKanban className='text-primary' />
-            <div className='flex flex-col'>
-              <h2 className='text-xl font-bold'>My Collections</h2>
-              <div className='text-slate-500 text-sm'>
-                Organize your starred repositories
-              </div>
+      <div className='col-span-2 rounded-lg space-y-4 h-full'>
+        <div className='flex gap-x-4 items-center'>
+          <ChartColumnBig className='text-primary' />
+          <div className='flex flex-col'>
+            <h2 className='text-xl font-bold'>Overview</h2>
+            <div className='text-slate-500 text-sm'>
+              Your GitHub stars at a glance
             </div>
           </div>
         </div>
-        <div className='grid grid-rows-2 grid-flow-col gap-4'>
-          <Card />
-          <Card />
-          <Card />
-          <Card />
+        <div className='grid grid-cols-2 grid-rows-1 gap-4'>
+          <LanguageDistribution />
+          <Block />
         </div>
       </div>
-      <div className='col-span-1 rounded-lg'>
-        <div className='flex justify-between py-1'>
-          <div className='flex gap-x-4 items-center'>
-            <FolderKanban className='text-primary' />
-            <div className='flex flex-col'>
-              <h2 className='text-xl font-bold'>Shared With Me</h2>
-              <div className='text-slate-500 text-sm'>
-                Collections shared by others
-              </div>
+      <div className='col-span-1 rounded-lg space-y-4 h-full'>
+        <div className='flex gap-x-4 items-center'>
+          <Eye className='text-primary' />
+          <div className='flex flex-col'>
+            <h2 className='text-xl font-bold'>Recently Updated</h2>
+            <div className='text-slate-500 text-sm'>
+              See what’s new in your starred repos.
             </div>
           </div>
         </div>
-        <div className='grid grid-rows-2 grid-flow-col gap-4 mt-4'>
-          <Card2 />
-          <Card2 />
+        <div className='grid grid-cols-1 grid-rows-4 gap-4 h-[320px]'>
+          <UpdatedRepo />
+          <UpdatedRepo />
+          <UpdatedRepo />
+          <UpdatedRepo />
         </div>
       </div>
     </div>
@@ -157,3 +159,54 @@ const Card2 = () => (
     </div>
   </MagicCard>
 );
+
+const Block = () => {
+  return (
+    <div className='grid grid-cols-2 grid-rows-3 gap-3'>
+      <div className='flex flex-col gap-y-3 p-4 bg-slate-300 rounded-lg justify-center'>
+        <div className='flex items-center gap-x-2 justify-between'>
+          <div className='text-sm text-slate-900'>Last Synced</div>
+          <Clock className='w-5 h-5' />
+        </div>
+        <div className='flex justify-start text-lg font-semibold'>
+          2 hour ago
+        </div>
+      </div>
+      <div className='flex flex-col gap-y-3 p-4 bg-slate-300 rounded-lg justify-center'>
+        <div className='flex items-center gap-x-2 justify-between'>
+          <div className='text-sm text-slate-900'>Friends</div>
+          <UserRound className='w-5 h-5' />
+        </div>
+        <div className='flex justify-start text-lg font-semibold'>14</div>
+      </div>
+      <div className='flex flex-col gap-y-3 p-4 bg-slate-300 rounded-lg justify-center'>
+        <div className='flex items-center gap-x-2 justify-between'>
+          <div className='text-sm text-slate-900'>Your Collections</div>
+          <FolderKanban className='w-5 h-5' />
+        </div>
+        <div className='flex justify-start text-lg font-semibold'>
+          2 hour ago
+        </div>
+      </div>
+      <div className='flex flex-col gap-y-3 p-4 bg-slate-300 rounded-lg justify-center'>
+        <div className='flex items-center gap-x-2 justify-between'>
+          <div className='text-sm text-slate-900'>Shared With You</div>
+          <Share2 className='w-5 h-5' />
+        </div>
+        <div className='flex justify-start text-lg font-semibold'>
+          2 hour ago
+        </div>
+      </div>
+      <div className='flex items-end'>
+        <Button variant='outline' className='w-full'>
+          Trending Repository
+        </Button>
+      </div>
+      <div className='flex items-end'>
+        <Button variant='outline' className='w-full'>
+          Trending Developer
+        </Button>
+      </div>
+    </div>
+  );
+};

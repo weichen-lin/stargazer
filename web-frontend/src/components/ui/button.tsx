@@ -4,14 +4,6 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-interface RippleButtonProps {
-  children: React.ReactNode;
-  onClick?: (event: React.MouseEvent<HTMLButtonElement>) => void;
-  className?: string;
-  disabled?: boolean;
-  color?: 'blue' | 'red' | 'green' | 'yellow';
-}
-
 interface RippleStyle {
   left: number;
   top: number;
@@ -25,7 +17,7 @@ const buttonVariants = cva(
     'overflow-hidden relative inline-flex items-center justify-center gap-2 cursor-pointer',
     'disabled:pointer-events-none disabled:opacity-50 disabled:cursor-not-allowed',
     'focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]',
-    "[&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none",
+    '[&_svg]:pointer-events-none shrink-0 [&_svg]:shrink-0 outline-none',
     'whitespace-nowrap rounded-md text-sm font-medium transition-all aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive'
   ),
   {
@@ -40,7 +32,7 @@ const buttonVariants = cva(
         secondary:
           'bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80',
         ghost:
-          'hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50',
+          'hover:bg-secondary hover:text-accent-foreground dark:hover:bg-accent/50',
         link: 'text-primary underline-offset-4 hover:underline',
       },
       size: {
@@ -143,11 +135,7 @@ function Button({
           }}
         />
       ))}
-      {loading ? (
-        <Loader2 className='m-2 h-4 w-4 animate-spin' />
-      ) : (
-        <div className='z-10'>{children}</div>
-      )}
+      {loading ? <Loader2 className='m-2 h-4 w-4 animate-spin' /> : children}
     </Comp>
   );
 }

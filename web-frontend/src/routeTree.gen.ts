@@ -11,28 +11,16 @@
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
-import { Route as StarsImport } from './routes/stars'
-import { Route as DashboardImport } from './routes/dashboard'
-import { Route as CollectionsImport } from './routes/collections'
+import { Route as AuthRouteImport } from './routes/_auth/route'
 import { Route as IndexImport } from './routes/index'
+import { Route as AuthStarsImport } from './routes/_auth/stars'
+import { Route as AuthDashboardImport } from './routes/_auth/dashboard'
+import { Route as AuthCollectionsImport } from './routes/_auth/collections'
 
 // Create/Update Routes
 
-const StarsRoute = StarsImport.update({
-  id: '/stars',
-  path: '/stars',
-  getParentRoute: () => rootRoute,
-} as any)
-
-const DashboardRoute = DashboardImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
-  getParentRoute: () => rootRoute,
-} as any)
-
-const CollectionsRoute = CollectionsImport.update({
-  id: '/collections',
-  path: '/collections',
+const AuthRouteRoute = AuthRouteImport.update({
+  id: '/_auth',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -40,6 +28,24 @@ const IndexRoute = IndexImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRoute,
+} as any)
+
+const AuthStarsRoute = AuthStarsImport.update({
+  id: '/stars',
+  path: '/stars',
+  getParentRoute: () => AuthRouteRoute,
+} as any)
+
+const AuthDashboardRoute = AuthDashboardImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AuthRouteRoute,
+} as any)
+
+const AuthCollectionsRoute = AuthCollectionsImport.update({
+  id: '/collections',
+  path: '/collections',
+  getParentRoute: () => AuthRouteRoute,
 } as any)
 
 // Populate the FileRoutesByPath interface
@@ -53,75 +59,103 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexImport
       parentRoute: typeof rootRoute
     }
-    '/collections': {
-      id: '/collections'
+    '/_auth': {
+      id: '/_auth'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRoute
+    }
+    '/_auth/collections': {
+      id: '/_auth/collections'
       path: '/collections'
       fullPath: '/collections'
-      preLoaderRoute: typeof CollectionsImport
-      parentRoute: typeof rootRoute
+      preLoaderRoute: typeof AuthCollectionsImport
+      parentRoute: typeof AuthRouteImport
     }
-    '/dashboard': {
-      id: '/dashboard'
+    '/_auth/dashboard': {
+      id: '/_auth/dashboard'
       path: '/dashboard'
       fullPath: '/dashboard'
-      preLoaderRoute: typeof DashboardImport
-      parentRoute: typeof rootRoute
+      preLoaderRoute: typeof AuthDashboardImport
+      parentRoute: typeof AuthRouteImport
     }
-    '/stars': {
-      id: '/stars'
+    '/_auth/stars': {
+      id: '/_auth/stars'
       path: '/stars'
       fullPath: '/stars'
-      preLoaderRoute: typeof StarsImport
-      parentRoute: typeof rootRoute
+      preLoaderRoute: typeof AuthStarsImport
+      parentRoute: typeof AuthRouteImport
     }
   }
 }
 
 // Create and export the route tree
 
+interface AuthRouteRouteChildren {
+  AuthCollectionsRoute: typeof AuthCollectionsRoute
+  AuthDashboardRoute: typeof AuthDashboardRoute
+  AuthStarsRoute: typeof AuthStarsRoute
+}
+
+const AuthRouteRouteChildren: AuthRouteRouteChildren = {
+  AuthCollectionsRoute: AuthCollectionsRoute,
+  AuthDashboardRoute: AuthDashboardRoute,
+  AuthStarsRoute: AuthStarsRoute,
+}
+
+const AuthRouteRouteWithChildren = AuthRouteRoute._addFileChildren(
+  AuthRouteRouteChildren,
+)
+
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/collections': typeof CollectionsRoute
-  '/dashboard': typeof DashboardRoute
-  '/stars': typeof StarsRoute
+  '': typeof AuthRouteRouteWithChildren
+  '/collections': typeof AuthCollectionsRoute
+  '/dashboard': typeof AuthDashboardRoute
+  '/stars': typeof AuthStarsRoute
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/collections': typeof CollectionsRoute
-  '/dashboard': typeof DashboardRoute
-  '/stars': typeof StarsRoute
+  '': typeof AuthRouteRouteWithChildren
+  '/collections': typeof AuthCollectionsRoute
+  '/dashboard': typeof AuthDashboardRoute
+  '/stars': typeof AuthStarsRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
-  '/collections': typeof CollectionsRoute
-  '/dashboard': typeof DashboardRoute
-  '/stars': typeof StarsRoute
+  '/_auth': typeof AuthRouteRouteWithChildren
+  '/_auth/collections': typeof AuthCollectionsRoute
+  '/_auth/dashboard': typeof AuthDashboardRoute
+  '/_auth/stars': typeof AuthStarsRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/collections' | '/dashboard' | '/stars'
+  fullPaths: '/' | '' | '/collections' | '/dashboard' | '/stars'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/collections' | '/dashboard' | '/stars'
-  id: '__root__' | '/' | '/collections' | '/dashboard' | '/stars'
+  to: '/' | '' | '/collections' | '/dashboard' | '/stars'
+  id:
+    | '__root__'
+    | '/'
+    | '/_auth'
+    | '/_auth/collections'
+    | '/_auth/dashboard'
+    | '/_auth/stars'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  CollectionsRoute: typeof CollectionsRoute
-  DashboardRoute: typeof DashboardRoute
-  StarsRoute: typeof StarsRoute
+  AuthRouteRoute: typeof AuthRouteRouteWithChildren
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  CollectionsRoute: CollectionsRoute,
-  DashboardRoute: DashboardRoute,
-  StarsRoute: StarsRoute,
+  AuthRouteRoute: AuthRouteRouteWithChildren,
 }
 
 export const routeTree = rootRoute
@@ -135,22 +169,31 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
-        "/collections",
-        "/dashboard",
-        "/stars"
+        "/_auth"
       ]
     },
     "/": {
       "filePath": "index.tsx"
     },
-    "/collections": {
-      "filePath": "collections.tsx"
+    "/_auth": {
+      "filePath": "_auth/route.tsx",
+      "children": [
+        "/_auth/collections",
+        "/_auth/dashboard",
+        "/_auth/stars"
+      ]
     },
-    "/dashboard": {
-      "filePath": "dashboard.tsx"
+    "/_auth/collections": {
+      "filePath": "_auth/collections.tsx",
+      "parent": "/_auth"
     },
-    "/stars": {
-      "filePath": "stars.tsx"
+    "/_auth/dashboard": {
+      "filePath": "_auth/dashboard.tsx",
+      "parent": "/_auth"
+    },
+    "/_auth/stars": {
+      "filePath": "_auth/stars.tsx",
+      "parent": "/_auth"
     }
   }
 }

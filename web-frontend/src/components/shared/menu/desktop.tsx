@@ -1,18 +1,9 @@
-// import { ModeToggle } from '@/components/provider';
 import { motion } from 'framer-motion';
 import { CommandSearch } from '@/components/shared/menu/search';
 import UserInfo from '@/components/shared/menu/user-info';
-import { useMenuName } from './util';
 import { cn } from '@/lib/utils';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-
-// import { Detail } from '@/components/dialog';
-// import { useRepoDetail } from '@/hooks/util';
 
 const DesktopBar = () => {
-  const { menuName } = useMenuName();
-  // const { open } = useRepoDetail();
-
   return (
     <motion.div
       initial={{ x: 80 }}

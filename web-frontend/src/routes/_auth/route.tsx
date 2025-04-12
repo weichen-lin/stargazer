@@ -1,10 +1,18 @@
-import { Link } from '@tanstack/react-router';
+import { createFileRoute, Outlet } from '@tanstack/react-router';
 import { Sidebar } from '@/components/shared';
 import Menu from '@/components/shared/menu';
 
-export default async function AuthLayout(props: { children: React.ReactNode }) {
-  const { children } = props;
+const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
+if (!PUBLISHABLE_KEY) {
+  throw new Error('Missing Publishable Key');
+}
+
+export const Route = createFileRoute('/_auth')({
+  component: RouteComponent,
+});
+
+function RouteComponent() {
   return (
     <div className='grid grid-cols-[260px_1fr] h-screen overflow-x-hidden'>
       <Sidebar />
@@ -13,7 +21,7 @@ export default async function AuthLayout(props: { children: React.ReactNode }) {
           <Menu />
         </header>
         <main className='bg-gray-200 p-4 flex-grow overflow-y-auto'>
-          {children}
+          <Outlet />
         </main>
       </div>
     </div>

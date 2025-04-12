@@ -451,6 +451,8 @@ const MultipleSelector = React.forwardRef<
               )}
             />
           </div>
+        </div>
+        <div className='relative mt-2 w-full'>
           {open && (
             <CommandList className='absolute top-0 z-10 w-full rounded-md border bg-popover text-popover-foreground shadow-md outline-none animate-in'>
               {isLoading ? (

@@ -1,12 +1,15 @@
-import { Download, Star, FolderPlus } from 'lucide-react';
+import { Download, FolderPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useUser } from '@clerk/clerk-react';
 
 export default function Welcome() {
+  const { user } = useUser();
+
   return (
     <div className='row-span-1 flex items-center'>
       <div className='w-full px-4 py-2 flex items-center justify-between bg-card rounded-lg shadow-sm'>
         <div className=''>
-          <h1 className='text-xl font-bold'>Welcome back, WeiChen!</h1>
+          <h1 className='text-xl font-bold'>Welcome back, {user?.username}!</h1>
           <p className='text-muted-foreground mt-1'>
             Organize and manage your GitHub stars effortlessly
           </p>

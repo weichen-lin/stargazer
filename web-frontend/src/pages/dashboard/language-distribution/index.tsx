@@ -1,7 +1,6 @@
-import { useMemo } from 'react';
+import { useMemo, useCallback } from 'react';
 import { Label, Pie, PieChart } from 'recharts';
-
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import {
   ChartContainer,
   ChartTooltip,
@@ -10,159 +9,45 @@ import {
 import { colorConfig, getLanguageColor } from './config';
 import type { Language } from './config';
 import { PieChart as PieChartIcon, Plus } from 'lucide-react';
-import { MagicCard } from '@/components/shared/magic-card';
-
-const fakeData = [
-  {
-    language: 'TypeScript',
-    count: 264,
-  },
-  {
-    language: 'Go',
-    count: 150,
-  },
-  {
-    language: 'Python',
-    count: 121,
-  },
-  {
-    language: 'JavaScript',
-    count: 105,
-  },
-  {
-    language: 'Unknown',
-    count: 36,
-  },
-  {
-    language: 'Rust',
-    count: 28,
-  },
-  {
-    language: 'HTML',
-    count: 12,
-  },
-  {
-    language: 'C',
-    count: 12,
-  },
-  {
-    language: 'Java',
-    count: 12,
-  },
-  {
-    language: 'C++',
-    count: 11,
-  },
-  {
-    language: 'Shell',
-    count: 11,
-  },
-  {
-    language: 'PHP',
-    count: 4,
-  },
-  {
-    language: 'Swift',
-    count: 4,
-  },
-  {
-    language: 'Clojure',
-    count: 3,
-  },
-  {
-    language: 'MDX',
-    count: 3,
-  },
-  {
-    language: 'Jupyter Notebook',
-    count: 3,
-  },
-  {
-    language: 'Markdown',
-    count: 3,
-  },
-  {
-    language: 'Vue',
-    count: 3,
-  },
-  {
-    language: 'Dart',
-    count: 2,
-  },
-  {
-    language: 'Dockerfile',
-    count: 2,
-  },
-  {
-    language: 'OCaml',
-    count: 1,
-  },
-  {
-    language: 'SCSS',
-    count: 1,
-  },
-  {
-    language: 'HCL',
-    count: 1,
-  },
-  {
-    language: 'Ruby',
-    count: 1,
-  },
-  {
-    language: 'SVG',
-    count: 1,
-  },
-  {
-    language: 'Lua',
-    count: 1,
-  },
-  {
-    language: 'Jinja',
-    count: 1,
-  },
-  {
-    language: 'CSS',
-    count: 1,
-  },
-  {
-    language: 'Pug',
-    count: 1,
-  },
-  {
-    language: 'Zig',
-    count: 1,
-  },
-  {
-    language: 'Astro',
-    count: 1,
-  },
-];
+import { useQuery } from '@tanstack/react-query';
+import { useApi } from '@/hooks/useApi';
 
 export default function LanguageDistribution() {
-  const totalStars = useMemo(() => {
-    return fakeData ? fakeData.reduce((acc, curr) => acc + curr.count, 0) : 0;
-  }, [fakeData]);
+  const api = useApi();
 
-  const withColor = fakeData
-    ? fakeData.map((e) => ({
-        language: e.language,
+  const getLanguageDistribution = useCallback(async () => {
+    const { data } = await api.get<
+      {
+        language: string;
+        count: number;
+      }[]
+    >(`/repository/language-distribution`);
+    return data;
+  }, [api]);
+
+  const { data, isLoading } = useQuery({
+    queryKey: ['language-distribution'],
+    queryFn: () => getLanguageDistribution(),
+  });
+
+  const totalStars = useMemo(() => {
+    return data ? data.reduce((acc, curr) => acc + curr.count, 0) : 0;
+  }, [data]);
+
+  const withColor = data
+    ? data.map((e) => ({
+        language: e.language === '' ? 'Unknown' : e.language,
         count: e.count,
         fill: getLanguageColor(e.language as Language),
       }))
     : [];
 
   return (
-    <Card className='flex flex-col h-[320px] w-full max-w-[380px] md:max-w-none'>
-      <CardHeader className='items-center pb-0 gap-y-1'>
-        <CardTitle className='text-xl'>Language Distribution</CardTitle>
-      </CardHeader>
-      <CardContent className='flex-1'>
-        {fakeData.length > 0 && (
-          <ChartContainer
-            className='mx-auto aspect-square max-h-[250px] py-4'
-            config={colorConfig}
-          >
+    <Card className='flex flex-col h-[320px] w-full max-w-[380px] md:max-w-none border-none'>
+      <CardContent className='flex items-center justify-center w-full h-full'>
+        {isLoading && <Loading />}
+        {!isLoading && data && data.length > 0 && (
+          <ChartContainer config={colorConfig} className='w-full h-full'>
             <PieChart>
               <ChartTooltip
                 cursor={false}
@@ -172,7 +57,7 @@ export default function LanguageDistribution() {
                 data={withColor}
                 dataKey='count'
                 nameKey='language'
-                innerRadius={60}
+                innerRadius={70}
                 strokeWidth={5}
               >
                 <Label
@@ -208,6 +93,7 @@ export default function LanguageDistribution() {
             </PieChart>
           </ChartContainer>
         )}
+        {!isLoading && !data && <EmptyContent />}
       </CardContent>
     </Card>
   );
@@ -215,15 +101,13 @@ export default function LanguageDistribution() {
 
 const Loading = () => {
   return (
-    <div className='flex flex-col items-center justify-center py-1 gap-y-4 pb-16'>
-      <div className='w-[150px] h-[150px] rounded-full bg-slate-200 animate-pulse'></div>
-    </div>
+    <div className='w-[200px] h-[200px] rounded-full bg-slate-200 animate-pulse'></div>
   );
 };
 
 const EmptyContent = () => {
   return (
-    <div className='w-full flex flex-col items-center justify-center my-4'>
+    <div className='w-full flex flex-col items-center justify-center'>
       <div className='w-32 h-32 relative'>
         <PieChartIcon className='w-full h-full text-gray-200' />
         <div className='absolute inset-0 flex items-center justify-center'>

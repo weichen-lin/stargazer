@@ -28,7 +28,7 @@ const buttonVariants = cva(
         destructive:
           'bg-destructive text-white shadow-xs hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60',
         outline:
-          'bg-background text-primary shadow-xs hover:bg-accent dark:bg-input/30 dark:border-input dark:hover:bg-input/50',
+          'bg-background text-primary shadow-xs hover:bg-accent dark:bg-input/30 dark:border-input dark:hover:bg-input/50 border-[1px] border-input',
         secondary:
           'bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80',
         ghost:
@@ -135,7 +135,9 @@ function Button({
           }}
         />
       ))}
-      {loading ? <Loader2 className='m-2 h-4 w-4 animate-spin' /> : children}
+      <span className='relative z-[1] inline-flex items-center justify-center gap-2'>
+        {loading ? <Loader2 className='m-2 h-4 w-4 animate-spin' /> : children}
+      </span>
     </Comp>
   );
 }

@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 export default function Search() {
   return (
     <div className='grid grid-rows-[1fr_70px] w-full overflow-hidden'>
-      <div className='flex flex-col gap-y-2 overflow-y-scroll justify-start items-start'>
+      <div className='flex flex-col gap-y-2 overflow-y-hidden justify-start items-start'>
         <MultipleSelector
           value={[
             {

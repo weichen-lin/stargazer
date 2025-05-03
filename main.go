@@ -23,13 +23,9 @@ func main() {
 
 	api := r.Group("/api", ClerkAuth())
 
-	crontab := api.Group("/crontab")
+	user := api.Group("/user", ClerkAuth())
 	{
-		crontab.GET("/ping", func(c *gin.Context) {
-			c.JSON(200, gin.H{
-				"message": "Hello World",
-			})
-		})
+		user.GET("/crontab", c.GetCrontab)
 	}
 
 	background := api.Group("/background", ClerkAuth())

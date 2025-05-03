@@ -28,7 +28,12 @@ export default function Welcome() {
             Organize and manage your GitHub stars effortlessly
           </p>
         </div>
-        <Button onClick={() => run()} variant='outline' loading={isLoading}>
+        <Button
+          onClick={() => run()}
+          variant='outline'
+          loading={isLoading}
+          className='w-48'
+        >
           <div className='flex items-center gap-x-2'>
             <Download className='h-4 w-4' />
             <span>Import GitHub Stars</span>

@@ -18,7 +18,9 @@ const buttonVariants = cva(
     'disabled:pointer-events-none disabled:opacity-50 disabled:cursor-not-allowed',
     'focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]',
     '[&_svg]:pointer-events-none shrink-0 [&_svg]:shrink-0 outline-none',
-    'whitespace-nowrap rounded-md text-sm font-medium transition-all aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive'
+    'whitespace-nowrap rounded-md text-sm font-medium transition-all aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive',
+    'transition-[width,colors,opacity] duration-200 ease-in-out', // 基本過渡效果 (顏色、透明度等)
+    'duration-300 ease-out motion-safe:transition-[width]'
   ),
   {
     variants: {
@@ -111,7 +113,10 @@ function Button({
 
   return (
     <Comp
-      className={cn(buttonVariants({ variant, size, className }))}
+      className={cn(
+        buttonVariants({ variant, size, className }),
+        loading && 'w-12'
+      )}
       disabled={loading || disabled}
       onMouseDown={handleMouseDown}
       onMouseUp={handleLeave}

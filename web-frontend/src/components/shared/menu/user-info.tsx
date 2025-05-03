@@ -25,18 +25,16 @@ export default function UserInfo() {
     <Menubar className=''>
       <MenubarMenu>
         <MenubarTrigger className='cursor-pointer group'>
-          <Button variant='outline' className='bg-white group'>
-            <div className='flex items-center gap-x-2'>
-              <Avatar>
-                <AvatarImage src={user?.imageUrl} />
-                <AvatarFallback>WL</AvatarFallback>
-              </Avatar>
-              <span className='text-sm font-medium text-gray-900 dark:text-white'>
-                {user?.username}
-              </span>
-              <ChevronUp className='ml-2 h-4 w-4 text-gray-500 transition-transform duration-200 group-[data=open]:rotate-0 group-data-[state=open]:rotate-180' />
-            </div>
-          </Button>
+          <div className='flex items-center gap-x-2'>
+            <Avatar>
+              <AvatarImage src={user?.imageUrl} />
+              <AvatarFallback>WL</AvatarFallback>
+            </Avatar>
+            <span className='text-sm font-medium text-gray-900 dark:text-white'>
+              {user?.username}
+            </span>
+            <ChevronUp className='ml-2 h-4 w-4 text-gray-500 transition-transform duration-200 group-[data=open]:rotate-0 group-data-[state=open]:rotate-180' />
+          </div>
         </MenubarTrigger>
         <MenubarContent>
           <MenubarItem>

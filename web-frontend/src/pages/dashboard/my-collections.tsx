@@ -24,6 +24,15 @@ import {
 import { AnimatedTooltip } from '@/components/ui/animated-tooltip';
 import LanguageDistribution from '@/pages/dashboard/language-distribution';
 import { UpdatedRepo } from '@/components/shared/repo/updated-grid-repo';
+import useCrontab from '@/apis/user/useCrontab';
+import {
+  formatDistance,
+  formatRelative,
+  subDays,
+  subHours,
+  subMinutes,
+  addMinutes,
+} from 'date-fns';
 
 export default function MyCollections() {
   return (
@@ -161,6 +170,8 @@ const Card2 = () => (
 );
 
 const Block = () => {
+  const { data: crontab, isLoading } = useCrontab();
+
   return (
     <div className='grid grid-cols-2 grid-rows-3 gap-3'>
       <div className='flex flex-col gap-y-3 p-4 bg-slate-300 rounded-lg justify-center'>
@@ -169,7 +180,8 @@ const Block = () => {
           <Clock className='w-5 h-5' />
         </div>
         <div className='flex justify-start text-lg font-semibold'>
-          2 hour ago
+          {crontab &&
+            formatDistance(crontab.updated_at, new Date(), { addSuffix: true })}
         </div>
       </div>
       <div className='flex flex-col gap-y-3 p-4 bg-slate-300 rounded-lg justify-center'>

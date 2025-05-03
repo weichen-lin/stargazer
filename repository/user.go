@@ -109,3 +109,39 @@ func (r *Repository) SaveUserCrontab(ctx context.Context, q *db.Queries, reposit
 
 	return nil
 }
+
+func (r *Repository) GetUserCrontab(ctx context.Context, q *db.Queries) (*domain.Crontab, error) {
+	clerkId, ok := infrastructure.GetClerkId(ctx)
+	if !ok {
+		return nil, infrastructure.NewServiceError(
+			ctx,
+			http.StatusInternalServerError,
+			"not found clerk id at context",
+			"not found clerk id at context",
+		)
+	}
+
+	dbUser, err := q.GetUserByClerkId(ctx, clerkId)
+	if err != nil {
+		return nil, err
+	}
+
+	dbCrontab, err := q.GetCrontab(ctx, dbUser.ID)
+
+	crontab := domain.FromCrontabEntity(&domain.CrontabEntity{
+		UserId: dbCrontab.UserID,
+		Stargazers: dbCrontab.Stargazers,
+		CreatedAt: dbCrontab.CreatedAt,
+		UpdatedAt: dbCrontab.UpdatedAt,
+	})
+	if err != nil {
+		return nil, infrastructure.NewServiceError(
+			ctx,
+			http.StatusInternalServerError,
+			"failed to convert crontab entity",
+			err.Error(),
+		)
+	}
+
+	return crontab, nil
+}

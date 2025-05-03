@@ -211,6 +211,25 @@ func (s *Service) GetUserInfo(ctx context.Context) (*UserInfo, error) {
 	}, nil
 }
 
+func (s *Service) GetUserCrontab(ctx context.Context) (*domain.Crontab, error) {
+	var crontab *domain.Crontab
+
+	err := s.db.Run(ctx, func(q *db.Queries) error {
+		var err error
+		crontab, err = s.repository.GetUserCrontab(ctx, q)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return crontab, nil
+}
+
 func (s *Service) UpdateUserCrontab(ctx context.Context, repository_count int32) error {
 	return s.db.Run(ctx, func(q *db.Queries) error {
 		return s.repository.SaveUserCrontab(ctx, q, repository_count)

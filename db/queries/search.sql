@@ -79,3 +79,93 @@ ORDER BY
     created_at DESC
 LIMIT $3
 OFFSET $4;
+
+-- name: ListStarredRepositoriesByUpdatedAt :many
+SELECT
+    r.id,
+    r.name,
+    r.html_url,
+    r.homepage,
+    r.description,
+    r.watchers,
+    r.forks,
+    r.open_issues,
+    r.language,
+    r.archived,
+    r.created_at,
+    r.updated_at,
+    s.synced_at,
+    o.name AS owner_name,
+    o.avatar_url AS owner_avatar_url,
+    -- Aggregate topic names into an array and CAST the result
+    COALESCE(
+        ARRAY_AGG(t.name ORDER BY t.name) FILTER (WHERE t.id IS NOT NULL),
+        ARRAY[]::VARCHAR[] -- Keep the empty array part consistent or also cast if needed
+    )::TEXT[] AS topics -- <<< CAST the final result to TEXT[]
+FROM
+    stars s                     -- Start with the stars table
+JOIN
+    repositories r ON s.repo_id = r.id -- Join to get repository details
+JOIN
+    owner o ON r.owner_id = o.id       -- Join to get owner details
+LEFT JOIN
+    repository_topics rt ON r.id = rt.repo_id -- Left join to include repos with no topics
+LEFT JOIN
+    topics t ON rt.topic_id = t.id           -- Left join to get topic names
+WHERE
+    s.user_id = $1
+AND
+    s.is_delete = false         -- Only include active stars
+GROUP BY
+    r.id,                       -- Group by repository to aggregate topics
+    o.id,                       -- Include owner ID in group by (as its details are selected)
+    s.updated_at,
+    s.synced_at
+ORDER BY
+    s.updated_at DESC
+LIMIT $2;
+
+
+-- name: ListStarredRepositoriesBySyncedAt :many
+SELECT
+    r.id,
+    r.name,
+    r.html_url,
+    r.homepage,
+    r.description,
+    r.watchers,
+    r.forks,
+    r.open_issues,
+    r.language,
+    r.archived,
+    r.created_at,
+    r.updated_at,
+    s.synced_at,
+    o.name AS owner_name,
+    o.avatar_url AS owner_avatar_url,
+    -- Aggregate topic names into an array and CAST the result
+    COALESCE(
+        ARRAY_AGG(t.name ORDER BY t.name) FILTER (WHERE t.id IS NOT NULL),
+        ARRAY[]::VARCHAR[] -- Keep the empty array part consistent or also cast if needed
+    )::TEXT[] AS topics -- <<< CAST the final result to TEXT[]
+FROM
+    stars s                     -- Start with the stars table
+JOIN
+    repositories r ON s.repo_id = r.id -- Join to get repository details
+JOIN
+    owner o ON r.owner_id = o.id       -- Join to get owner details
+LEFT JOIN
+    repository_topics rt ON r.id = rt.repo_id -- Left join to include repos with no topics
+LEFT JOIN
+    topics t ON rt.topic_id = t.id           -- Left join to get topic names
+WHERE
+    s.user_id = $1
+AND
+    s.is_delete = false         -- Only include active stars
+GROUP BY
+    r.id,                       -- Group by repository to aggregate topics
+    o.id,                       -- Include owner ID in group by (as its details are selected)
+    s.synced_at
+ORDER BY
+    s.synced_at DESC
+LIMIT $2;

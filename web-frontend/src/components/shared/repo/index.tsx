@@ -19,8 +19,28 @@ import {
   Stars,
   Forks,
 } from '@/components/shared/repo/util';
+import type { Repository } from '@/components/shared/repo/type';
 
-export default function GridRepo() {
+export default function GridRepo(props: Repository) {
+  const {
+    id,
+    name,
+    owner_name,
+    avatar_url,
+    html_url,
+    homepage,
+    description,
+    created_at,
+    updated_at,
+    synced_at,
+    watchers,
+    open_issues,
+    forks,
+    language,
+    archived,
+    topics,
+  } = props;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: -100 }}
@@ -35,21 +55,20 @@ export default function GridRepo() {
       <div className='flex flex-col justify-between gap-y-2 h-full'>
         <div className='flex gap-x-3 items-center'>
           <img
-            src='https://avatars.githubusercontent.com/u/50438175?v=4'
-            alt='encore'
+            src={avatar_url}
+            alt={`${owner_name} avatar`}
             width={40}
             height={40}
             className='rounded-full'
           />
           <div>
-            <span>encoredev</span>
+            <span>{owner_name}</span>
             <span>/</span>
-            <span className='font-bold'>encore</span>
+            <span className='font-bold'>{name}</span>
           </div>
         </div>
         <div className='line-clamp-2 text-sm text-slate-500/75 dark:text-white/70'>
-          Open Source Development Platform for building robust type-safe
-          distributed systems with declarative infrastructure
+          {description}
         </div>
         <div className='flex justify-between items-center mb-4'>
           <div className='flex gap-x-2 md:hidden'>
@@ -66,9 +85,9 @@ export default function GridRepo() {
         </div>
         <div className='grid grid-cols-5'>
           <Language />
-          <Issues count={10} />
-          <Stars count={100} />
-          <Forks count={50} />
+          <Issues count={open_issues} />
+          <Stars count={watchers} />
+          <Forks count={forks} />
         </div>
       </div>
       {/* {isHover && (

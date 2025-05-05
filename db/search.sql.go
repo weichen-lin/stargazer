@@ -141,6 +141,219 @@ func (q *Queries) GetStarredLanguageDistributionByUser(ctx context.Context, user
 	return items, nil
 }
 
+const listStarredRepositoriesBySyncedAt = `-- name: ListStarredRepositoriesBySyncedAt :many
+SELECT
+    r.id,
+    r.name,
+    r.html_url,
+    r.homepage,
+    r.description,
+    r.watchers,
+    r.forks,
+    r.open_issues,
+    r.language,
+    r.archived,
+    r.created_at,
+    r.updated_at,
+    s.synced_at,
+    o.name AS owner_name,
+    o.avatar_url AS owner_avatar_url,
+    -- Aggregate topic names into an array and CAST the result
+    COALESCE(
+        ARRAY_AGG(t.name ORDER BY t.name) FILTER (WHERE t.id IS NOT NULL),
+        ARRAY[]::VARCHAR[] -- Keep the empty array part consistent or also cast if needed
+    )::TEXT[] AS topics -- <<< CAST the final result to TEXT[]
+FROM
+    stars s                     -- Start with the stars table
+JOIN
+    repositories r ON s.repo_id = r.id -- Join to get repository details
+JOIN
+    owner o ON r.owner_id = o.id       -- Join to get owner details
+LEFT JOIN
+    repository_topics rt ON r.id = rt.repo_id -- Left join to include repos with no topics
+LEFT JOIN
+    topics t ON rt.topic_id = t.id           -- Left join to get topic names
+WHERE
+    s.user_id = $1
+AND
+    s.is_delete = false         -- Only include active stars
+GROUP BY
+    r.id,                       -- Group by repository to aggregate topics
+    o.id,                       -- Include owner ID in group by (as its details are selected)
+    s.synced_at
+ORDER BY
+    s.synced_at DESC
+LIMIT $2
+`
+
+type ListStarredRepositoriesBySyncedAtParams struct {
+	UserID uuid.UUID
+	Limit  int32
+}
+
+type ListStarredRepositoriesBySyncedAtRow struct {
+	ID             int32
+	Name           string
+	HtmlUrl        string
+	Homepage       *string
+	Description    *string
+	Watchers       int32
+	Forks          int32
+	OpenIssues     int32
+	Language       string
+	Archived       bool
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
+	SyncedAt       time.Time
+	OwnerName      string
+	OwnerAvatarUrl string
+	Topics         []string
+}
+
+func (q *Queries) ListStarredRepositoriesBySyncedAt(ctx context.Context, arg ListStarredRepositoriesBySyncedAtParams) ([]ListStarredRepositoriesBySyncedAtRow, error) {
+	rows, err := q.db.Query(ctx, listStarredRepositoriesBySyncedAt, arg.UserID, arg.Limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListStarredRepositoriesBySyncedAtRow
+	for rows.Next() {
+		var i ListStarredRepositoriesBySyncedAtRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.HtmlUrl,
+			&i.Homepage,
+			&i.Description,
+			&i.Watchers,
+			&i.Forks,
+			&i.OpenIssues,
+			&i.Language,
+			&i.Archived,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.SyncedAt,
+			&i.OwnerName,
+			&i.OwnerAvatarUrl,
+			&i.Topics,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listStarredRepositoriesByUpdatedAt = `-- name: ListStarredRepositoriesByUpdatedAt :many
+SELECT
+    r.id,
+    r.name,
+    r.html_url,
+    r.homepage,
+    r.description,
+    r.watchers,
+    r.forks,
+    r.open_issues,
+    r.language,
+    r.archived,
+    r.created_at,
+    r.updated_at,
+    s.synced_at,
+    o.name AS owner_name,
+    o.avatar_url AS owner_avatar_url,
+    -- Aggregate topic names into an array and CAST the result
+    COALESCE(
+        ARRAY_AGG(t.name ORDER BY t.name) FILTER (WHERE t.id IS NOT NULL),
+        ARRAY[]::VARCHAR[] -- Keep the empty array part consistent or also cast if needed
+    )::TEXT[] AS topics -- <<< CAST the final result to TEXT[]
+FROM
+    stars s                     -- Start with the stars table
+JOIN
+    repositories r ON s.repo_id = r.id -- Join to get repository details
+JOIN
+    owner o ON r.owner_id = o.id       -- Join to get owner details
+LEFT JOIN
+    repository_topics rt ON r.id = rt.repo_id -- Left join to include repos with no topics
+LEFT JOIN
+    topics t ON rt.topic_id = t.id           -- Left join to get topic names
+WHERE
+    s.user_id = $1
+AND
+    s.is_delete = false         -- Only include active stars
+GROUP BY
+    r.id,                       -- Group by repository to aggregate topics
+    o.id,                       -- Include owner ID in group by (as its details are selected)
+    s.updated_at,
+    s.synced_at
+ORDER BY
+    s.updated_at DESC
+LIMIT $2
+`
+
+type ListStarredRepositoriesByUpdatedAtParams struct {
+	UserID uuid.UUID
+	Limit  int32
+}
+
+type ListStarredRepositoriesByUpdatedAtRow struct {
+	ID             int32
+	Name           string
+	HtmlUrl        string
+	Homepage       *string
+	Description    *string
+	Watchers       int32
+	Forks          int32
+	OpenIssues     int32
+	Language       string
+	Archived       bool
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
+	SyncedAt       time.Time
+	OwnerName      string
+	OwnerAvatarUrl string
+	Topics         []string
+}
+
+func (q *Queries) ListStarredRepositoriesByUpdatedAt(ctx context.Context, arg ListStarredRepositoriesByUpdatedAtParams) ([]ListStarredRepositoriesByUpdatedAtRow, error) {
+	rows, err := q.db.Query(ctx, listStarredRepositoriesByUpdatedAt, arg.UserID, arg.Limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListStarredRepositoriesByUpdatedAtRow
+	for rows.Next() {
+		var i ListStarredRepositoriesByUpdatedAtRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.HtmlUrl,
+			&i.Homepage,
+			&i.Description,
+			&i.Watchers,
+			&i.Forks,
+			&i.OpenIssues,
+			&i.Language,
+			&i.Archived,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.SyncedAt,
+			&i.OwnerName,
+			&i.OwnerAvatarUrl,
+			&i.Topics,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listStarredRepositoriesByUser = `-- name: ListStarredRepositoriesByUser :many
 SELECT
     -- Repository details

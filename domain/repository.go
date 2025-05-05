@@ -16,8 +16,10 @@ type Repository struct {
 	description string
 	createdAt   time.Time
 	updatedAt   time.Time
+	syncedAt    time.Time
 	watchers    int32
 	openIssues  int32
+	forks 	int32
 	language    string
 	archived    bool
 	topics      []string
@@ -33,8 +35,10 @@ type RepositoryEntity struct {
 	Description string    `json:"description"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
+	SyncedAt    time.Time `json:"synced_at"`
 	Watchers    int32     `json:"watchers"`
 	OpenIssues  int32     `json:"open_issues"`
+	Forks       int32     `json:"forks"`
 	Language    string    `json:"language"`
 	Archived    bool      `json:"archived"`
 	Topics      []string  `json:"topics"`
@@ -76,12 +80,20 @@ func (r *Repository) UpdatedAt() time.Time {
 	return r.updatedAt.UTC()
 }
 
+func (r *Repository) SyncedAt() time.Time {
+	return r.syncedAt.UTC()
+}
+
 func (r *Repository) Watchers() int32 {
 	return r.watchers
 }
 
 func (r *Repository) OpenIssues() int32 {
 	return r.openIssues
+}
+
+func (r *Repository) Forks() int32 {
+	return r.forks
 }
 
 func (r *Repository) Language() string {
@@ -185,8 +197,10 @@ type CreateRepositoryRequest struct {
 	Description string   `json:"description"`
 	CreatedAt   string   `json:"created_at"`
 	UpdatedAt   string   `json:"updated_at"`
+	SyncedAt    string   `json:"synced_at"`
 	Watchers    int32    `json:"watchers"`
 	OpenIssues  int32    `json:"open_issues"`
+	Forks       int32    `json:"forks"`
 	Language    string   `json:"language"`
 	Archived    bool     `json:"archived"`
 	Topics      []string `json:"topics"`
@@ -229,9 +243,10 @@ func NewRepository(req *CreateRepositoryRequest) (*Repository, error) {
 
 	repo.createdAt, _ = time.Parse(time.RFC3339, req.CreatedAt)
 	repo.updatedAt, _ = time.Parse(time.RFC3339, req.UpdatedAt)
-
+	repo.syncedAt = time.Now().UTC()
 	repo.watchers = req.Watchers
 	repo.openIssues = req.OpenIssues
+	repo.forks = req.Forks
 
 	repo.setLanguage(req.Language)
 	repo.archived = req.Archived
@@ -251,11 +266,62 @@ func (r *Repository) ToRepositoryEntity() *RepositoryEntity {
 		Description: r.description,
 		CreatedAt:   r.createdAt.UTC(),
 		UpdatedAt:   r.updatedAt.UTC(),
+		SyncedAt:    r.syncedAt.UTC(),
 		Watchers:    r.watchers,
 		OpenIssues:  r.openIssues,
+		Forks:       r.forks,
 		Language:    r.language,
 		Archived:    r.archived,
 		Topics:      r.topics,
 	}
+}
 
+func FromRepositoryEntity(entity *RepositoryEntity) (*Repository, error) {
+	repo := &Repository{}
+
+	err := repo.setId(entity.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	err = repo.setName(entity.Name)
+	if err != nil {
+		return nil, err
+	}
+
+	err = repo.setOwnerName(entity.OwnerName)
+	if err != nil {
+		return nil, err
+	}
+
+	err = repo.setAvatarURL(entity.AvatarURL)
+	if err != nil {
+		return nil, err
+	}
+
+	err = repo.setHTMLURL(entity.HtmlURL)
+	if err != nil {
+		return nil, err
+	}
+
+	err = repo.setHomepage(entity.Homepage)
+	if err != nil {
+		return nil, err
+	}
+
+	repo.setDescription(entity.Description)
+
+	repo.createdAt = entity.CreatedAt
+	repo.updatedAt = entity.UpdatedAt
+	repo.syncedAt = entity.SyncedAt
+
+	repo.watchers = entity.Watchers
+	repo.openIssues = entity.OpenIssues
+	repo.forks = entity.Forks
+
+	repo.setLanguage(entity.Language)
+	repo.archived = entity.Archived
+	repo.setTopics(entity.Topics)
+
+	return repo, nil
 }

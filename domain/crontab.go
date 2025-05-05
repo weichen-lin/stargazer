@@ -7,40 +7,40 @@ import (
 )
 
 type Crontab struct {
-	userId uuid.UUID
+	userId     uuid.UUID
 	stargazers int32
-	createdAt time.Time
-	updatedAt time.Time
+	createdAt  time.Time
+	updatedAt  time.Time
 }
 
 type CrontabEntity struct {
-	UserId uuid.UUID `json:"user_id"`
-	Stargazers int32 `json:"stargazers"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	UserId     uuid.UUID `json:"user_id"`
+	Stargazers int32     `json:"stargazers"`
+	CreatedAt  time.Time `json:"created_at"`
+	UpdatedAt  time.Time `json:"updated_at"`
 }
 
 type CrontabDto struct {
-	Stargazers int32 `json:"stargazers"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	Stargazers int32     `json:"stargazers"`
+	CreatedAt  time.Time `json:"created_at"`
+	UpdatedAt  time.Time `json:"updated_at"`
 }
 
 func NewCrontab(userId uuid.UUID, stargazers int32) *Crontab {
 	return &Crontab{
-		userId: userId,
+		userId:     userId,
 		stargazers: stargazers,
-		createdAt: time.Now(),
-		updatedAt: time.Now(),
+		createdAt:  time.Now(),
+		updatedAt:  time.Now(),
 	}
 }
 
 func FromCrontabEntity(entity *CrontabEntity) *Crontab {
 	return &Crontab{
-		userId: entity.UserId,
+		userId:     entity.UserId,
 		stargazers: entity.Stargazers,
-		createdAt: entity.CreatedAt,
-		updatedAt: entity.UpdatedAt,
+		createdAt:  entity.CreatedAt,
+		updatedAt:  entity.UpdatedAt,
 	}
 }
 
@@ -63,16 +63,16 @@ func (c *Crontab) UpdatedAt() time.Time {
 func (c *Crontab) ToCrontabDto() *CrontabDto {
 	return &CrontabDto{
 		Stargazers: c.stargazers,
-		CreatedAt: c.createdAt,
-		UpdatedAt: c.updatedAt,
+		CreatedAt:  c.createdAt,
+		UpdatedAt:  c.updatedAt,
 	}
 }
 
 func (c *Crontab) ToCrontabEntity() *CrontabEntity {
 	return &CrontabEntity{
-		UserId: c.userId,
+		UserId:     c.userId,
 		Stargazers: c.stargazers,
-		CreatedAt: c.createdAt,
-		UpdatedAt: c.updatedAt,
+		CreatedAt:  c.createdAt,
+		UpdatedAt:  c.updatedAt,
 	}
 }

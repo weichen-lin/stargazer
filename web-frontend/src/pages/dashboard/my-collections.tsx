@@ -25,16 +25,26 @@ import { AnimatedTooltip } from '@/components/ui/animated-tooltip';
 import LanguageDistribution from '@/pages/dashboard/language-distribution';
 import { UpdatedRepo } from '@/components/shared/repo/updated-grid-repo';
 import useCrontab from '@/apis/user/useCrontab';
-import {
-  formatDistance,
-  formatRelative,
-  subDays,
-  subHours,
-  subMinutes,
-  addMinutes,
-} from 'date-fns';
+import { formatDistance } from 'date-fns';
+import { useQuery } from '@tanstack/react-query';
+import { useApi } from '@/hooks/useApi';
+import { useCallback } from 'react';
 
 export default function MyCollections() {
+  const api = useApi();
+
+  const getUserLatestUpdated = useCallback(async () => {
+    const { data } = await api.get<any[]>(`/repository/latest-updated`);
+    return data;
+  }, [api]);
+
+  const { data, isLoading } = useQuery({
+    queryKey: ['latest-updated'],
+    queryFn: () => getUserLatestUpdated(),
+  });
+
+  console.log({ data, isLoading });
+
   return (
     <div className='row-span-5 grid grid-cols-3 h-full gap-4'>
       <div className='col-span-2 rounded-lg space-y-4 h-full'>
@@ -63,10 +73,11 @@ export default function MyCollections() {
           </div>
         </div>
         <div className='grid grid-cols-1 grid-rows-4 gap-4 h-[320px]'>
-          <UpdatedRepo />
-          <UpdatedRepo />
-          <UpdatedRepo />
-          <UpdatedRepo />
+          {data &&
+            data.length > 0 &&
+            data
+              .slice(0, 4)
+              .map((repo) => <UpdatedRepo key={repo.id} {...repo} />)}
         </div>
       </div>
     </div>

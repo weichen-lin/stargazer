@@ -36,6 +36,8 @@ func main() {
 	repository := api.Group("/repository", ClerkAuth())
 	{
 		repository.GET("/language-distribution", c.GetLanguageDistribution)
+		repository.GET("/latest-updated", c.GetLatestUserUpdatedRepositories)
+		repository.GET("/latest-starred", c.GetLatestUserSyncedRepositories)
 	}
 
 	r.Run()

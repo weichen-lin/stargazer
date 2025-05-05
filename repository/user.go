@@ -129,10 +129,10 @@ func (r *Repository) GetUserCrontab(ctx context.Context, q *db.Queries) (*domain
 	dbCrontab, err := q.GetCrontab(ctx, dbUser.ID)
 
 	crontab := domain.FromCrontabEntity(&domain.CrontabEntity{
-		UserId: dbCrontab.UserID,
+		UserId:     dbCrontab.UserID,
 		Stargazers: dbCrontab.Stargazers,
-		CreatedAt: dbCrontab.CreatedAt,
-		UpdatedAt: dbCrontab.UpdatedAt,
+		CreatedAt:  dbCrontab.CreatedAt,
+		UpdatedAt:  dbCrontab.UpdatedAt,
 	})
 	if err != nil {
 		return nil, infrastructure.NewServiceError(

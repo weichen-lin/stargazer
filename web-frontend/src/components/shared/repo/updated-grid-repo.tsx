@@ -11,17 +11,31 @@ import {
   Users,
   GitFork,
 } from 'lucide-react';
-import { getLanguageColor } from '@/pages/dashboard/color';
-import {
-  daysAgo,
-  Issues,
-  Language,
-  Stars,
-  Forks,
-} from '@/components/shared/repo/util';
+import { getLanguageColor, type Language } from '@/pages/dashboard/color';
 import { cn } from '@/lib/utils';
 
-function UpdatedRepo() {
+import type { Repository } from '@/components/shared/repo/type';
+
+function UpdatedRepo(props: Repository) {
+  const {
+    id,
+    name,
+    owner_name,
+    avatar_url,
+    html_url,
+    homepage,
+    description,
+    created_at,
+    updated_at,
+    synced_at,
+    watchers,
+    open_issues,
+    forks,
+    language,
+    archived,
+    topics,
+  } = props;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: -100 }}
@@ -32,20 +46,30 @@ function UpdatedRepo() {
     >
       <div className='flex gap-x-3 items-center'>
         <img
-          src='https://avatars.githubusercontent.com/u/50438175?v=4'
-          alt='encore'
+          src={avatar_url}
+          alt={`${owner_name} avatar`}
           width={20}
           height={20}
           className='rounded-full'
         />
         <div>
-          <span>encoredev</span>
+          <span>{owner_name}</span>
           <span>/</span>
-          <span className='font-bold'>encore</span>
+          <span className='font-bold'>{name}</span>
         </div>
       </div>
       <div className='flex w-full justify-between'>
-        <Language />
+        <div className='col-span-2 gap-x-2 justify-start items-center flex'>
+          <div
+            className='rounded-full w-2 h-2'
+            style={{
+              backgroundColor: getLanguageColor(language as Language),
+            }}
+          ></div>
+          <div className='text-slate-500/75 dark:text-white/70 text-sm'>
+            {language}
+          </div>
+        </div>
         <div className='text-sm text-slate-400'>Update 2 hours ago</div>
       </div>
     </motion.div>

@@ -1,0 +1,30 @@
+version: "2"
+sql:
+  - engine: "postgresql"
+    queries: "./db/queries/"
+    schema: "./db/migrate/"
+    gen:
+      go:
+        package: "db"
+        out: "db"
+        sql_package: "pgx/v5"
+        emit_pointers_for_null_types: true
+        emit_exact_table_names: false
+        emit_empty_slices: false
+        overrides:
+          - db_type: "pg_catalog.numeric"
+            go_type: "github.com/shopspring/decimal.Decimal"
+          - db_type: "timestamptz"
+            go_type: "time.Time"
+          - db_type: "uuid"
+            nullable: true
+            go_type:
+              type: "uuid.UUID"
+              pointer: true
+          - db_type: "uuid"
+            nullable: false
+            go_type: "github.com/google/uuid.UUID"
+          - db_type: "date"
+            go_type: "time.Time"
+          - db_type: "pg_catalog.interval"
+            go_type: "time.Duration"

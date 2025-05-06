@@ -1,21 +1,9 @@
-import { motion } from 'framer-motion';
-import clsx from 'clsx';
-import { Button } from '@/components/ui/button';
-import {
-  Star,
-  Eye,
-  LucideCalendarRange,
-  ExternalLink,
-  DoorOpen,
-  CircleDot,
-  Users,
-  GitFork,
-} from 'lucide-react';
+import { Star, LucideCalendarRange, CircleDot, GitFork } from 'lucide-react';
 import { getLanguageColor } from '@/pages/dashboard/color';
 
 const Issues = ({ count }: { count: number }) => {
   return (
-    <div className='col-span-1 gap-x-2 justify-start items-center flex'>
+    <div className='col-span-1 gap-x-2 justify-end items-center flex'>
       <CircleDot className='h-4 w-4' />
       <span className='text-slate-700 dark:text-white/70 font-light text-sm'>
         {count}
@@ -26,7 +14,7 @@ const Issues = ({ count }: { count: number }) => {
 
 const Stars = ({ count }: { count: number }) => {
   return (
-    <div className='col-span-1 gap-x-2 justify-start items-center flex'>
+    <div className='col-span-1 gap-x-2 justify-end items-center flex'>
       <Star className='h-4 w-4' />
       <span className='text-slate-700 dark:text-white/70 font-light text-sm'>
         {count}
@@ -37,7 +25,7 @@ const Stars = ({ count }: { count: number }) => {
 
 const Forks = ({ count }: { count: number }) => {
   return (
-    <div className='col-span-1 gap-x-2 justify-start items-center flex'>
+    <div className='col-span-1 gap-x-2 justify-end items-center flex'>
       <GitFork className='h-4 w-4' />
       <span className='text-slate-700 dark:text-white/70 font-light text-sm'>
         {count}

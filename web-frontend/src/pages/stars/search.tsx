@@ -1,60 +1,31 @@
-import MultipleSelector from '@/components/ui/multiple-selector';
+import MultipleSelector, {
+  type Option,
+} from '@/components/ui/multiple-selector';
 import { Download, Star, FolderPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import useLanguageDistribution from '@/apis/repository/useLanguageDistribution';
+import { useState } from 'react';
 
 export default function Search() {
+  const { data, isLoading } = useLanguageDistribution();
+  const [languages, setLanguages] = useState<Option[]>([]);
+
+  const options: Option[] = data
+    .filter((e) => e.language !== '')
+    .map((e) => {
+      return {
+        label: e.language,
+        value: e.language,
+      };
+    });
+
   return (
     <div className='grid grid-rows-[1fr_70px] w-full overflow-hidden'>
       <div className='flex flex-col gap-y-2 overflow-y-hidden justify-start items-start'>
         <MultipleSelector
-          value={[
-            {
-              value: 'javascript',
-              label: 'JavaScript',
-            },
-            {
-              value: 'typescript',
-              label: 'TypeScript',
-            },
-            {
-              value: 'python',
-              label: 'Python',
-            },
-            {
-              value: 'java',
-              label: 'Java',
-            },
-            {
-              value: 'csharp',
-              label: 'C#',
-            },
-            {
-              value: 'php',
-              label: 'PHP',
-            },
-            {
-              value: 'ruby',
-              label: 'Ruby',
-            },
-            {
-              value: 'go',
-              label: 'Go',
-            },
-            {
-              value: 'swift',
-              label: 'Swift',
-            },
-            {
-              value: 'kotlin',
-              label: 'Kotlin',
-            },
-            {
-              value: 'rust',
-              label: 'Rust',
-            },
-          ]}
+          value={[]}
           onChange={(e) => {}}
-          defaultOptions={[]}
+          options={options}
           placeholder='Select languages you like...'
           emptyIndicator={
             <p className='text-center text-lg leading-10 text-gray-600 dark:text-gray-400 w-[260px]'>

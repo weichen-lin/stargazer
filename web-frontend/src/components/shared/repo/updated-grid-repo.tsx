@@ -1,40 +1,12 @@
 import { motion } from 'framer-motion';
-import clsx from 'clsx';
-import { Button } from '@/components/ui/button';
-import {
-  Star,
-  Eye,
-  LucideCalendarRange,
-  ExternalLink,
-  DoorOpen,
-  CircleDot,
-  Users,
-  GitFork,
-} from 'lucide-react';
 import { getLanguageColor, type Language } from '@/pages/dashboard/color';
 import { cn } from '@/lib/utils';
+import { formatDistance } from 'date-fns';
 
 import type { Repository } from '@/components/shared/repo/type';
 
 function UpdatedRepo(props: Repository) {
-  const {
-    id,
-    name,
-    owner_name,
-    avatar_url,
-    html_url,
-    homepage,
-    description,
-    created_at,
-    updated_at,
-    synced_at,
-    watchers,
-    open_issues,
-    forks,
-    language,
-    archived,
-    topics,
-  } = props;
+  const { name, owner_name, avatar_url, language, updated_at } = props;
 
   return (
     <motion.div
@@ -70,10 +42,12 @@ function UpdatedRepo(props: Repository) {
             {language}
           </div>
         </div>
-        <div className='text-sm text-slate-400'>Update 2 hours ago</div>
+        <div className='text-sm text-slate-400'>
+          Updated {formatDistance(updated_at, new Date(), { addSuffix: true })}
+        </div>
       </div>
     </motion.div>
   );
 }
 
-export { UpdatedRepo };
+export default UpdatedRepo;

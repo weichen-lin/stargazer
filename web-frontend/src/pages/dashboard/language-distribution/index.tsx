@@ -9,26 +9,11 @@ import {
 import { colorConfig, getLanguageColor } from './config';
 import type { Language } from './config';
 import { PieChart as PieChartIcon, Plus } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
-import { useApi } from '@/hooks/useApi';
+
+import useLanguageDistribution from '@/apis/repository/useLanguageDistribution';
 
 export default function LanguageDistribution() {
-  const api = useApi();
-
-  const getLanguageDistribution = useCallback(async () => {
-    const { data } = await api.get<
-      {
-        language: string;
-        count: number;
-      }[]
-    >(`/repository/language-distribution`);
-    return data;
-  }, [api]);
-
-  const { data, isLoading } = useQuery({
-    queryKey: ['language-distribution'],
-    queryFn: () => getLanguageDistribution(),
-  });
+  const { data, isLoading } = useLanguageDistribution();
 
   const totalStars = useMemo(() => {
     return data ? data.reduce((acc, curr) => acc + curr.count, 0) : 0;

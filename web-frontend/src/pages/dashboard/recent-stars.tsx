@@ -1,5 +1,5 @@
 import { Star } from 'lucide-react';
-import GridRepo from '@/components/shared/repo';
+import { DetailRepo } from '@/components/shared/repo';
 import { useQuery } from '@tanstack/react-query';
 import { useApi } from '@/hooks/useApi';
 import { useCallback } from 'react';
@@ -34,7 +34,7 @@ export default function RecentStars() {
             data.length > 0 &&
             data
               .slice(0, 3)
-              .map((repo) => <GridRepo key={repo.id} {...repo} />)}
+              .map((repo) => <DetailRepo key={repo.id} {...repo} />)}
         </div>
       </div>
     </div>
